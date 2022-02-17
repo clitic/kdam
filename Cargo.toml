@@ -1,0 +1,33 @@
+[workspace]
+
+members = ["kdam_cli"]
+
+[package]
+name = "kdam"
+version = "0.1.0"
+edition = "2021"
+description = "A progress bar lib for rust"
+repository = "https://github.com/clitic/kdam"
+documentation = "https://docs.rs/kdam"
+# categories = ["command-line-interface"]
+# keywords = [
+# 	"argument",
+# 	"cli",
+# 	"arg",
+# 	"parser",
+# 	"parse"
+# ]
+license = "MIT"
+readme = "README.md"
+include = [
+  "src/**/*",
+  "Cargo.toml",
+  "LICENSE*",
+  "README.md",
+  "examples/**/*"
+]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+terminal_size = ">=0.1.17"
