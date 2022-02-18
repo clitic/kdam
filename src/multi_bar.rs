@@ -6,9 +6,9 @@ use crate::term;
 #[derive(Debug)]
 pub struct MultiBar {
     bars: Vec<String>,
-    nrows: u16,
-    tx: mpsc::Sender<(u16, String, bool)>,
-    rx: mpsc::Receiver<(u16, String, bool)>,
+    nrows: i16,
+    tx: mpsc::Sender<(i16, String, bool)>,
+    rx: mpsc::Receiver<(i16, String, bool)>,
 }
 
 impl MultiBar {
@@ -23,12 +23,12 @@ impl MultiBar {
     }
 
     pub fn append(&mut self, pb: &mut Bar) {
-        let index = self.bars.len() as u16;
+        let index = self.bars.len() as i16;
         self.bars.push(String::new());
         self.nrows += 1;
 
-        pb.nrows = index;
-        pb.tx = Some(self.tx.clone());
+        pb.internal.nrows = index;
+        pb.internal.tx = Some(self.tx.clone());
     }
 
     pub fn listen(&mut self) {

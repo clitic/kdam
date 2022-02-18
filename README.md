@@ -26,7 +26,21 @@ fn main() {
 ## Installations
 
 ```bash
-cargo install kdam
+[dependencies]
+kdam = "0.1.0"
+```
+
+## Usage
+
+```rust
+use kdam::BarIter;
+
+fn main() {
+    let pb = ["Earth", "Mars", "Saturn", "Jupiter"].iter().progress();
+
+    for _ in pb {
+    }
+}
 ```
 
 ## License

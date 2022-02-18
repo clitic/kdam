@@ -4,7 +4,7 @@ pub fn divmod(x: u64, y: u64) -> (u64, u64) {
 }
 
 /// formats a number (greater than unity) with SI order of magnitude prefixes.
-pub fn format_sizeof(num: usize, divisor: usize) -> String {
+pub fn format_sizeof(num: u64, divisor: u64) -> String {
     let mut value = num as f64;
     for i in ["", "k", "M", "G", "T", "P", "E", "Z"] {
         if value.abs() < 999.5 {

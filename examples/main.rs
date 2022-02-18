@@ -18,10 +18,10 @@ fn main() {
     // }
     // bar.refresh();
 
-    let kl = kdam::Bar::from_iterator(0..10000000);
-    // kl.set_colour("red");
-    for _ in kl {
+    // let kl = kdam::Bar::from_iterator(0..10000000);
+    // // kl.set_colour("red");
+    // for _ in kl {
 
-    }
+    // }
 
 }

@@ -1,19 +1,19 @@
 use std::thread::sleep;
 use std::time::Duration;
 
-use kdam::{term::move_up, Bar};
+use kdam::{term::move_up, BarIter};
 
 fn main() {
-    let mut bar1 = Bar::from_iterator(0..4);
+    let mut bar1 = (0..4).progress();
     bar1.set_description("1st loop", false);
     for _ in bar1 {
         println!(); // move cursor to newline for printing 2nd loop
-        let mut bar2 = Bar::from_iterator(0..5);
+        let mut bar2 = (0..5).progress();
         bar2.set_description("2st loop", false);
 
         for _ in bar2 {
             println!(); // move cursor to newline for printing 3rd loop
-            let mut bar3 = Bar::from_iterator(0..50);
+            let mut bar3 = (0..50).progress();
             bar3.set_description("3st loop", false);
 
             for _ in bar3 {
