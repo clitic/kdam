@@ -1,9 +1,7 @@
 use kdam::Bar;
 
 fn main() {
-    let mut pb = Bar {
-        ..Default::default()
-    };
+    let mut pb = Bar::default();
 
     for _ in 0..10000000 {
         pb.update(1);

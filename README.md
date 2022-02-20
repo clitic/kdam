@@ -25,8 +25,7 @@ fn main() {
 
 ## Installations
 
-```bash
-[dependencies]
+```toml
 kdam = "0.1.0"
 ```
 

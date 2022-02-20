@@ -1,6 +1,6 @@
 // original source: https://github.com/althonos/ffpb/blob/master/ffpb.py
 
-use pbchef::Bar;
+use kdam::Bar;
 use regex::Regex;
 use std::io::Read;
 use std::io::Write;
@@ -84,24 +84,24 @@ fn main() -> Result<(), Error> {
 
             if duration.is_none() {
                 if let Some(x) = duration_rx.captures_iter(&std_line).next() {
-                    let hours = x.get(1).unwrap().as_str().parse::<usize>().unwrap();
-                    let minutes = x.get(2).unwrap().as_str().parse::<usize>().unwrap();
-                    let seconds = x.get(3).unwrap().as_str().parse::<usize>().unwrap();
+                    let hours = x.get(1).unwrap().as_str().parse::<u64>().unwrap();
+                    let minutes = x.get(2).unwrap().as_str().parse::<u64>().unwrap();
+                    let seconds = x.get(3).unwrap().as_str().parse::<u64>().unwrap();
                     duration = Some((((hours * 60) + minutes) * 60) + seconds);
                     pb.total = duration.unwrap();
                 }
             }
             if fps.is_none() {
                 if let Some(y) = fps_rx.captures_iter(&std_line).next() {
-                    fps = Some(y.get(1).unwrap().as_str().parse::<f32>().unwrap() as usize);
+                    fps = Some(y.get(1).unwrap().as_str().parse::<f32>().unwrap() as u64);
                     pb.unit = " frame".to_string();
                 }
             }
 
             if let Some(x) = progress_rx.captures_iter(&std_line).next() {
-                let hours = x.get(1).unwrap().as_str().parse::<usize>().unwrap();
-                let minutes = x.get(2).unwrap().as_str().parse::<usize>().unwrap();
-                let seconds = x.get(3).unwrap().as_str().parse::<usize>().unwrap();
+                let hours = x.get(1).unwrap().as_str().parse::<u64>().unwrap();
+                let minutes = x.get(2).unwrap().as_str().parse::<u64>().unwrap();
+                let seconds = x.get(3).unwrap().as_str().parse::<u64>().unwrap();
                 let mut current = (((hours * 60) + minutes) * 60) + seconds;
 
                 if fps.is_some() {

@@ -62,3 +62,7 @@ pub fn colour(c: &str) -> String {
 pub fn move_up(n: u16) {
     print!("\x1b[{}A", n);
 }
+
+pub fn get_columns() -> u16 {
+    terminal_size::terminal_size().unwrap_or((terminal_size::Width(0), terminal_size::Height(0))).0 .0
+}

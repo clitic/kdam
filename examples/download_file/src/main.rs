@@ -4,7 +4,7 @@ use std::fs::File;
 use std::io::Write;
 
 use futures_util::StreamExt;
-use pbchef::Bar;
+use kdam::Bar;
 use reqwest::Client;
 
 pub async fn download_file(client: &Client, url: &str, path: &str) -> Result<(), String> {
@@ -18,7 +18,7 @@ pub async fn download_file(client: &Client, url: &str, path: &str) -> Result<(),
         .ok_or(format!("Failed to get content length from '{}'", &url))?;
 
     let mut pb = Bar {
-        total: total_size as usize,
+        total: total_size,
         unit_scale: true,
         unit_divisor: 1024,
         unit: "B".to_string(),
@@ -33,7 +33,7 @@ pub async fn download_file(client: &Client, url: &str, path: &str) -> Result<(),
         let chunk = item.or(Err(format!("Error while downloading file")))?;
         file.write(&chunk)
             .or(Err(format!("Error while writing to file")))?;
-        pb.update(chunk.len() as usize);
+        pb.update(chunk.len() as u64);
     }
     pb.refresh();
     println!("\nDownloaded {} to {}", url, path);

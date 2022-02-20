@@ -1,8 +1,6 @@
 use std::io::Write;
 
-use terminal_size::{terminal_size, Height, Width};
-
-use crate::fmt_data;
+use crate::format;
 use crate::internal::BarInternal;
 use crate::term;
 use crate::Animation;
@@ -15,6 +13,7 @@ pub struct Bar {
     pub file: Option<std::fs::File>,
     pub ncols: i16,
     pub mininterval: f64,
+    pub miniters: u64,
     pub ascii: bool,
     pub disable: bool,
     pub unit: String,
@@ -40,6 +39,7 @@ impl Default for Bar {
             file: None,
             ncols: 10,
             mininterval: 0.1,
+            miniters: 1,
             ascii: false,
             disable: false,
             unit: "it".to_string(),
@@ -69,16 +69,16 @@ impl Bar {
         let desc_spacing = if self.desc == "" { "" } else { ": " };
         self.internal.elapsed_time = self.internal.timer.elapsed().as_secs_f64();
         self.internal.its_per = i as f64 / self.internal.elapsed_time;
-        let elapsed_time_fmt = fmt_data::format_interval(self.internal.elapsed_time as u64);
+        let elapsed_time_fmt = format::format_interval(self.internal.elapsed_time as u64);
 
         let count = if self.unit_scale {
-            fmt_data::format_sizeof(i, self.unit_divisor)
+            format::format_sizeof(i, self.unit_divisor)
         } else {
             format!("{}", i)
         };
 
         let rate_fmt = if self.unit_scale {
-            fmt_data::format_sizeof(self.internal.its_per as u64, self.unit_divisor)
+            format::format_sizeof(self.internal.its_per as u64, self.unit_divisor)
         } else {
             format!("{:.2}", self.internal.its_per).to_string()
         };
@@ -112,13 +112,13 @@ impl Bar {
 
     fn render_rbar(&mut self, i: u64) -> String {
         let count = if self.unit_scale {
-            fmt_data::format_sizeof(i, self.unit_divisor)
+            format::format_sizeof(i, self.unit_divisor)
         } else {
             format!("{}", i)
         };
 
         let total = if self.unit_scale {
-            fmt_data::format_sizeof(self.total, self.unit_divisor)
+            format::format_sizeof(self.total, self.unit_divisor)
         } else {
             format!("{}", self.total)
         };
@@ -128,10 +128,10 @@ impl Bar {
 
         let remaning_time = (self.total - i) as f64 / self.internal.its_per;
 
-        let elapsed_time_fmt = fmt_data::format_interval(self.internal.elapsed_time as u64);
-        let mut remaning_time_fmt = fmt_data::format_interval(remaning_time as u64);
+        let elapsed_time_fmt = format::format_interval(self.internal.elapsed_time as u64);
+        let mut remaning_time_fmt = format::format_interval(remaning_time as u64);
         let mut rate_fmt = if self.unit_scale {
-            fmt_data::format_sizeof(self.internal.its_per as u64, self.unit_divisor)
+            format::format_sizeof(self.internal.its_per as u64, self.unit_divisor)
         } else {
             format!("{:.2}", self.internal.its_per).to_string()
         };
@@ -152,7 +152,7 @@ impl Bar {
             if self.internal.user_ncols != -1 {
                 self.ncols = self.internal.user_ncols;
             } else {
-                let columns = terminal_size().unwrap_or((Width(0), Height(0))).0 .0;
+                let columns = term::get_columns();
 
                 if columns != 0 {
                     let new_ncols = columns as i16 - lbar_rbar_len - 3;
@@ -171,7 +171,7 @@ impl Bar {
 
         if matches!(self.animation, Animation::TqdmAscii) {
             let nsyms = self.internal.charset_len - 1;
-            let (bar_length, frac_bar_length) = fmt_data::divmod(
+            let (bar_length, frac_bar_length) = format::divmod(
                 (progress * self.ncols as f64 * nsyms as f64) as u64,
                 nsyms as u64,
             );
@@ -246,7 +246,7 @@ impl Bar {
 
         self.set_ncols(format!("\r{}{}", lbar, rbar).len() as i16);
 
-        if self.ncols == 0 || self.ncols < 0 {
+        if self.ncols <= 0 {
             return (lbar, "".to_string(), rbar);
         }
 
@@ -274,6 +274,7 @@ impl Bar {
         if ((!self.disable)
             && (self.mininterval <= interval)
             && (self.delay <= self.internal.timer.elapsed().as_secs_f64()))
+            && (self.i % self.miniters == 0)
             || force_refresh
         {
             let text: String;
@@ -422,4 +423,19 @@ impl Bar {
             self.internal.charset = "=".to_string();
         }
     }
+
+    pub fn monitor(&mut self, maxinterval: f32) {
+        let mut n = self.i;
+
+        while self.i != self.total {
+            std::thread::sleep(std::time::Duration::from_secs_f32(maxinterval));
+            if self.i == n {
+                self.refresh();
+            } else {
+                n = self.i
+            }
+        }
+    }
 }
+
+// unsafe impl Sync for Bar {}
