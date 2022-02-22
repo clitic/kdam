@@ -62,9 +62,8 @@ pub trait BarIter
 where
     Self: Sized + Iterator,
 {
-    fn progress(self) -> BarIterStruct<Self>
-    where
-        Self: ExactSizeIterator;
+    fn progress(self) -> BarIterStruct<Self>;
+    fn progress_total(self, total: u64) -> BarIterStruct<Self>;
 }
 
 impl<S, T: Iterator<Item = S>> BarIter for T {
@@ -78,5 +77,11 @@ impl<S, T: Iterator<Item = S>> BarIter for T {
             },
             rendered_once: false,
         }
+    }
+
+    fn progress_total(self, total: u64) -> BarIterStruct<Self> {
+        let mut pb = self.progress();
+        pb.total = total;
+        pb
     }
 }

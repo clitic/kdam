@@ -22,6 +22,7 @@ pub struct Bar {
     pub initial: u64,
     pub postfix: String,
     pub unit_divisor: u64,
+    pub colour: String,
     pub delay: f64,
     pub fill: String,
     pub animation: Animation,
@@ -48,6 +49,7 @@ impl Default for Bar {
             initial: 0,
             postfix: "".to_string(),
             unit_divisor: 1000,
+            colour: "default".to_string(),
             delay: 0.0,
             fill: " ".to_string(),
             animation: Animation::TqdmAscii,
@@ -58,7 +60,7 @@ impl Default for Bar {
 }
 
 impl Bar {
-    pub fn new(total: u64) -> Bar {
+    pub fn new(total: u64) -> Self {
         Bar {
             total: total,
             ..Default::default()
@@ -210,13 +212,8 @@ impl Bar {
             }
         }
 
-        if self.internal.colour != "default" {
-            bar_animation = format!(
-                "{}{}{}",
-                self.internal.colour,
-                bar_animation,
-                term::COLOUR_RESET
-            );
+        if self.colour != "default" {
+            bar_animation = format!("{}{}{}", self.colour, bar_animation, term::COLOUR_RESET);
         }
 
         if matches!(self.animation, Animation::TqdmAscii) {
@@ -391,7 +388,9 @@ impl Bar {
 
     /// set/modify colour of the progress bar.
     pub fn set_colour(&mut self, colour: &str) {
-        self.internal.colour = term::colour(colour);
+        if self.colour != "default" {
+            self.colour = term::colour(colour);
+        }
     }
 
     pub fn set_charset(&mut self, charset: &[&str]) {

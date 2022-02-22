@@ -2,7 +2,6 @@ use std::sync::mpsc;
 
 #[derive(Debug)]
 pub struct BarInternal {
-    pub colour: String,
     pub started: bool,
     pub elapsed_time: f64,
     pub its_per: f64,
@@ -19,7 +18,6 @@ pub struct BarInternal {
 impl Default for BarInternal {
     fn default() -> BarInternal {
         BarInternal {
-            colour: "default".to_string(),
             started: false,
             elapsed_time: 0.0,
             its_per: 0.0,

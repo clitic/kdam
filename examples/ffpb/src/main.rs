@@ -10,7 +10,6 @@ use std::process::{Command, Stdio};
 fn main() -> Result<(), Error> {
     let duration_rx = Regex::new(r"Duration: (\d{2}):(\d{2}):(\d{2})\.\d{2}").unwrap();
     let progress_rx = Regex::new(r"time=(\d{2}):(\d{2}):(\d{2})\.\d{2}").unwrap();
-    let source_rx = Regex::new(r"from '(.*)':").unwrap();
     let fps_rx = Regex::new(r"(\d{2}\.\d{2}|\d{2}) fps").unwrap();
     let args: Vec<String> = std::env::args().collect();
 
@@ -41,8 +40,14 @@ fn main() -> Result<(), Error> {
 
     let mut duration = None;
     let mut fps = None;
-    let mut check_source = true;
     let mut check_overwrite = true;
+
+    let mut read_byte;
+    if cfg!(target_os = "windows") {
+        read_byte = b'\r';
+    } else {
+        read_byte = b'\n';
+    }
 
     loop {
         let mut prepend_text = String::from("");
@@ -53,33 +58,33 @@ fn main() -> Result<(), Error> {
 
             prepend_text.push_str(&String::from_utf8_lossy(&pre_buf));
 
-            if String::from_utf8_lossy(&pre_buf).contains("File ") {
+            if prepend_text.contains("File ") {
                 let mut post_buf = vec![];
                 reader.read_until(b']', &mut post_buf).unwrap();
                 print!("File {} ", String::from_utf8(post_buf).unwrap());
                 std::io::stdout().flush().unwrap();
                 check_overwrite = false;
+                read_byte = b'\r';
+            } else if prepend_text.starts_with("\nframe=") || prepend_text.starts_with("frame=") {
+                check_overwrite = false;
+                read_byte = b'\r';
             }
 
             if pb.i != 0 {
                 check_overwrite = false;
+                read_byte = b'\r';
             }
         }
         let mut buf = vec![];
-        reader.read_until(b'\r', &mut buf).unwrap();
+        reader.read_until(read_byte, &mut buf).unwrap();
         let line = String::from_utf8(buf);
         if line.is_ok() {
             let std_line = prepend_text + &line.unwrap();
+
             if std_line == "" {
                 pb.refresh();
+                println!("");
                 break;
-            }
-
-            if check_source {
-                if let Some(x) = source_rx.captures_iter(&std_line).next() {
-                    println!("rendering {}", x.get(1).unwrap().as_str());
-                    check_source = false;
-                }
             }
 
             if duration.is_none() {
