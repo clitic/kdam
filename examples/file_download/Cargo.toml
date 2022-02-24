@@ -1,5 +1,5 @@
 [package]
-name = "download_file"
+name = "file_download"
 version = "0.1.0"
 edition = "2021"
 

@@ -25,7 +25,7 @@ include = [
 
 [workspace]
 
-members = ["kdam_cli", "examples/download_file", "examples/ffpb"]
+members = ["examples/file_download", "examples/ffpb"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

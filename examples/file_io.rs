@@ -1,10 +1,10 @@
+use kdam::tqdm;
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::BufReader;
-use kdam::Bar;
 
 fn main() {
-    let src_file_path = "Cargo.toml";
+    let src_file_path = "Cargo.toml"; // replace this with any big size file
     let dst_file_path = "Copy Of Cargo.toml";
 
     let src_file = File::open(src_file_path).unwrap();
@@ -13,13 +13,12 @@ fn main() {
     let mut reader = BufReader::new(src_file);
     let chunk_size = 1024;
 
-    let mut pb = Bar {
-        total: std::fs::metadata(src_file_path).unwrap().len(),
-        unit_scale: true,
-        unit_divisor: 1024,
-        unit: "B".to_string(),
-        ..Default::default()
-    };
+    let mut pb = tqdm!(
+        total = std::fs::metadata(src_file_path).unwrap().len(),
+        unit_scale = true,
+        unit_divisor = 1024,
+        unit = "B".to_string()
+    );
 
     loop {
         let mut chunk = vec![];

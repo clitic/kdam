@@ -254,62 +254,64 @@ impl Bar {
 
     /// manually update the progress bar, useful for streams such as reading files.
     pub fn update(&mut self, i: u64) {
-        if !self.internal.started {
-            term::init();
-            self.internal.timer = std::time::Instant::now();
-            self.internal.started = true;
-        }
-
-        let mut force_refresh = false;
-        let interval = self.internal.timer.elapsed().as_secs_f64() - self.internal.elapsed_time;
         self.i += i;
 
-        if self.i == self.total || i == 0 {
-            force_refresh = true;
-        }
-
-        if ((!self.disable)
-            && (self.mininterval <= interval)
-            && (self.delay <= self.internal.timer.elapsed().as_secs_f64()))
-            && (self.i % self.miniters == 0)
-            || force_refresh
-        {
-            let text: String;
-
-            if self.total != 0 {
-                let (lbar, mbar, rbar) = self.render(self.i);
-                text = format!("{}{}{}", lbar, mbar, rbar);
-                self.internal.bar_length =
-                    format!("\r{}{}", lbar, rbar).len() as i16 + self.ncols + 2;
-            } else {
-                text = self.render_unknown(self.i);
-                self.internal.bar_length = text.len() as i16;
+        if !self.disable {
+            if !self.internal.started {
+                term::init();
+                self.internal.timer = std::time::Instant::now();
+                self.internal.started = true;
             }
 
-            if self.file.is_none() {
-                if self.internal.nrows == -1 {
-                    self.internal
-                        .stdout
+            let mut force_refresh = false;
+
+            if self.i == self.total || i == 0 {
+                force_refresh = true;
+            }
+
+            if ((self.mininterval
+                <= (self.internal.timer.elapsed().as_secs_f64() - self.internal.elapsed_time))
+                && (self.delay <= self.internal.timer.elapsed().as_secs_f64())
+                && (self.i % self.miniters == 0))
+                || force_refresh
+            {
+                let text: String;
+
+                if self.total != 0 {
+                    let (lbar, mbar, rbar) = self.render(self.i);
+                    text = format!("{}{}{}", lbar, mbar, rbar);
+                    self.internal.bar_length =
+                        format!("\r{}{}", lbar, rbar).len() as i16 + self.ncols + 2;
+                } else {
+                    text = self.render_unknown(self.i);
+                    self.internal.bar_length = text.len() as i16;
+                }
+
+                if self.file.is_none() {
+                    if self.internal.nrows == -1 {
+                        self.internal
+                            .stdout
+                            .write_fmt(format_args!("\r{}", text.as_str()))
+                            .unwrap();
+                        self.internal.stdout.flush().unwrap();
+                    } else {
+                        if self.internal.tx.is_some() {
+                            self.internal
+                                .tx
+                                .as_ref()
+                                .unwrap()
+                                .send((self.internal.nrows, text, self.i == self.total))
+                                .unwrap();
+                        }
+                    }
+                } else {
+                    self.file
+                        .as_ref()
+                        .unwrap()
                         .write_fmt(format_args!("\r{}", text.as_str()))
                         .unwrap();
-                    self.internal.stdout.flush().unwrap();
-                } else {
-                    if self.internal.tx.is_some() {
-                        self.internal
-                            .tx
-                            .as_ref()
-                            .unwrap()
-                            .send((self.internal.nrows, text, self.i == self.total))
-                            .unwrap();
-                    }
+                    self.file.as_ref().unwrap().flush().unwrap();
                 }
-            } else {
-                self.file
-                    .as_ref()
-                    .unwrap()
-                    .write_fmt(format_args!("\r{}", text.as_str()))
-                    .unwrap();
-                self.file.as_ref().unwrap().flush().unwrap();
             }
         }
     }
@@ -437,4 +439,4 @@ impl Bar {
     }
 }
 
-// unsafe impl Sync for Bar {}
+unsafe impl Sync for Bar {}

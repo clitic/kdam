@@ -1,12 +1,13 @@
 use std::thread;
 use std::time::Duration;
-use kdam::{Bar, MultiBar};
+
+use kdam::{tqdm, MultiBar};
 
 fn main() {
-    let mut pb1 = Bar {total: 150, ..Default::default()};
-    let mut pb2 = Bar {total: 100, ..Default::default()};
-    let mut pb3 = Bar {total: 200, ..Default::default()};
-    
+    let mut pb1 = tqdm!(total = 150);
+    let mut pb2 = tqdm!(total = 100);
+    let mut pb3 = tqdm!(total = 200);
+
     let mut bar_handle = MultiBar::new();
     bar_handle.append(&mut pb1);
     bar_handle.append(&mut pb2);
@@ -33,15 +34,13 @@ fn main() {
         }
     });
 
-    let threads = vec![thread1, thread2, thread3];
-
     // listen without blocking main thread
     thread::spawn(move || {
         bar_handle.listen();
     });
 
     // join other worker threads
-    for thread in threads {
+    for thread in [thread1, thread2, thread3] {
         thread.join().unwrap();
     }
 }

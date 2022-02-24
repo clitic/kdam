@@ -1,20 +1,20 @@
+use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
-use std::sync::{Arc, Mutex};
-use kdam::Bar;
+
+use kdam::tqdm;
 
 fn main() {
-    let pb = Arc::new(Mutex::new(Bar::new(10)));
+    let pb_arc = Arc::new(Mutex::new(tqdm!(total = 10)));
+    pb_arc.lock().unwrap().refresh();
     let mut handles = vec![];
-    pb.lock().unwrap().refresh();
 
     for _ in 0..10 {
-        let pb = Arc::clone(&pb);
+        let pb_arc = Arc::clone(&pb_arc);
         let handle = thread::spawn(move || {
             thread::sleep(Duration::from_secs_f32(1.0));
-            let mut pb_ref = pb.lock().unwrap();
-            pb_ref.update(1);
-            pb_ref.refresh();
+            let mut pb = pb_arc.lock().unwrap();
+            pb.update(1);
         });
         handles.push(handle);
     }
