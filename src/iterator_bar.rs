@@ -1,8 +1,11 @@
 use crate::std_bar::Bar;
 
 #[derive(Debug)]
+/// Struct which implemented iterator trait and progress bar displays for `kdam::Bar`.
 pub struct BarIterStruct<T> {
+    /// Iterable to decorate with a progressbar.
     pub iterable: T,
+    /// Instance of `kdam::Bar` to display progress updates for iterable.
     pub pb: Bar,
 }
 
@@ -20,6 +23,12 @@ impl<T> std::ops::DerefMut for BarIterStruct<T> {
     }
 }
 
+impl<T: ExactSizeIterator> ExactSizeIterator for BarIterStruct<T> {
+    fn len(&self) -> usize {
+        self.iterable.len()
+    }
+}
+
 impl<S, T: Iterator<Item = S>> Iterator for BarIterStruct<T> {
     type Item = S;
 
@@ -32,12 +41,6 @@ impl<S, T: Iterator<Item = S>> Iterator for BarIterStruct<T> {
         }
 
         item
-    }
-}
-
-impl<T: ExactSizeIterator> ExactSizeIterator for BarIterStruct<T> {
-    fn len(&self) -> usize {
-        self.iterable.len()
     }
 }
 
@@ -63,6 +66,7 @@ where
 }
 
 impl<S, T: Iterator<Item = S>> BarIter for T {
+    /// Wrap any sized iterator to `kdam::BarIterStruct`.
     fn progress(self) -> BarIterStruct<Self> {
         let total = self.size_hint().0;
         BarIterStruct {

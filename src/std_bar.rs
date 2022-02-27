@@ -6,28 +6,115 @@ use crate::term;
 use crate::Animation;
 
 #[derive(Debug)]
+/// Standard struct implemention of progress bar.
+/// 
+/// # Examples
+/// 
+/// A clean nice progress bar with a total value.
+/// 
+/// ```rust
+/// use kdam::Bar;
+/// 
+/// fn main() {
+///     let mut pb = Bar {
+///         total: 100,
+///         ..Default::default()
+///     };
+/// 
+///     for _ in 0..100 {
+///         pb.update(1);
+///     }
+/// }
+/// ```
+/// 
+/// Another example without a total value. This shows only basic stats.
+/// 
+/// ```rust
+/// use kdam::Bar;
+/// 
+/// fn main() {
+///     let mut pb = Bar::default();
+///
+///     for _ in 0..100 {
+///         pb.update(1);
+///     }
+/// }
+/// ```
 pub struct Bar {
+    /// Prefix for the progress bar.
+    /// (default: `""`)
     pub desc: String,
+    /// The number of expected iterations.
+    /// If unspecified, iterable.size_hint().0 is used if possible.
+    /// If 0, only basic progress statistics are displayed (no ETA, no progressbar).
+    /// (default: `0`)
     pub total: u64,
+    /// If true, keeps all traces of the progressbar upon termination of iteration.
+    /// If false, will leave only if position is 0.
+    /// (default: `true`)
     pub leave: bool,
+    /// Specifies where to output the progress messages (default: stdout).
+    /// Uses file.write_fmt and file.flush methods.
+    /// (default: `None`)
     pub file: Option<std::fs::File>,
+    /// The width of the entire output message.
+    /// If specified, dynamically resizes the progressbar to stay within this bound.
+    /// If unspecified, attempts to use environment width.
+    /// The fallback is a meter width of 10 and no limit for the counter and statistics.
+    /// If 0, will not print any meter (only stats).
+    /// (default: `10`)
     pub ncols: i16,
+    /// Minimum progress display update interval (in seconds).
+    /// (default: `0.1`)
     pub mininterval: f64,
+    /// Minimum progress display update interval, in iterations.
+    /// If > 0, will skip display of specified number of iterations. Tweak this and mininterval to get very efficient loops.
+    /// If your progress is erratic with both fast and slow iterations (network, skipping items, etc) you should set miniters=1.
+    /// (default: `1`)
     pub miniters: u64,
+    /// If false, use unicode (smooth blocks) to fill the meter.
+    /// If true, use ASCII characters "123456789#" to fill the meter.
+    /// You can change ASCII charset using set_charset method.
+    /// (default: `false`)
     pub ascii: bool,
+    /// Whether to disable the entire progress bar wrapper.
+    /// (default: `false`)
     pub disable: bool,
+    /// String that will be used to define the unit of each iteration.
+    /// (default: `"it"`)
     pub unit: String,
+    /// If true, the number of iterations will be reduced/scaled automatically
+    /// and a metric prefix following the International System of Units standard will be added (kilo, mega, etc.).
+    /// (default: `false`)
     pub unit_scale: bool,
+    /// If true, constantly alters ncols to the environment (allowing for window resizes).
+    /// (default: `false`)
     pub dynamic_ncols: bool,
+    /// The initial counter value. Useful when restarting a progress bar.
+    /// (default: `0`)
     pub initial: u64,
+    /// Specify additional stats to display at the end of the bar.
+    /// (default: `""`)
     pub postfix: String,
+    /// ignored unless unit_scale is true.
+    /// (default: `1024`)
     pub unit_divisor: u64,
+    /// Bar colour (e.g. "green", "#00ff00").
     pub colour: String,
+    /// Don't display until few seconds have elapsed.
+    /// (default: `0`)
     pub delay: f64,
+    /// Fill incompleted progress bar with a character.
+    /// (default: `" "`)
     pub fill: String,
+    /// Defines the animation style to use with progress bar.
+    /// For custom type use set_charset method.
+    /// (default: `Animation::TqdmAscii`)
     pub animation: Animation,
-    // internal
+    /// Counter of progress bar.
+    /// (default: `0`)
     pub i: u64,
+    /// Variables for internal use.
     pub internal: BarInternal,
 }
 
@@ -60,7 +147,15 @@ impl Default for Bar {
 }
 
 impl Bar {
-    pub fn new(total: u64) -> Self {
+    /// Create a new instance of `kdam::Bar` with a total value.
+    /// You can also set `total=0` if total is unknown.
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// let mut pb = kdam::Bar::new(100);
+    /// ```
+    pub fn new(total: u64) -> Bar {
         Bar {
             total: total,
             ..Default::default()
@@ -103,7 +198,7 @@ impl Bar {
         let mut spacing = if percentage >= 10 { " " } else { "  " };
 
         if progress >= 1.0 {
-            spacing = ""
+            spacing = "";
         }
 
         return (
@@ -223,7 +318,7 @@ impl Bar {
         }
     }
 
-    /// render progress bar text using given value.
+    /// Render progress bar text using given value.
     fn render(&mut self, mut i: u64) -> (String, String, String) {
         let (progress, lbar) = self.render_lbar(i);
 
@@ -252,7 +347,7 @@ impl Bar {
         return (lbar, mbar, rbar);
     }
 
-    /// manually update the progress bar, useful for streams such as reading files.
+    /// Manually update the progress bar, useful for streams such as reading files.
     pub fn update(&mut self, i: u64) {
         self.i += i;
 
@@ -316,7 +411,7 @@ impl Bar {
         }
     }
 
-    /// restart tqdm timer from last print time.
+    /// Restart bar timer from last print time.
     pub fn unpause(&mut self) {
         self.internal.elapsed_time = self
             .internal
@@ -326,7 +421,7 @@ impl Bar {
             - self.internal.elapsed_time;
     }
 
-    /// clear current bar display.
+    /// Clear current bar display.
     pub fn clear(&mut self) {
         self.internal
             .stdout
@@ -338,13 +433,13 @@ impl Bar {
         self.internal.stdout.flush().unwrap();
     }
 
-    /// force refresh the display of this bar.
+    /// Force refresh the display of this bar.
     pub fn refresh(&mut self) {
         self.update(0);
     }
 
-    /// resets to 0 iterations for repeated use.
-    /// consider combining with `leave: true`.
+    /// Resets to 0 iterations for repeated use.
+    /// Consider combining with `leave=true`.
     pub fn reset(&mut self, total: Option<u64>) {
         self.internal.started = false;
         self.i = self.initial;
@@ -354,7 +449,7 @@ impl Bar {
         }
     }
 
-    ///  print a message via tqdm (without overlap with bars).
+    /// Print a message via bar (without overlap with bars).
     pub fn write(&mut self, text: &str) {
         if self.file.is_none() {
             self.clear();
@@ -372,7 +467,7 @@ impl Bar {
         }
     }
 
-    /// set/modify description of the progress bar.
+    /// Set/Modify description of the progress bar.
     pub fn set_description(&mut self, desc: &str, refresh: bool) {
         self.desc = String::from(desc);
         if refresh {
@@ -380,7 +475,7 @@ impl Bar {
         }
     }
 
-    /// set/modify postfix (additional stats) with automatic formatting based on datatype.
+    /// Set/Modify postfix (additional stats) with automatic formatting based on datatype.
     pub fn set_postfix(&mut self, postfix: &str, refresh: bool) {
         self.postfix = format!(", {}", postfix);
         if refresh {
@@ -388,20 +483,21 @@ impl Bar {
         }
     }
 
-    /// set/modify colour of the progress bar.
+    /// Set/Modify colour of the progress bar.
     pub fn set_colour(&mut self, colour: &str) {
         if self.colour != "default" {
             self.colour = term::colour(colour);
         }
     }
-
+    
+    /// Set/Modify charset of the progress bar.
     pub fn set_charset(&mut self, charset: &[&str]) {
         self.internal.charset = charset.join("");
         self.internal.charset_len = charset.len() as u64;
         self.animation = Animation::TqdmAscii;
     }
 
-    /// set/modify animation style of the progress bar.
+    /// Set/Modify animation style of the progress bar.
     pub fn set_animation(&mut self, animation: Animation) {
         self.animation = animation;
 
@@ -425,6 +521,7 @@ impl Bar {
         }
     }
 
+    /// EXPERIMENTAL - monitor mode support.
     pub fn monitor(&mut self, maxinterval: f32) {
         let mut n = self.i;
 
