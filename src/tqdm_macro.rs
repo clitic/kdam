@@ -6,14 +6,7 @@ macro_rules! tqdm {
             $(
                 pb.$struct_field = $value;
             )*
-            pb.i = pb.initial;
-
-            if !matches!(pb.animation, kdam::Animation::TqdmAscii) || pb.ascii {
-                pb.set_animation(pb.animation.clone());
-            }
-
-            pb.set_colour(&pb.colour.clone());
-
+            pb.set_defaults();
             pb
         }
     };
@@ -21,7 +14,7 @@ macro_rules! tqdm {
     ($iterable: expr) => {
         {
             let mut pb = kdam::Bar::default();
-            pb.i = pb.initial;
+            pb.set_defaults();
 
             if pb.total == 0 {
                 pb.total = $iterable.size_hint().0 as u64;
@@ -42,18 +35,12 @@ macro_rules! tqdm {
             $(
                 pb.$struct_field = $value;
             )*
-
-            pb.i = pb.initial;
-
-            if !matches!(pb.animation, kdam::Animation::TqdmAscii) || pb.ascii {
-                pb.set_animation(pb.animation.clone());
-            }
-
-            pb.set_colour(&pb.colour.clone());
+            pb.set_defaults();
 
             if pb.total == 0 {
                 pb.total = $iterable.size_hint().0 as u64;
             }
+            
             let pb_iter = kdam::BarIterStruct {
                 iterable: $iterable,
                 pb: pb

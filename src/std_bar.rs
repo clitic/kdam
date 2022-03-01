@@ -3,9 +3,8 @@ use std::io::Write;
 use crate::format;
 use crate::internal::BarInternal;
 use crate::term;
-use crate::Animation;
+use crate::styles::Animation;
 
-#[derive(Debug)]
 /// Standard struct implemention of progress bar.
 /// 
 /// # Examples
@@ -20,6 +19,10 @@ use crate::Animation;
 ///         total: 100,
 ///         ..Default::default()
 ///     };
+///     
+///     // In some cases creating struct doesn't set corresponding values for other variables.
+///     // To solve this error use `set_defaults` method.
+///     // pb.set_defaults();
 /// 
 ///     for _ in 0..100 {
 ///         pb.update(1);
@@ -27,7 +30,7 @@ use crate::Animation;
 /// }
 /// ```
 /// 
-/// Another example without a total value. This shows only basic stats.
+/// Another example without a total value. This only shows basic stats.
 /// 
 /// ```rust
 /// use kdam::Bar;
@@ -40,6 +43,7 @@ use crate::Animation;
 ///     }
 /// }
 /// ```
+#[derive(Debug)]
 pub struct Bar {
     /// Prefix for the progress bar.
     /// (default: `""`)
@@ -159,6 +163,31 @@ impl Bar {
         Bar {
             total: total,
             ..Default::default()
+        }
+    }
+
+    /// Set default values to some internal values.
+    pub fn set_defaults(&mut self) {
+        self.i = self.initial;
+
+        if self.ncols != 10 {
+            self.internal.user_ncols = self.ncols;
+        }
+        
+        self.set_colour(&self.colour.clone());
+
+        // animation
+        if self.ascii {
+            self.set_charset(crate::styles::TQDMASCIICHARSET);
+        } else if matches!(self.animation, Animation::Tqdm) {
+            self.set_charset(crate::styles::TQDMCHARSET);
+        } else if matches!(self.animation, Animation::FillUp) {
+            self.set_charset(crate::styles::FILLUPCHARSET);
+        } else if matches!(self.animation, Animation::Classic) {
+            self.internal.charset = "#".to_string();
+            self.fill = ".".to_string();
+        } else if matches!(self.animation, Animation::Arrow) {
+            self.internal.charset = "=".to_string();
         }
     }
 
@@ -495,30 +524,6 @@ impl Bar {
         self.internal.charset = charset.join("");
         self.internal.charset_len = charset.len() as u64;
         self.animation = Animation::TqdmAscii;
-    }
-
-    /// Set/Modify animation style of the progress bar.
-    pub fn set_animation(&mut self, animation: Animation) {
-        self.animation = animation;
-
-        if matches!(self.animation, Animation::TqdmAscii) || self.ascii {
-            self.set_charset(&["1", "2", "3", "4", "5", "6", "7", "8", "9", "#"]);
-        } else if matches!(self.animation, Animation::Tqdm) {
-            self.set_charset(&[
-                "\u{258F}", "\u{258E}", "\u{258D}", "\u{258C}", "\u{258B}", "\u{258A}", "\u{2589}",
-                "\u{2588}",
-            ])
-        } else if matches!(self.animation, Animation::FillUp) {
-            self.set_charset(&[
-                "\u{2581}", "\u{2582}", "\u{2583}", "\u{2584}", "\u{2585}", "\u{2586}", "\u{2587}",
-                "\u{2588}",
-            ])
-        } else if matches!(self.animation, Animation::Classic) {
-            self.internal.charset = "#".to_string();
-            self.fill = ".".to_string();
-        } else if matches!(self.animation, Animation::Arrow) {
-            self.internal.charset = "=".to_string();
-        }
     }
 
     /// EXPERIMENTAL - monitor mode support.

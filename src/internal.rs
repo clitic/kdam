@@ -24,11 +24,7 @@ impl Default for BarInternal {
             its_per: 0.0,
             bar_length: 0,
             user_ncols: -1,
-            charset: [
-                "\u{258F}", "\u{258E}", "\u{258D}", "\u{258C}", "\u{258B}", "\u{258A}", "\u{2589}",
-                "\u{2588}",
-            ]
-            .join(""),
+            charset: crate::styles::TQDMCHARSET.join(""),
             charset_len: 8,
             timer: std::time::Instant::now(),
             stdout: std::io::stdout(),
