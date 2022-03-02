@@ -1,4 +1,4 @@
-#![doc=include_str!("../README.md")]
+// #![doc=include_str!("../README.md")]
 
 mod internal;
 mod iterator_bar;
@@ -9,7 +9,7 @@ mod tqdm_macro;
 
 pub mod format;
 pub mod term;
-pub use iterator_bar::{BarIter, BarIterStruct};
-pub use multi_bar::MultiBar;
+pub use iterator_bar::{BarIterator, BarProgress};
+pub use multi_bar::BarMulti;
 pub use std_bar::Bar;
 pub use styles::Animation;

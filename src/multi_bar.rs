@@ -4,17 +4,17 @@ use crate::std_bar::Bar;
 use crate::term;
 
 #[derive(Debug)]
-pub struct MultiBar {
+pub struct BarMulti {
     bars: Vec<String>,
     nrows: i16,
     tx: mpsc::Sender<(i16, String, bool)>,
     rx: mpsc::Receiver<(i16, String, bool)>,
 }
 
-impl MultiBar {
-    pub fn new() -> MultiBar {
+impl BarMulti {
+    pub fn new() -> BarMulti {
         let (tx, rx) = mpsc::channel();
-        MultiBar {
+        BarMulti {
             bars: vec![],
             nrows: 0,
             tx,

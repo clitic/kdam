@@ -1,14 +1,14 @@
 use std::thread;
 use std::time::Duration;
 
-use kdam::{tqdm, MultiBar};
+use kdam::{tqdm, BarMulti};
 
 fn main() {
     let mut pb1 = tqdm!(total = 150);
     let mut pb2 = tqdm!(total = 100);
     let mut pb3 = tqdm!(total = 200);
 
-    let mut bar_handle = MultiBar::new();
+    let mut bar_handle = BarMulti::new();
     bar_handle.append(&mut pb1);
     bar_handle.append(&mut pb2);
     bar_handle.append(&mut pb3);

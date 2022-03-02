@@ -1,4 +1,4 @@
-pub static COLOUR_RESET: &str = "\x1b[0m";
+pub(crate) static COLOUR_RESET: &str = "\x1b[0m";
 static COLOUR_BLACK: &str = "\x1b[30m";
 static COLOUR_RED: &str = "\x1b[31m";
 static COLOUR_GREEN: &str = "\x1b[32m";
@@ -63,6 +63,6 @@ pub fn move_up(n: u16) {
     print!("\x1b[{}A", n);
 }
 
-pub fn get_columns() -> u16 {
+pub(crate) fn get_columns() -> u16 {
     terminal_size::terminal_size().unwrap_or((terminal_size::Width(0), terminal_size::Height(0))).0 .0
 }

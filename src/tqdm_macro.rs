@@ -15,17 +15,7 @@ macro_rules! tqdm {
         {
             let mut pb = kdam::Bar::default();
             pb.set_defaults();
-
-            if pb.total == 0 {
-                pb.total = $iterable.size_hint().0 as u64;
-            }
-
-            let pb_iter = kdam::BarIterStruct {
-                iterable: $iterable,
-                pb: pb
-            };
-
-            pb_iter
+            kdam::BarIterator::new_with_bar($iterable, pb)
         }
     };
 
@@ -36,17 +26,7 @@ macro_rules! tqdm {
                 pb.$struct_field = $value;
             )*
             pb.set_defaults();
-
-            if pb.total == 0 {
-                pb.total = $iterable.size_hint().0 as u64;
-            }
-            
-            let pb_iter = kdam::BarIterStruct {
-                iterable: $iterable,
-                pb: pb
-            };
-
-            pb_iter
+            kdam::BarIterator::new_with_bar($iterable, pb)
         }
     };
 }

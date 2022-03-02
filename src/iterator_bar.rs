@@ -1,15 +1,43 @@
 use crate::std_bar::Bar;
 
-#[derive(Debug)]
 /// Struct which implemented iterator trait and progress bar displays for `kdam::Bar`.
-pub struct BarIterStruct<T> {
-    /// Iterable to decorate with a progressbar.
+#[derive(Debug)]
+pub struct BarIterator<T> {
+    /// Iterator to decorate with a progressbar.
     pub iterable: T,
     /// Instance of `kdam::Bar` to display progress updates for iterable.
     pub pb: Bar,
 }
 
-impl<T> std::ops::Deref for BarIterStruct<T> {
+impl<T: Iterator> BarIterator<T> {
+    pub fn new(iterable: T) -> BarIterator<T> {
+        let total = iterable.size_hint().0;
+        BarIterator {
+            iterable: iterable,
+            pb: Bar {
+                total: total as u64,
+                ..Default::default()
+            },
+        }
+    }
+
+    pub fn new_with_bar(iterable: T, pb: Bar) -> BarIterator<T> {
+        let total = iterable.size_hint().0 as u64;
+
+        let mut pb_iter = BarIterator {
+            iterable: iterable,
+            pb: pb,
+        };
+
+        if pb_iter.pb.total == 0 {
+            pb_iter.pb.total = total;
+        }
+
+        pb_iter
+    }
+}
+
+impl<T> std::ops::Deref for BarIterator<T> {
     type Target = Bar;
 
     fn deref(&self) -> &Self::Target {
@@ -17,19 +45,19 @@ impl<T> std::ops::Deref for BarIterStruct<T> {
     }
 }
 
-impl<T> std::ops::DerefMut for BarIterStruct<T> {
+impl<T> std::ops::DerefMut for BarIterator<T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.pb
     }
 }
 
-impl<T: ExactSizeIterator> ExactSizeIterator for BarIterStruct<T> {
+impl<T: ExactSizeIterator> ExactSizeIterator for BarIterator<T> {
     fn len(&self) -> usize {
         self.iterable.len()
     }
 }
 
-impl<S, T: Iterator<Item = S>> Iterator for BarIterStruct<T> {
+impl<S, T: Iterator<Item = S>> Iterator for BarIterator<T> {
     type Item = S;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -44,7 +72,7 @@ impl<S, T: Iterator<Item = S>> Iterator for BarIterStruct<T> {
     }
 }
 
-impl<T: DoubleEndedIterator> DoubleEndedIterator for BarIterStruct<T> {
+impl<T: DoubleEndedIterator> DoubleEndedIterator for BarIterator<T> {
     fn next_back(&mut self) -> Option<Self::Item> {
         let item = self.iterable.next_back();
 
@@ -58,23 +86,16 @@ impl<T: DoubleEndedIterator> DoubleEndedIterator for BarIterStruct<T> {
     }
 }
 
-pub trait BarIter
+pub trait BarProgress
 where
     Self: Sized + Iterator,
 {
-    fn progress(self) -> BarIterStruct<Self>;
+    /// Decorate any sized iterator to `kdam::BarIterator`.
+    fn progress(self) -> BarIterator<Self>;
 }
 
-impl<S, T: Iterator<Item = S>> BarIter for T {
-    /// Wrap any sized iterator to `kdam::BarIterStruct`.
-    fn progress(self) -> BarIterStruct<Self> {
-        let total = self.size_hint().0;
-        BarIterStruct {
-            iterable: self,
-            pb: Bar {
-                total: total as u64,
-                ..Default::default()
-            },
-        }
+impl<S, T: Iterator<Item = S>> BarProgress for T {
+    fn progress(self) -> BarIterator<Self> {
+        BarIterator::new(self)
     }
 }

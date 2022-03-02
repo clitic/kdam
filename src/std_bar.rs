@@ -178,11 +178,11 @@ impl Bar {
 
         // animation
         if self.ascii {
-            self.set_charset(crate::styles::TQDMASCIICHARSET);
+            self.set_charset(&crate::styles::TQDMASCIICHARSET);
         } else if matches!(self.animation, Animation::Tqdm) {
-            self.set_charset(crate::styles::TQDMCHARSET);
+            self.set_charset(&crate::styles::TQDMCHARSET);
         } else if matches!(self.animation, Animation::FillUp) {
-            self.set_charset(crate::styles::FILLUPCHARSET);
+            self.set_charset(&crate::styles::FILLUPCHARSET);
         } else if matches!(self.animation, Animation::Classic) {
             self.internal.charset = "#".to_string();
             self.fill = ".".to_string();
