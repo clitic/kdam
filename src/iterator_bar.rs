@@ -1,9 +1,9 @@
 use crate::std_bar::Bar;
 
-/// Struct which implemented iterator trait and progress bar displays for `kdam::Bar`.
+/// Struct which implements iterator trait and progress bar display updates for `kdam::Bar`.
 #[derive(Debug)]
 pub struct BarIterator<T> {
-    /// Iterator to decorate with a progressbar.
+    /// Iterator to decorate with a progress bar.
     pub iterable: T,
     /// Instance of `kdam::Bar` to display progress updates for iterable.
     pub pb: Bar,
@@ -86,11 +86,29 @@ impl<T: DoubleEndedIterator> DoubleEndedIterator for BarIterator<T> {
     }
 }
 
+/// Rust iterators decoration with `kdam::BarIterator`.
 pub trait BarProgress
 where
     Self: Sized + Iterator,
 {
     /// Decorate any sized iterator to `kdam::BarIterator`.
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use kdam::BarIter;
+    /// 
+    /// fn main() {
+    ///     let chars = ["a", "b", "c", "d"];
+    ///     let mut charset = String::new();
+    /// 
+    ///     for i in chars.iter().progress() {
+    ///         charset += i;
+    ///     }
+    /// 
+    ///     assert_eq!(charset, "abcd");
+    /// }
+    /// ```
     fn progress(self) -> BarIterator<Self>;
 }
 

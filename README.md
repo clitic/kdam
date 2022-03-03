@@ -46,26 +46,6 @@ fn main() {
 }
 ```
 
-<details>
-  <summary>Alternative Way</summary>
-
-```rust
-use kdam::BarIter;
-
-fn main() {
-    let chars = ["a", "b", "c", "d"];
-    let mut charset = String::new();
-
-    for i in chars.iter().progress() {
-        charset += i;
-    }
-
-    assert_eq!(charset, "abcd");
-}
-```
-
-</details>
-
 ### Manual
 
 ```rust
@@ -79,7 +59,7 @@ fn main() {
 }
 ```
 
-> If total is unknown progress bar will not be displayed.
+Another example without a total value. This only shows basic stats.
 
 ```rust
 use kdam::tqdm;
@@ -97,15 +77,6 @@ fn main() {
 ```
 10000000 [00:03, 2998660.35it/s]
 ```
-
-## Examples And Advance Usage
-
-- [Description and additional stats](https://github.com/clitic/kdam/blob/main/examples/desc_stats.rs)
-- [Nested progress bar](https://github.com/clitic/kdam/blob/main/examples/nested.rs)
-- [Multiple progress bar](https://github.com/clitic/kdam/blob/main/examples/multiple.rs)
-
-- [Download a file](https://github.com/clitic/kdam/blob/main/examples/file_download/src/main.rs)
-- [Copy a file](https://github.com/clitic/kdam/blob/main/examples/file_io.rs)
 
 ## License
 

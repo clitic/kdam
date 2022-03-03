@@ -1,9 +1,11 @@
-/// returns floor division and modulus of two values.
+//! Functions for formatting values.
+
+/// Returns floor division and modulus of two values.
 pub fn divmod(x: u64, y: u64) -> (u64, u64) {
     (x / y as u64, x % y)
 }
 
-/// formats a number (greater than unity) with SI order of magnitude prefixes.
+/// Formats a number (greater than unity) with SI order of magnitude prefixes.
 pub fn format_sizeof(num: u64, divisor: u64) -> String {
     let mut value = num as f64;
     for i in ["", "k", "M", "G", "T", "P", "E", "Z"] {
@@ -21,7 +23,7 @@ pub fn format_sizeof(num: u64, divisor: u64) -> String {
     return format!("{:3.1}Y", value);
 }
 
-/// formats a number of seconds as a clock time, \[H:\]MM:SS
+/// Formats a number of seconds as a clock time, \[H:\]MM:SS
 pub fn format_interval(seconds: u64) -> String {
     let (minutes, seconds) = divmod(seconds, 60);
     let (hours, minutes) = divmod(minutes, 60);
@@ -33,7 +35,7 @@ pub fn format_interval(seconds: u64) -> String {
     }
 }
 
-// intelligent scientific notation (.3g).
+// Intelligent scientific notation (.3g).
 // pub fn format_num(n: usize) -> String {
 //     let f = format!("{:.3g}", n)
 //         .to_string()

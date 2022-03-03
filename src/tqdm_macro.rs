@@ -1,3 +1,17 @@
+/// [tqdm](https://github.com/tqdm/tqdm) like macro using `kdam::Bar` and `kdam::BarIterator`.
+/// 
+/// # Examples
+/// 
+/// ```rust
+/// use kdam::tqdm;
+/// 
+/// tqdm!();
+/// tqdm!(total = 100);
+/// tqdm!(total = 100, mininterval = 0.0, colour = "green".to_string());
+/// tqdm!(0..100);
+/// tqdm!(0..100, desc = "0 to 99".to_string());
+/// tqdm!(["a", "b", "c", "d"].iter());
+/// ```
 #[macro_export]
 macro_rules! tqdm {
     ($($struct_field: ident = $value: expr),*) => {

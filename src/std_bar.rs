@@ -176,7 +176,6 @@ impl Bar {
         
         self.set_colour(&self.colour.clone());
 
-        // animation
         if self.ascii {
             self.set_charset(&crate::styles::TQDMASCIICHARSET);
         } else if matches!(self.animation, Animation::Tqdm) {

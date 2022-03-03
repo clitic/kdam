@@ -1,3 +1,5 @@
+//! Terminal related functions.
+
 pub(crate) static COLOUR_RESET: &str = "\x1b[0m";
 static COLOUR_BLACK: &str = "\x1b[30m";
 static COLOUR_RED: &str = "\x1b[31m";
@@ -8,7 +10,7 @@ static COLOUR_MAGENTA: &str = "\x1b[35m";
 static COLOUR_CYAN: &str = "\x1b[36m";
 static COLOUR_WHITE: &str = "\x1b[37m";
 
-/// do some platform specific terminal initialization
+/// Do some platform specific terminal initialization.
 pub fn init() {
     if cfg!(target_os = "windows") {
         std::process::Command::new("cmd")
@@ -18,7 +20,7 @@ pub fn init() {
     }
 }
 
-/// create a colour escape code from hex colour code
+/// Create a colour escape code from hex colour code.
 pub fn colour(c: &str) -> String {
     if c.starts_with("#") {
         if c.len() == 7 {
@@ -58,11 +60,12 @@ pub fn colour(c: &str) -> String {
     }
 }
 
-/// move the cursor n times up
+/// Move the cursor n times up.
 pub fn move_up(n: u16) {
     print!("\x1b[{}A", n);
 }
 
+/// Get number of columns in current window.
 pub(crate) fn get_columns() -> u16 {
     terminal_size::terminal_size().unwrap_or((terminal_size::Width(0), terminal_size::Height(0))).0 .0
 }

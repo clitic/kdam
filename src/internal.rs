@@ -11,7 +11,8 @@ pub struct BarInternal {
     pub charset_len: u64,
     pub timer: std::time::Instant,
     pub stdout: std::io::Stdout,
-    /// The screen height. If specified, hides nested bars outside this bound. If unspecified, attempts to use environment height. The fallback is 20.
+    /// The screen height. If specified, hides nested bars outside this bound.
+    /// If unspecified, attempts to use environment height. The fallback is 20.
     pub nrows: i16,
     pub tx: Option<mpsc::Sender<(i16, String, bool)>>,
 }
