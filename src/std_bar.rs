@@ -2,18 +2,18 @@ use std::io::Write;
 
 use crate::format;
 use crate::internal::BarInternal;
-use crate::term;
 use crate::styles::Animation;
+use crate::term;
 
 /// Standard struct implemention of progress bar.
-/// 
+///
 /// # Examples
-/// 
+///
 /// A clean nice progress bar with a total value.
-/// 
+///
 /// ```rust
 /// use kdam::Bar;
-/// 
+///
 /// fn main() {
 ///     let mut pb = Bar {
 ///         total: 100,
@@ -23,18 +23,18 @@ use crate::styles::Animation;
 ///     // In some cases creating struct doesn't set corresponding values for other variables.
 ///     // To solve this error use `set_defaults` method.
 ///     // pb.set_defaults();
-/// 
+///
 ///     for _ in 0..100 {
 ///         pb.update(1);
 ///     }
 /// }
 /// ```
-/// 
+///
 /// Another example without a total value. This only shows basic stats.
-/// 
+///
 /// ```rust
 /// use kdam::Bar;
-/// 
+///
 /// fn main() {
 ///     let mut pb = Bar::default();
 ///
@@ -115,6 +115,9 @@ pub struct Bar {
     /// For custom type use set_charset method.
     /// (default: `Animation::TqdmAscii`)
     pub animation: Animation,
+    /// Select where to display progress bar output between stdout and stderr.
+    /// (default: `"stdout"`)
+    pub output: String,
     /// Counter of progress bar.
     /// (default: `0`)
     pub i: u64,
@@ -144,6 +147,7 @@ impl Default for Bar {
             delay: 0.0,
             fill: " ".to_string(),
             animation: Animation::TqdmAscii,
+            output: "stdout".to_string(),
             i: 0,
             internal: BarInternal::default(),
         }
@@ -153,9 +157,9 @@ impl Default for Bar {
 impl Bar {
     /// Create a new instance of `kdam::Bar` with a total value.
     /// You can also set `total=0` if total is unknown.
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// ```rust
     /// let mut pb = kdam::Bar::new(100);
     /// ```
@@ -173,7 +177,7 @@ impl Bar {
         if self.ncols != 10 {
             self.internal.user_ncols = self.ncols;
         }
-        
+
         self.set_colour(&self.colour.clone());
 
         if self.ascii {
@@ -286,6 +290,10 @@ impl Bar {
                     }
                 } else {
                     self.ncols = 10;
+
+                    if !self.dynamic_ncols {
+                        self.internal.user_ncols = 10;
+                    }
                 }
             }
         }
@@ -375,6 +383,31 @@ impl Bar {
         return (lbar, mbar, rbar);
     }
 
+    fn print_bar(&self, text: String) {
+        if self.file.is_none() {
+            if self.internal.nrows == -1 {
+                if self.output == "stdout" {
+                    term::write_to_stdout(format_args!("\r{}", text));
+                } else {
+                    term::write_to_stderr(format_args!("\r{}", text));
+                }
+            } else {
+                if self.internal.tx.is_some() {
+                    self.internal
+                        .tx
+                        .as_ref()
+                        .unwrap()
+                        .send((self.internal.nrows, text, self.i == self.total))
+                        .unwrap();
+                }
+            }
+        } else {
+            let mut file = self.file.as_ref().unwrap();
+            file.write_fmt(format_args!("\r{}", text.as_str())).unwrap();
+            file.flush().unwrap();
+        }
+    }
+
     /// Manually update the progress bar, useful for streams such as reading files.
     pub fn update(&mut self, i: u64) {
         self.i += i;
@@ -386,79 +419,32 @@ impl Bar {
                 self.internal.started = true;
             }
 
-            let mut force_refresh = false;
-
-            if self.i == self.total || i == 0 {
-                force_refresh = true;
-            }
-
-            if ((self.mininterval
-                <= (self.internal.timer.elapsed().as_secs_f64() - self.internal.elapsed_time))
-                && (self.delay <= self.internal.timer.elapsed().as_secs_f64())
-                && (self.i % self.miniters == 0))
-                || force_refresh
+            if (self.mininterval
+                <= (self.internal.timer.elapsed().as_secs_f64() - self.internal.elapsed_time)
+                && self.i % self.miniters == 0
+                && self.delay <= self.internal.timer.elapsed().as_secs_f64())
+                || self.i == self.total
+                || i == 0
             {
-                let text: String;
-
                 if self.total != 0 {
                     let (lbar, mbar, rbar) = self.render(self.i);
-                    text = format!("{}{}{}", lbar, mbar, rbar);
-                    self.internal.bar_length =
-                        format!("\r{}{}", lbar, rbar).len() as i16 + self.ncols + 2;
+                    self.internal.bar_length = ((lbar.len() + rbar.len()) as i16) + self.ncols + 2;
+                    self.print_bar(format!("{}{}{}", lbar, mbar, rbar));
                 } else {
-                    text = self.render_unknown(self.i);
+                    let text = self.render_unknown(self.i);
                     self.internal.bar_length = text.len() as i16;
-                }
-
-                if self.file.is_none() {
-                    if self.internal.nrows == -1 {
-                        self.internal
-                            .stdout
-                            .write_fmt(format_args!("\r{}", text.as_str()))
-                            .unwrap();
-                        self.internal.stdout.flush().unwrap();
-                    } else {
-                        if self.internal.tx.is_some() {
-                            self.internal
-                                .tx
-                                .as_ref()
-                                .unwrap()
-                                .send((self.internal.nrows, text, self.i == self.total))
-                                .unwrap();
-                        }
-                    }
-                } else {
-                    self.file
-                        .as_ref()
-                        .unwrap()
-                        .write_fmt(format_args!("\r{}", text.as_str()))
-                        .unwrap();
-                    self.file.as_ref().unwrap().flush().unwrap();
+                    self.print_bar(format!("{}", text));
                 }
             }
         }
     }
 
-    /// Restart bar timer from last print time.
-    pub fn unpause(&mut self) {
-        self.internal.elapsed_time = self
-            .internal
-            .timer
-            .duration_since(self.internal.timer)
-            .as_secs_f64()
-            - self.internal.elapsed_time;
-    }
-
     /// Clear current bar display.
     pub fn clear(&mut self) {
-        self.internal
-            .stdout
-            .write_fmt(format_args!(
-                "\r{}\r",
-                " ".repeat(self.internal.bar_length as usize)
-            ))
-            .unwrap();
-        self.internal.stdout.flush().unwrap();
+        term::write_to_stdout(format_args!(
+            "\r{}\r",
+            " ".repeat(self.internal.bar_length as usize)
+        ));
     }
 
     /// Force refresh the display of this bar.
@@ -517,7 +503,7 @@ impl Bar {
             self.colour = term::colour(colour);
         }
     }
-    
+
     /// Set/Modify charset of the progress bar.
     pub fn set_charset(&mut self, charset: &[&str]) {
         self.internal.charset = charset.join("");

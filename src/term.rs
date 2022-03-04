@@ -1,5 +1,7 @@
 //! Terminal related functions.
 
+use std::io::Write;
+
 pub(crate) static COLOUR_RESET: &str = "\x1b[0m";
 static COLOUR_BLACK: &str = "\x1b[30m";
 static COLOUR_RED: &str = "\x1b[31m";
@@ -68,4 +70,16 @@ pub fn move_up(n: u16) {
 /// Get number of columns in current window.
 pub(crate) fn get_columns() -> u16 {
     terminal_size::terminal_size().unwrap_or((terminal_size::Width(0), terminal_size::Height(0))).0 .0
+}
+
+pub(crate) fn write_to_stdout(text: std::fmt::Arguments) {
+    let mut stdout = std::io::stdout();
+    stdout.write_fmt(text).unwrap();
+    stdout.flush().unwrap();
+}
+
+pub(crate) fn write_to_stderr(text: std::fmt::Arguments) {
+    let mut stderr = std::io::stderr();
+    stderr.write_fmt(text).unwrap();
+    stderr.flush().unwrap();
 }

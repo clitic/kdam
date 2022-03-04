@@ -10,7 +10,6 @@ pub struct BarInternal {
     pub charset: String,
     pub charset_len: u64,
     pub timer: std::time::Instant,
-    pub stdout: std::io::Stdout,
     /// The screen height. If specified, hides nested bars outside this bound.
     /// If unspecified, attempts to use environment height. The fallback is 20.
     pub nrows: i16,
@@ -28,7 +27,6 @@ impl Default for BarInternal {
             charset: crate::styles::TQDMCHARSET.join(""),
             charset_len: 8,
             timer: std::time::Instant::now(),
-            stdout: std::io::stdout(),
             nrows: -1,
             tx: None,
         }

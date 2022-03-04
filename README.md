@@ -7,7 +7,7 @@
 
 This library is inspired by [tqdm](https://github.com/tqdm/tqdm).
 
-Instantly make your loops show a smart progress meter - just wrap any iterator with tqdm!(iterable), and you're done!
+Instantly make your loops show a smart progress meter - just wrap any iterator with tqdm!(iterator), and you're done!
 
 ```rust
 use kdam::tqdm;
