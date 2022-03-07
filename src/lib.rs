@@ -1,6 +1,6 @@
 // #![doc=include_str!("../README.md")]
 //! # Examples And Advance Usage
-//! 
+//!
 //! - [Description and additional stats](https://github.com/clitic/kdam/blob/main/examples/desc_stats.rs)
 //! - [Nested progress bar](https://github.com/clitic/kdam/blob/main/examples/nested.rs)
 //! - [Multiple progress bar](https://github.com/clitic/kdam/blob/main/examples/multiple.rs)
@@ -9,7 +9,6 @@
 
 mod internal;
 mod iterator_bar;
-mod multi_bar;
 mod std_bar;
 mod styles;
 mod tqdm_macro;
@@ -17,6 +16,5 @@ mod tqdm_macro;
 pub mod format;
 pub mod term;
 pub use iterator_bar::{BarIterator, BarProgress};
-pub use multi_bar::BarMulti;
 pub use std_bar::Bar;
 pub use styles::Animation;

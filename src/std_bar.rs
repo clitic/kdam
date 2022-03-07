@@ -5,6 +5,8 @@ use crate::internal::BarInternal;
 use crate::styles::Animation;
 use crate::term;
 
+static mut LOCKED: bool = false;
+
 /// Standard struct implemention of progress bar.
 ///
 /// # Examples
@@ -22,7 +24,7 @@ use crate::term;
 ///     
 ///     // In some cases creating struct doesn't set corresponding values for other variables.
 ///     // To solve this error use `set_defaults` method.
-///     // pb.set_defaults();
+///     pb.set_defaults();
 ///
 ///     for _ in 0..100 {
 ///         pb.update(1);
@@ -97,6 +99,10 @@ pub struct Bar {
     /// The initial counter value. Useful when restarting a progress bar.
     /// (default: `0`)
     pub initial: u64,
+    /// Specify the line offset to print this bar (starting from 0).
+    /// Useful to manage multiple bars at once (eg, from threads).
+    /// (default: `0`)
+    pub position: u16,
     /// Specify additional stats to display at the end of the bar.
     /// (default: `""`)
     pub postfix: String,
@@ -141,6 +147,7 @@ impl Default for Bar {
             unit_scale: false,
             dynamic_ncols: false,
             initial: 0,
+            position: 0,
             postfix: "".to_string(),
             unit_divisor: 1000,
             colour: "default".to_string(),
@@ -385,21 +392,41 @@ impl Bar {
 
     fn print_bar(&self, text: String) {
         if self.file.is_none() {
-            if self.internal.nrows == -1 {
+            loop {
+                unsafe {
+                    if !LOCKED {
+                        LOCKED = true;
+                        break;
+                    }
+                }
+            }
+
+            if self.position == 0 {
                 if self.output == "stdout" {
                     term::write_to_stdout(format_args!("\r{}", text));
                 } else {
                     term::write_to_stderr(format_args!("\r{}", text));
                 }
             } else {
-                if self.internal.tx.is_some() {
-                    self.internal
-                        .tx
-                        .as_ref()
-                        .unwrap()
-                        .send((self.internal.nrows, text, self.i == self.total))
-                        .unwrap();
+                if self.output == "stdout" {
+                    term::write_to_stdout(format_args!(
+                        "{}{}",
+                        "\n".repeat(self.position as usize),
+                        text
+                    ));
+                    term::move_up(self.position);
+                } else {
+                    term::write_to_stderr(format_args!(
+                        "{}{}",
+                        "\n".repeat(self.position as usize),
+                        text
+                    ));
+                    term::move_up(self.position);
                 }
+            }
+
+            unsafe {
+                LOCKED = false;
             }
         } else {
             let mut file = self.file.as_ref().unwrap();
@@ -482,19 +509,13 @@ impl Bar {
     }
 
     /// Set/Modify description of the progress bar.
-    pub fn set_description(&mut self, desc: &str, refresh: bool) {
-        self.desc = String::from(desc);
-        if refresh {
-            self.refresh();
-        }
+    pub fn set_description(&mut self, desc: &str) {
+        self.desc = desc.to_string();
     }
 
     /// Set/Modify postfix (additional stats) with automatic formatting based on datatype.
-    pub fn set_postfix(&mut self, postfix: &str, refresh: bool) {
+    pub fn set_postfix(&mut self, postfix: &str) {
         self.postfix = format!(", {}", postfix);
-        if refresh {
-            self.refresh();
-        }
     }
 
     /// Set/Modify colour of the progress bar.
@@ -525,5 +546,3 @@ impl Bar {
         }
     }
 }
-
-unsafe impl Sync for Bar {}

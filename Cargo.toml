@@ -5,14 +5,14 @@ edition = "2021"
 description = "A progress bar lib for rust"
 repository = "https://github.com/clitic/kdam"
 documentation = "https://docs.rs/kdam"
-# categories = ["command-line-interface"]
-# keywords = [
-# 	"argument",
-# 	"cli",
-# 	"arg",
-# 	"parser",
-# 	"parse"
-# ]
+categories = ["command-line-interface"]
+keywords = [
+	"cli",
+	"progress",
+	"progressbar",
+	"pb",
+	"colours"
+]
 license = "MIT"
 readme = "README.md"
 include = [

@@ -1,5 +1,3 @@
-use std::sync::mpsc;
-
 #[derive(Debug)]
 pub struct BarInternal {
     pub started: bool,
@@ -10,10 +8,6 @@ pub struct BarInternal {
     pub charset: String,
     pub charset_len: u64,
     pub timer: std::time::Instant,
-    /// The screen height. If specified, hides nested bars outside this bound.
-    /// If unspecified, attempts to use environment height. The fallback is 20.
-    pub nrows: i16,
-    pub tx: Option<mpsc::Sender<(i16, String, bool)>>,
 }
 
 impl Default for BarInternal {
@@ -27,8 +21,6 @@ impl Default for BarInternal {
             charset: crate::styles::TQDMCHARSET.join(""),
             charset_len: 8,
             timer: std::time::Instant::now(),
-            nrows: -1,
-            tx: None,
         }
     }
 }
