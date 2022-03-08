@@ -5,7 +5,7 @@
   <a href="https://github.com/clitic/kdam"><img src="https://img.shields.io/github/repo-size/clitic/kdam.svg" alt="Repository Size"></a>
 </p>
 
-This library is inspired by [tqdm](https://github.com/tqdm/tqdm).
+This library is inspired by [tqdm](https://github.com/tqdm/tqdm) but 10 times faster than it.
 
 Instantly make your loops show a smart progress meter - just wrap any iterator with tqdm!(iterator), and you're done!
 
