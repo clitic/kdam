@@ -22,9 +22,9 @@ static mut LOCKED: bool = false;
 ///         ..Default::default()
 ///     };
 ///     
-///     // In some cases creating struct doesn't set corresponding values for other variables.
-///     // To solve this error use `set_defaults` method.
-///     pb.set_defaults();
+///     // In some cases creating struct doesn't initializes internal values.
+///     // To solve this error use `init` method.
+///     pb.init();
 ///
 ///     for _ in 0..100 {
 ///         pb.update(1);
@@ -78,6 +78,9 @@ pub struct Bar {
     /// If your progress is erratic with both fast and slow iterations (network, skipping items, etc) you should set miniters=1.
     /// (default: `1`)
     pub miniters: u64,
+    /// Automatically adjusts miniters to correspond to mininterval after long display update lag.
+    /// (default: `false`)
+    pub dynamic_miniters: bool,
     /// If false, use unicode (smooth blocks) to fill the meter.
     /// If true, use ASCII characters "123456789#" to fill the meter.
     /// You can change ASCII charset using set_charset method.
@@ -141,6 +144,7 @@ impl Default for Bar {
             ncols: 10,
             mininterval: 0.1,
             miniters: 1,
+            dynamic_miniters: false,
             ascii: false,
             disable: false,
             unit: "it".to_string(),
@@ -177,8 +181,8 @@ impl Bar {
         }
     }
 
-    /// Set default values to some internal values.
-    pub fn set_defaults(&mut self) {
+    /// Initialize struct values.
+    pub fn init(&mut self) {
         self.i = self.initial;
 
         if self.ncols != 10 {
@@ -446,13 +450,30 @@ impl Bar {
                 self.internal.started = true;
             }
 
-            if (self.mininterval
-                <= (self.internal.timer.elapsed().as_secs_f64() - self.internal.elapsed_time)
-                && self.i % self.miniters == 0
-                && self.delay <= self.internal.timer.elapsed().as_secs_f64())
+            let elapsed_time_now = self.internal.timer.elapsed().as_secs_f64();
+            let mininterval_constraint =
+                self.mininterval <= (elapsed_time_now - self.internal.elapsed_time);
+
+            if self.dynamic_miniters && !mininterval_constraint {
+                self.miniters += i;
+            }
+
+            let miniters_constraint;
+
+            if self.miniters == 0 {
+                miniters_constraint = true;
+            } else {
+                miniters_constraint = self.i % self.miniters == 0;
+            }
+
+            if (mininterval_constraint && miniters_constraint && self.delay <= elapsed_time_now)
                 || self.i == self.total
                 || i == 0
             {
+                if self.dynamic_miniters {
+                    self.miniters = 0;
+                }
+
                 if self.total != 0 {
                     let (lbar, mbar, rbar) = self.render(self.i);
                     self.internal.bar_length = ((lbar.len() + rbar.len()) as i16) + self.ncols + 2;
@@ -468,10 +489,19 @@ impl Bar {
 
     /// Clear current bar display.
     pub fn clear(&mut self) {
-        term::write_to_stdout(format_args!(
-            "\r{}\r",
-            " ".repeat(self.internal.bar_length as usize)
-        ));
+        if self.file.is_none() {
+            if self.output == "stdout" {
+                term::write_to_stdout(format_args!(
+                    "\r{}\r",
+                    " ".repeat(self.internal.bar_length as usize)
+                ));
+            } else {
+                term::write_to_stderr(format_args!(
+                    "\r{}\r",
+                    " ".repeat(self.internal.bar_length as usize)
+                ));
+            }
+        }
     }
 
     /// Force refresh the display of this bar.
@@ -494,7 +524,13 @@ impl Bar {
     pub fn write(&mut self, text: &str) {
         if self.file.is_none() {
             self.clear();
-            println!("{}", text);
+
+            if self.output == "stdout" {
+                term::write_to_stdout(format_args!("{}\n", text));
+            } else {
+                term::write_to_stderr(format_args!("{}\n", text));
+            }
+
             if self.leave {
                 self.refresh();
             }
