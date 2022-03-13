@@ -4,7 +4,7 @@ use kdam::tqdm;
 
 static PYTHON_FILE: &str = r#"import tqdm
 
-pb = tqdm.tqdm(total=100000, leave=False);
+pb = tqdm.tqdm(total=100000, leave=False)
 
 for _ in range(100000):
     pb.update(1)
@@ -46,14 +46,20 @@ fn main() {
     let mut rust_results = vec![];
     let mut python_results = vec![];
 
-    for _ in 0..10 {
+    for _ in tqdm!(0..100, desc = "benching".to_string()) {
         rust_results.push(bench_rust());
         python_results.push(bench_python());
     }
 
+    let rust_results_avg = average(rust_results);
+    let python_results_avg = average(python_results);
+
     println!(
-        "results (lower is better):\nrust: {}\npython: {}",
-        average(rust_results),
-        average(python_results)
+        "\nresults (lower is better):\nkdam: {}\ntqdm: {}",
+        rust_results_avg, python_results_avg
+    );
+    println!(
+        "kdam is {:.0} times faster than tqdm (python).",
+        python_results_avg / rust_results_avg
     );
 }

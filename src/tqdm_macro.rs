@@ -20,7 +20,6 @@ macro_rules! tqdm {
             $(
                 pb.$struct_field = $value;
             )*
-            pb.init();
             pb
         }
     };
@@ -28,7 +27,6 @@ macro_rules! tqdm {
     ($iterable: expr) => {
         {
             let mut pb = kdam::Bar::default();
-            pb.init();
             kdam::BarIterator::new_with_bar($iterable, pb)
         }
     };
@@ -39,7 +37,6 @@ macro_rules! tqdm {
             $(
                 pb.$struct_field = $value;
             )*
-            pb.init();
             kdam::BarIterator::new_with_bar($iterable, pb)
         }
     };

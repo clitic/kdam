@@ -7,11 +7,18 @@ pub(crate) static FILLUPCHARSET: [&str; 8] = [
 ];
 
 /// Different types of pre-configured animation styles for `kdam::Bar`.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Animation {
     Tqdm,
     TqdmAscii,
     FillUp,
     Classic,
     Arrow,
+}
+
+/// Different ouput locations of `kdam::Bar`.
+#[derive(Debug, Clone)]
+pub enum Output {
+    Stdout,
+    Stderr,
 }

@@ -8,6 +8,7 @@ pub struct BarInternal {
     pub charset: String,
     pub charset_len: u64,
     pub timer: std::time::Instant,
+    pub force_refresh: bool,
 }
 
 impl Default for BarInternal {
@@ -21,6 +22,7 @@ impl Default for BarInternal {
             charset: crate::styles::TQDMCHARSET.join(""),
             charset_len: 8,
             timer: std::time::Instant::now(),
+            force_refresh: false,
         }
     }
 }

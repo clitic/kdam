@@ -2,7 +2,7 @@ use std::io::Write;
 
 use crate::format;
 use crate::internal::BarInternal;
-use crate::styles::Animation;
+use crate::styles::{Animation, Output};
 use crate::term;
 
 static mut LOCKED: bool = false;
@@ -21,10 +21,6 @@ static mut LOCKED: bool = false;
 ///         total: 100,
 ///         ..Default::default()
 ///     };
-///     
-///     // In some cases creating struct doesn't initializes internal values.
-///     // To solve this error use `init` method.
-///     pb.init();
 ///
 ///     for _ in 0..100 {
 ///         pb.update(1);
@@ -59,7 +55,7 @@ pub struct Bar {
     /// If false, will leave only if position is 0.
     /// (default: `true`)
     pub leave: bool,
-    /// Specifies where to output the progress messages (default: stdout).
+    /// Specifies where to output the progress messages (default: stderr).
     /// Uses file.write_fmt and file.flush methods.
     /// (default: `None`)
     pub file: Option<std::fs::File>,
@@ -122,14 +118,14 @@ pub struct Bar {
     pub fill: String,
     /// Defines the animation style to use with progress bar.
     /// For custom type use set_charset method.
-    /// (default: `Animation::TqdmAscii`)
+    /// (default: `kdam::Animation::TqdmAscii`)
     pub animation: Animation,
     /// Select where to display progress bar output between stdout and stderr.
-    /// (default: `"stdout"`)
-    pub output: String,
+    /// (default: `kdam::Output::Stderr`)
+    pub output: Output,
     /// Counter of progress bar.
     /// (default: `0`)
-    pub i: u64,
+    pub n: u64,
     /// Variables for internal use.
     pub internal: BarInternal,
 }
@@ -158,8 +154,8 @@ impl Default for Bar {
             delay: 0.0,
             fill: " ".to_string(),
             animation: Animation::TqdmAscii,
-            output: "stdout".to_string(),
-            i: 0,
+            output: Output::Stderr,
+            n: 0,
             internal: BarInternal::default(),
         }
     }
@@ -182,8 +178,8 @@ impl Bar {
     }
 
     /// Initialize struct values.
-    pub fn init(&mut self) {
-        self.i = self.initial;
+    fn init(&mut self) {
+        self.n = self.initial;
 
         if self.ncols != 10 {
             self.internal.user_ncols = self.ncols;
@@ -394,7 +390,57 @@ impl Bar {
         return (lbar, mbar, rbar);
     }
 
-    fn print_bar(&self, text: String) {
+    /// Manually update the progress bar, useful for streams such as reading files.
+    pub fn update(&mut self, n: u64) {
+        if !self.internal.started {
+            term::init();
+            self.init();
+            self.internal.timer = std::time::Instant::now();
+            self.internal.started = true;
+        }
+
+        self.n += n;
+
+        if !self.disable {
+            let elapsed_time_now = self.internal.timer.elapsed().as_secs_f64();
+            let mininterval_constraint =
+                self.mininterval <= (elapsed_time_now - self.internal.elapsed_time);
+
+            if self.dynamic_miniters && !mininterval_constraint {
+                self.miniters += n;
+            }
+
+            let miniters_constraint;
+
+            if self.miniters <= 1 {
+                miniters_constraint = true;
+            } else {
+                miniters_constraint = self.n % self.miniters == 0;
+            }
+
+            if (mininterval_constraint && miniters_constraint && (self.delay <= elapsed_time_now))
+                || self.n == self.total
+                || self.internal.force_refresh
+            {
+                if self.dynamic_miniters {
+                    self.miniters = 0;
+                }
+
+                if self.total != 0 {
+                    let (lbar, mbar, rbar) = self.render(self.n);
+                    self.internal.bar_length = ((lbar.len() + rbar.len()) as i16) + self.ncols + 2;
+                    self.write_at(format!("{}{}{}", lbar, mbar, rbar), self.position);
+                } else {
+                    let text = self.render_unknown(self.n);
+                    self.internal.bar_length = text.len() as i16;
+                    self.write_at(format!("{}", text), self.position);
+                }
+            }
+        }
+    }
+
+    /// Print a message via bar at specific position.
+    pub fn write_at(&self, text: String, position: u16) {
         if self.file.is_none() {
             loop {
                 unsafe {
@@ -405,27 +451,27 @@ impl Bar {
                 }
             }
 
-            if self.position == 0 {
-                if self.output == "stdout" {
-                    term::write_to_stdout(format_args!("\r{}", text));
-                } else {
+            if position == 0 {
+                if matches!(self.output, Output::Stderr) {
                     term::write_to_stderr(format_args!("\r{}", text));
+                } else if matches!(self.output, Output::Stdout) {
+                    term::write_to_stdout(format_args!("\r{}", text));
                 }
             } else {
-                if self.output == "stdout" {
-                    term::write_to_stdout(format_args!(
-                        "{}{}",
-                        "\n".repeat(self.position as usize),
-                        text
-                    ));
-                    term::move_up(self.position);
-                } else {
+                if matches!(self.output, Output::Stderr) {
                     term::write_to_stderr(format_args!(
-                        "{}{}",
-                        "\n".repeat(self.position as usize),
-                        text
+                        "{}{}{}",
+                        "\n".repeat(position as usize),
+                        text,
+                        format!("\x1b[{}A", position)
                     ));
-                    term::move_up(self.position);
+                } else if matches!(self.output, Output::Stdout) {
+                    term::write_to_stdout(format_args!(
+                        "{}{}{}",
+                        "\n".repeat(position as usize),
+                        text,
+                        format!("\x1b[{}A", position)
+                    ));
                 }
             }
 
@@ -434,69 +480,21 @@ impl Bar {
             }
         } else {
             let mut file = self.file.as_ref().unwrap();
-            file.write_fmt(format_args!("\r{}", text.as_str())).unwrap();
+            file.write_fmt(format_args!("{}\n", text.as_str())).unwrap();
             file.flush().unwrap();
-        }
-    }
-
-    /// Manually update the progress bar, useful for streams such as reading files.
-    pub fn update(&mut self, i: u64) {
-        self.i += i;
-
-        if !self.disable {
-            if !self.internal.started {
-                term::init();
-                self.internal.timer = std::time::Instant::now();
-                self.internal.started = true;
-            }
-
-            let elapsed_time_now = self.internal.timer.elapsed().as_secs_f64();
-            let mininterval_constraint =
-                self.mininterval <= (elapsed_time_now - self.internal.elapsed_time);
-
-            if self.dynamic_miniters && !mininterval_constraint {
-                self.miniters += i;
-            }
-
-            let miniters_constraint;
-
-            if self.miniters == 0 {
-                miniters_constraint = true;
-            } else {
-                miniters_constraint = self.i % self.miniters == 0;
-            }
-
-            if (mininterval_constraint && miniters_constraint && self.delay <= elapsed_time_now)
-                || self.i == self.total
-                || i == 0
-            {
-                if self.dynamic_miniters {
-                    self.miniters = 0;
-                }
-
-                if self.total != 0 {
-                    let (lbar, mbar, rbar) = self.render(self.i);
-                    self.internal.bar_length = ((lbar.len() + rbar.len()) as i16) + self.ncols + 2;
-                    self.print_bar(format!("{}{}{}", lbar, mbar, rbar));
-                } else {
-                    let text = self.render_unknown(self.i);
-                    self.internal.bar_length = text.len() as i16;
-                    self.print_bar(format!("{}", text));
-                }
-            }
         }
     }
 
     /// Clear current bar display.
     pub fn clear(&mut self) {
         if self.file.is_none() {
-            if self.output == "stdout" {
-                term::write_to_stdout(format_args!(
+            if matches!(self.output, Output::Stderr) {
+                term::write_to_stderr(format_args!(
                     "\r{}\r",
                     " ".repeat(self.internal.bar_length as usize)
                 ));
-            } else {
-                term::write_to_stderr(format_args!(
+            } else if matches!(self.output, Output::Stdout) {
+                term::write_to_stdout(format_args!(
                     "\r{}\r",
                     " ".repeat(self.internal.bar_length as usize)
                 ));
@@ -506,14 +504,15 @@ impl Bar {
 
     /// Force refresh the display of this bar.
     pub fn refresh(&mut self) {
+        self.internal.force_refresh = true;
         self.update(0);
+        self.internal.force_refresh = false;
     }
 
     /// Resets to 0 iterations for repeated use.
     /// Consider combining with `leave=true`.
     pub fn reset(&mut self, total: Option<u64>) {
         self.internal.started = false;
-        self.i = self.initial;
 
         if total.is_some() {
             self.total = total.unwrap();
@@ -521,36 +520,23 @@ impl Bar {
     }
 
     /// Print a message via bar (without overlap with bars).
-    pub fn write(&mut self, text: &str) {
-        if self.file.is_none() {
-            self.clear();
+    pub fn write(&mut self, text: String) {
+        self.clear();
 
-            if self.output == "stdout" {
-                term::write_to_stdout(format_args!("{}\n", text));
-            } else {
-                term::write_to_stderr(format_args!("{}\n", text));
-            }
+        term::write_to_stdout(format_args!("{}\n", text));
 
-            if self.leave {
-                self.refresh();
-            }
-        } else {
-            self.file
-                .as_ref()
-                .unwrap()
-                .write_fmt(format_args!("{}\n", text))
-                .unwrap();
-            self.file.as_ref().unwrap().flush().unwrap();
+        if self.leave {
+            self.refresh();
         }
     }
 
     /// Set/Modify description of the progress bar.
-    pub fn set_description(&mut self, desc: &str) {
-        self.desc = desc.to_string();
+    pub fn set_description(&mut self, desc: String) {
+        self.desc = desc;
     }
 
     /// Set/Modify postfix (additional stats) with automatic formatting based on datatype.
-    pub fn set_postfix(&mut self, postfix: &str) {
+    pub fn set_postfix(&mut self, postfix: String) {
         self.postfix = format!(", {}", postfix);
     }
 
@@ -570,14 +556,14 @@ impl Bar {
 
     /// EXPERIMENTAL - monitor mode support.
     pub fn monitor(&mut self, maxinterval: f32) {
-        let mut n = self.i;
+        let mut n = self.n;
 
-        while self.i != self.total {
+        while self.n != self.total {
             std::thread::sleep(std::time::Duration::from_secs_f32(maxinterval));
-            if self.i == n {
+            if self.n == n {
                 self.refresh();
             } else {
-                n = self.i
+                n = self.n
             }
         }
     }

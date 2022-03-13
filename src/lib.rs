@@ -11,10 +11,10 @@ mod internal;
 mod iterator_bar;
 mod std_bar;
 mod styles;
+mod term;
 mod tqdm_macro;
 
 pub mod format;
-pub mod term;
 pub use iterator_bar::{BarIterator, BarProgress};
 pub use std_bar::Bar;
-pub use styles::Animation;
+pub use styles::{Animation, Output};
