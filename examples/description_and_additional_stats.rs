@@ -1,4 +1,5 @@
 use kdam::tqdm;
+
 fn main() {
     let mut pb = tqdm!(total = 10);
     pb.refresh();
