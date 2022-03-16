@@ -4,8 +4,7 @@ use crate::format;
 use crate::internal::BarInternal;
 use crate::styles::{Animation, Output};
 use crate::term;
-
-static mut LOCKED: bool = false;
+use crate::lock;
 
 /// Standard struct implemention of progress bar.
 ///
@@ -429,29 +428,22 @@ impl Bar {
                 if self.total != 0 {
                     let (lbar, mbar, rbar) = self.render(self.n);
                     self.internal.bar_length = ((lbar.len() + rbar.len()) as i16) + self.ncols + 2;
-                    self.write_at(format!("{}{}{}", lbar, mbar, rbar), self.position);
+                    self.write_at(format!("{}{}{}", lbar, mbar, rbar));
                 } else {
                     let text = self.render_unknown(self.n);
                     self.internal.bar_length = text.len() as i16;
-                    self.write_at(format!("{}", text), self.position);
+                    self.write_at(format!("{}", text));
                 }
             }
         }
     }
 
     /// Print a message via bar at specific position.
-    pub fn write_at(&self, text: String, position: u16) {
+    fn write_at(&self, text: String) {
         if self.file.is_none() {
-            loop {
-                unsafe {
-                    if !LOCKED {
-                        LOCKED = true;
-                        break;
-                    }
-                }
-            }
+            lock::block();
 
-            if position == 0 {
+            if self.position == 0 {
                 if matches!(self.output, Output::Stderr) {
                     term::write_to_stderr(format_args!("\r{}", text));
                 } else if matches!(self.output, Output::Stdout) {
@@ -461,23 +453,21 @@ impl Bar {
                 if matches!(self.output, Output::Stderr) {
                     term::write_to_stderr(format_args!(
                         "{}{}{}",
-                        "\n".repeat(position as usize),
+                        "\n".repeat(self.position as usize),
                         text,
-                        format!("\x1b[{}A", position)
+                        format!("\x1b[{}A", self.position)
                     ));
                 } else if matches!(self.output, Output::Stdout) {
                     term::write_to_stdout(format_args!(
                         "{}{}{}",
-                        "\n".repeat(position as usize),
+                        "\n".repeat(self.position as usize),
                         text,
-                        format!("\x1b[{}A", position)
+                        format!("\x1b[{}A", self.position)
                     ));
                 }
             }
 
-            unsafe {
-                LOCKED = false;
-            }
+            lock::unblock();
         } else {
             let mut file = self.file.as_ref().unwrap();
             file.write_fmt(format_args!("{}\n", text.as_str())).unwrap();
@@ -488,15 +478,21 @@ impl Bar {
     /// Clear current bar display.
     pub fn clear(&mut self) {
         if self.file.is_none() {
+            let mut columns = term::get_columns() as usize;
+
+            if columns == 0 {
+                columns = self.internal.bar_length as usize;
+            }
+
             if matches!(self.output, Output::Stderr) {
                 term::write_to_stderr(format_args!(
                     "\r{}\r",
-                    " ".repeat(self.internal.bar_length as usize)
+                    " ".repeat(columns)
                 ));
             } else if matches!(self.output, Output::Stdout) {
                 term::write_to_stdout(format_args!(
                     "\r{}\r",
-                    " ".repeat(self.internal.bar_length as usize)
+                    " ".repeat(columns)
                 ));
             }
         }

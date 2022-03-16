@@ -1,10 +1,10 @@
 /// [tqdm](https://github.com/tqdm/tqdm) like macro using `kdam::Bar` and `kdam::BarIterator`.
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```rust
 /// use kdam::tqdm;
-/// 
+///
 /// tqdm!();
 /// tqdm!(total = 100);
 /// tqdm!(total = 100, mininterval = 0.0, colour = "green".to_string());
@@ -40,4 +40,30 @@ macro_rules! tqdm {
             kdam::BarIterator::new_with_bar($iterable, pb)
         }
     };
+}
+
+#[macro_export]
+macro_rules! write_at {
+    ($position:literal, $($arg:tt)*) => {
+        {
+            use std::io::Write;
+
+            let mut stdout = std::io::stdout();
+            kdam::lock::block();
+
+            if $position > 0 {
+                stdout.write_fmt(format_args!(
+                    "{}{}{}",
+                    "\n".repeat($position as usize),
+                    format!($($arg)*),
+                    format!("\x1b[{}A", $position)
+                )).unwrap();
+            } else {
+                stdout.write_fmt(format_args!($($arg)*)).unwrap();
+            }
+
+            stdout.flush().unwrap();
+            kdam::lock::unblock();
+        }
+    }
 }
