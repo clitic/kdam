@@ -1,5 +1,8 @@
+//! Sync bars between multiple threads.
+
 static mut LOCKED: bool = false;
 
+/// Wait until lock is free and then acquire it.
 pub fn block() {
     loop {
         unsafe {
@@ -11,6 +14,7 @@ pub fn block() {
     }
 }
 
+/// Release lock.
 pub fn unblock() {
     unsafe {
         LOCKED = false;

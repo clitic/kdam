@@ -21,6 +21,10 @@ fn main() {
 100%|█████████████████████████████| 100/100 [00:00<00:00, 25854.49it/s]
 ```
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/clitic/kdam/main/images/animations.gif">
+</p>
+
 ## Installations
 
 ```toml

@@ -7,7 +7,6 @@
 //! - [Download a file](https://github.com/clitic/kdam/blob/main/examples/file_download/src/main.rs)
 //! - [Copy a file](https://github.com/clitic/kdam/blob/main/examples/file_copy.rs)
 
-mod internal;
 mod iterator_bar;
 mod std_bar;
 mod styles;

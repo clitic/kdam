@@ -1,10 +1,37 @@
 use std::io::Write;
 
 use crate::format;
-use crate::internal::BarInternal;
 use crate::styles::{Animation, Output};
 use crate::term;
-use crate::lock;
+
+#[derive(Debug)]
+pub struct BarInternal {
+    pub started: bool,
+    pub elapsed_time: f64,
+    pub its_per: f64,
+    pub bar_length: i16,
+    pub user_ncols: i16,
+    pub charset: String,
+    pub charset_len: u64,
+    pub timer: std::time::Instant,
+    pub force_refresh: bool,
+}
+
+impl Default for BarInternal {
+    fn default() -> BarInternal {
+        BarInternal {
+            started: false,
+            elapsed_time: 0.0,
+            its_per: 0.0,
+            bar_length: 0,
+            user_ncols: -1,
+            charset: crate::styles::TQDMCHARSET.join(""),
+            charset_len: 8,
+            timer: std::time::Instant::now(),
+            force_refresh: false,
+        }
+    }
+}
 
 /// Standard struct implemention of progress bar.
 ///
@@ -441,7 +468,7 @@ impl Bar {
     /// Print a message via bar at specific position.
     fn write_at(&self, text: String) {
         if self.file.is_none() {
-            lock::block();
+            crate::lock::block();
 
             if self.position == 0 {
                 if matches!(self.output, Output::Stderr) {
@@ -467,7 +494,7 @@ impl Bar {
                 }
             }
 
-            lock::unblock();
+            crate::lock::unblock();
         } else {
             let mut file = self.file.as_ref().unwrap();
             file.write_fmt(format_args!("{}\n", text.as_str())).unwrap();
@@ -485,15 +512,9 @@ impl Bar {
             }
 
             if matches!(self.output, Output::Stderr) {
-                term::write_to_stderr(format_args!(
-                    "\r{}\r",
-                    " ".repeat(columns)
-                ));
+                term::write_to_stderr(format_args!("\r{}\r", " ".repeat(columns)));
             } else if matches!(self.output, Output::Stdout) {
-                term::write_to_stdout(format_args!(
-                    "\r{}\r",
-                    " ".repeat(columns)
-                ));
+                term::write_to_stdout(format_args!("\r{}\r", " ".repeat(columns)));
             }
         }
     }

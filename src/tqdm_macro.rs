@@ -42,13 +42,22 @@ macro_rules! tqdm {
     };
 }
 
+/// Prints to the standard error at specified position.
+/// 
+/// Also cursor position is restored to original position after print. 
+///
+/// # Example
+///
+/// ```rust
+/// kdam::write_at!(1, "1 + 1 = {}", 2);
+/// ```
 #[macro_export]
 macro_rules! write_at {
     ($position:literal, $($arg:tt)*) => {
         {
             use std::io::Write;
 
-            let mut stdout = std::io::stdout();
+            let mut stdout = std::io::stderr();
             kdam::lock::block();
 
             if $position > 0 {
