@@ -5,9 +5,9 @@
   <a href="https://github.com/clitic/kdam"><img src="https://img.shields.io/github/repo-size/clitic/kdam.svg" alt="Repository Size"></a>
 </p>
 
-This library is inspired by [tqdm](https://github.com/tqdm/tqdm) but 10 times faster than it.
+kdam is a port of [tqdm](https://github.com/tqdm/tqdm) library which is written in python. kdam has almost same features as tqdm with extra features included. Some features couldn't be ported due to language barriers. kdam is also 8-10 times faster than tqdm.
 
-Instantly make your loops show a smart progress meter - just wrap any iterator with tqdm!(iterator), and you're done!
+Instantly make your loops show a smart progress meter. Just wrap any iterator with tqdm!(iterator) macro and you're done!
 
 ```rust
 use kdam::tqdm;
@@ -21,13 +21,18 @@ fn main() {
 100%|█████████████████████████████| 100/100 [00:00<00:00, 25854.49it/s]
 ```
 
-<p align="center">
+<!-- <p align="center">
   <img src="https://raw.githubusercontent.com/clitic/kdam/main/images/animations.gif">
-</p>
+</p> -->
+
+![showcase_animations](https://raw.githubusercontent.com/clitic/kdam/main/images/animations.gif)
 
 ## Installations
 
+Add this to your Cargo.toml file.
+
 ```toml
+[dependencies]
 kdam = "0.1.0"
 ```
 
@@ -84,7 +89,7 @@ fn main() {
 
 ## Examples
 
-### Description and additional stats
+### Description And Additional Stats
 
 Custom information can be displayed and updated dynamically on `kdam` bars with the `desc` and `postfix`.
 
@@ -109,11 +114,9 @@ fn main() {
 GEN 4:  50%|█████████▎        | 5/10 [00:02<00:02, 1.95it/s, str=h, lst=[1, 2]]
 ```
 
-### Nested progress bars
+### Nested Progress Bars
 
-`kdam` supports nested progress bars. For manual control over positioning (e.g. for multi-processing use), you
-may specify `position=n` where `n=0` for the outermost bar, `n=1` for
-the next, and so on.
+`kdam` supports nested progress bars. For manual control over positioning (e.g. for multi-processing use), you may specify `position=n` where `n=0` for the outermost bar, `n=1` for the next, and so on.
 
 ```rust
 use kdam::tqdm;

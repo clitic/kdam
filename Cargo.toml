@@ -2,7 +2,7 @@
 name = "kdam"
 version = "0.1.0"
 edition = "2021"
-description = "A progress bar library for rust"
+description = "A console progress bar library for Rust"
 repository = "https://github.com/clitic/kdam"
 documentation = "https://docs.rs/kdam"
 categories = ["command-line-interface"]
@@ -11,7 +11,6 @@ keywords = [
 	"progress",
 	"progressbar",
 	"pb",
-	"colours"
 ]
 license = "MIT"
 readme = "README.md"

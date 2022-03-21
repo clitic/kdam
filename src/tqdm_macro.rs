@@ -26,8 +26,7 @@ macro_rules! tqdm {
 
     ($iterable: expr) => {
         {
-            let mut pb = kdam::Bar::default();
-            kdam::BarIterator::new_with_bar($iterable, pb)
+            kdam::BarIterator::new_with_bar($iterable, kdam::Bar::default())
         }
     };
 
@@ -43,8 +42,8 @@ macro_rules! tqdm {
 }
 
 /// Prints to the standard error at specified position.
-/// 
-/// Also cursor position is restored to original position after print. 
+///
+/// Also cursor position is restored to original position after print.
 ///
 /// # Example
 ///
@@ -58,7 +57,7 @@ macro_rules! write_at {
             use std::io::Write;
 
             let mut stdout = std::io::stderr();
-            kdam::lock::block();
+            kdam::lock::acquire();
 
             if $position > 0 {
                 stdout.write_fmt(format_args!(
@@ -72,7 +71,7 @@ macro_rules! write_at {
             }
 
             stdout.flush().unwrap();
-            kdam::lock::unblock();
+            kdam::lock::release();
         }
     }
 }

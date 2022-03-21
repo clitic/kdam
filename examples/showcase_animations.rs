@@ -7,35 +7,35 @@ fn main() {
         total = render_length,
         desc = "tqdm".to_string(),
         position = 0,
-        mininterval = 0.0
+        max_fps = true
     );
     let mut pb2 = tqdm!(
         total = render_length,
         desc = "ascii".to_string(),
         ascii = true,
         position = 2,
-        mininterval = 0.0
+        max_fps = true
     );
     let mut pb3 = tqdm!(
         total = render_length,
         desc = "fillup".to_string(),
         animation = Animation::FillUp,
         position = 4,
-        mininterval = 0.0
+        max_fps = true
     );
     let mut pb4 = tqdm!(
         total = render_length,
         desc = "classic".to_string(),
         animation = Animation::Classic,
         position = 6,
-        mininterval = 0.0
+        max_fps = true
     );
     let mut pb5 = tqdm!(
         total = render_length,
         desc = "arrow".to_string(),
         animation = Animation::Arrow,
         position = 8,
-        mininterval = 0.0
+        max_fps = true
     );
 
     println!("animations:\n");

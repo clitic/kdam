@@ -10,6 +10,7 @@ pub struct BarIterator<T> {
 }
 
 impl<T: Iterator> BarIterator<T> {
+    /// Create a new instance of `kdam::BarIterator` from iterable.
     pub fn new(iterable: T) -> BarIterator<T> {
         let total = iterable.size_hint().0;
         BarIterator {
@@ -21,6 +22,7 @@ impl<T: Iterator> BarIterator<T> {
         }
     }
 
+    /// Create a new instance of `kdam::BarIterator` from iterable and `kdam::Bar`.
     pub fn new_with_bar(iterable: T, pb: Bar) -> BarIterator<T> {
         let total = iterable.size_hint().0 as u64;
 
@@ -61,28 +63,25 @@ impl<S, T: Iterator<Item = S>> Iterator for BarIterator<T> {
     type Item = S;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let item = self.iterable.next();
         if self.pb.internal.started {
             self.pb.update(1);
         } else {
             self.pb.refresh();
         }
 
-        item
+        self.iterable.next()
     }
 }
 
 impl<T: DoubleEndedIterator> DoubleEndedIterator for BarIterator<T> {
     fn next_back(&mut self) -> Option<Self::Item> {
-        let item = self.iterable.next_back();
-
         if self.pb.internal.started {
             self.pb.update(1);
         } else {
             self.pb.refresh();
         }
 
-        item
+        self.iterable.next_back()
     }
 }
 
@@ -92,20 +91,20 @@ where
     Self: Sized + Iterator,
 {
     /// Decorate any sized iterator to `kdam::BarIterator`.
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// ```rust
     /// use kdam::BarIter;
-    /// 
+    ///
     /// fn main() {
     ///     let chars = ["a", "b", "c", "d"];
     ///     let mut charset = String::new();
-    /// 
+    ///
     ///     for i in chars.iter().progress() {
     ///         charset += i;
     ///     }
-    /// 
+    ///
     ///     assert_eq!(charset, "abcd");
     /// }
     /// ```

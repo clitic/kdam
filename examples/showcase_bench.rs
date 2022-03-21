@@ -55,7 +55,7 @@ fn main() {
     let python_results_avg = average(python_results);
 
     println!(
-        "\nresults (lower is better):\nkdam: {}\ntqdm: {}",
+        "\nresults:\nkdam: {}\ntqdm: {}",
         rust_results_avg, python_results_avg
     );
     println!(

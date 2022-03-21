@@ -21,7 +21,8 @@ pub async fn download_file(client: &Client, url: &str, path: &str) -> Result<(),
         total = total_size,
         unit_scale = true,
         unit_divisor = 1024,
-        unit = "B".to_string()
+        unit = "B".to_string(),
+        max_fps = true
     );
 
     let mut file = File::create(path).or(Err(format!("Failed to create file '{}'", path)))?;
@@ -43,8 +44,8 @@ pub async fn download_file(client: &Client, url: &str, path: &str) -> Result<(),
 async fn main() {
     download_file(
         &Client::new(),
-        "https://file-examples-com.github.io/uploads/2017/04/file_example_MP4_1920_18MG.mp4",
-        "file_example_MP4_1920_18MG.mp4",
+        "https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe",
+        "rustup-init.exe",
     )
     .await
     .unwrap();

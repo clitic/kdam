@@ -149,6 +149,9 @@ pub struct Bar {
     /// Select where to display progress bar output between stdout and stderr.
     /// (default: `kdam::Output::Stderr`)
     pub output: Output,
+    /// If true, each update method call will be rendered.
+    /// (default: `false`)
+    pub max_fps: bool,
     /// Counter of progress bar.
     /// (default: `0`)
     pub n: u64,
@@ -181,6 +184,7 @@ impl Default for Bar {
             fill: " ".to_string(),
             animation: Animation::TqdmAscii,
             output: Output::Stderr,
+            max_fps: false,
             n: 0,
             internal: BarInternal::default(),
         }
@@ -224,6 +228,10 @@ impl Bar {
             self.fill = ".".to_string();
         } else if matches!(self.animation, Animation::Arrow) {
             self.internal.charset = "=".to_string();
+        }
+
+        if self.max_fps {
+            self.internal.force_refresh = true;
         }
     }
 
@@ -465,10 +473,9 @@ impl Bar {
         }
     }
 
-    /// Print a message via bar at specific position.
     fn write_at(&self, text: String) {
         if self.file.is_none() {
-            crate::lock::block();
+            crate::lock::acquire();
 
             if self.position == 0 {
                 if matches!(self.output, Output::Stderr) {
@@ -494,7 +501,7 @@ impl Bar {
                 }
             }
 
-            crate::lock::unblock();
+            crate::lock::release();
         } else {
             let mut file = self.file.as_ref().unwrap();
             file.write_fmt(format_args!("{}\n", text.as_str())).unwrap();
@@ -526,7 +533,7 @@ impl Bar {
         self.internal.force_refresh = false;
     }
 
-    /// Resets to 0 iterations for repeated use.
+    /// Resets to intial iterations for repeated use.
     /// Consider combining with `leave=true`.
     pub fn reset(&mut self, total: Option<u64>) {
         self.internal.started = false;
@@ -537,6 +544,7 @@ impl Bar {
     }
 
     /// Print a message via bar (without overlap with bars).
+    /// This message is printed to stdout.
     pub fn write(&mut self, text: String) {
         self.clear();
 

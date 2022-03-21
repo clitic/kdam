@@ -1,19 +1,29 @@
-//! Terminal related functions.
-
 use std::io::Write;
 
+/// Terminal colour reset escape code.
 pub(crate) static COLOUR_RESET: &str = "\x1b[0m";
 
+/// Write to stdout followed by a flush.
 pub(crate) fn write_to_stdout(text: std::fmt::Arguments) {
     let mut stdout = std::io::stdout();
     stdout.write_fmt(text).unwrap();
     stdout.flush().unwrap();
 }
 
+/// Write to stderr followed by a flush.
 pub(crate) fn write_to_stderr(text: std::fmt::Arguments) {
     let mut stderr = std::io::stderr();
     stderr.write_fmt(text).unwrap();
     stderr.flush().unwrap();
+}
+
+/// Get number of columns in current window.
+/// On encountering error returns 0.
+pub(crate) fn get_columns() -> u16 {
+    terminal_size::terminal_size()
+        .unwrap_or((terminal_size::Width(0), terminal_size::Height(0)))
+        .0
+         .0
 }
 
 /// Do some platform specific terminal initialization.
@@ -64,12 +74,4 @@ pub(crate) fn colour(c: &str) -> String {
     } else {
         panic!("Unknown colour ({}); valid choices: [hex (#00ff00), BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE]", compare_colour);
     }
-}
-
-/// Get number of columns in current window.
-pub(crate) fn get_columns() -> u16 {
-    terminal_size::terminal_size()
-        .unwrap_or((terminal_size::Width(0), terminal_size::Height(0)))
-        .0
-         .0
 }

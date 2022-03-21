@@ -23,8 +23,7 @@ fn main() {
 
     loop {
         let mut chunk = vec![];
-        let reader_ref = reader.by_ref();
-        reader_ref.take(chunk_size).read_to_end(&mut chunk).unwrap();
+        reader.by_ref().take(chunk_size).read_to_end(&mut chunk).unwrap();
         let chunk_len = chunk.len();
         dst_file.write(&chunk).unwrap();
         pb.update(chunk_len as u64);
