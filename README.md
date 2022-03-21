@@ -1,8 +1,11 @@
 # kdam
 
 <p align="center">
-  <a href="LICENSE" title="License: MIT"><img src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
-  <a href="https://github.com/clitic/kdam"><img src="https://img.shields.io/github/repo-size/clitic/kdam.svg" alt="Repository Size"></a>
+  <img src="https://img.shields.io/crates/d/kdam?style=flat-square">
+  <img src="https://img.shields.io/crates/v/kdam?style=flat-square">
+  <img src="https://img.shields.io/github/license/clitic/kdam?style=flat-square">
+  <img src="https://img.shields.io/github/repo-size/clitic/kdam?style=flat-square">
+  <img src="https://img.shields.io/tokei/lines/github/clitic/kdam?style=flat-square">
 </p>
 
 kdam is a port of [tqdm](https://github.com/tqdm/tqdm) library which is written in python. kdam has almost same features as tqdm with extra features included. Some features couldn't be ported due to language barriers. kdam is also 8-10 times faster than tqdm.
