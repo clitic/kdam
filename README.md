@@ -39,6 +39,13 @@ Add this to your Cargo.toml file.
 kdam = "0.1.0"
 ```
 
+Or add from github main branch.
+
+```toml
+[dependencies]
+kdam = { git = "https://github.com/clitic/kdam.git", branch = "main" }
+```
+
 ## Usage
 
 ### Iterator Based
