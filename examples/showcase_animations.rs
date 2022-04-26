@@ -5,34 +5,34 @@ fn main() {
 
     let mut pb1 = tqdm!(
         total = render_length,
-        desc = "tqdm".to_string(),
+        desc = "tqdm    ".to_string(),
         position = 0,
         max_fps = true
     );
     let mut pb2 = tqdm!(
         total = render_length,
-        desc = "ascii".to_string(),
+        desc = "ascii   ".to_string(),
         ascii = true,
         position = 2,
         max_fps = true
     );
     let mut pb3 = tqdm!(
         total = render_length,
-        desc = "fillup".to_string(),
+        desc = "fillup  ".to_string(),
         animation = Animation::FillUp,
         position = 4,
         max_fps = true
     );
     let mut pb4 = tqdm!(
         total = render_length,
-        desc = "classic".to_string(),
+        desc = "classic ".to_string(),
         animation = Animation::Classic,
         position = 6,
         max_fps = true
     );
     let mut pb5 = tqdm!(
         total = render_length,
-        desc = "arrow".to_string(),
+        desc = "arrow   ".to_string(),
         animation = Animation::Arrow,
         position = 8,
         max_fps = true

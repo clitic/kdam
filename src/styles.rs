@@ -14,6 +14,7 @@ pub enum Animation {
     FillUp,
     Classic,
     Arrow,
+    FiraCode,
 }
 
 /// Different ouput locations of `kdam::Bar`.

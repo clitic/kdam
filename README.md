@@ -29,6 +29,7 @@ fn main() {
 </p> -->
 
 ![showcase_animations](https://raw.githubusercontent.com/clitic/kdam/main/images/animations.gif)
+![showcase_fira_code_animation](https://raw.githubusercontent.com/clitic/kdam/main/images/fira_code.gif)
 
 ## Installations
 

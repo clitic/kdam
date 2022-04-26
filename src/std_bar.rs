@@ -228,6 +228,9 @@ impl Bar {
             self.fill = ".".to_string();
         } else if matches!(self.animation, Animation::Arrow) {
             self.internal.charset = "=".to_string();
+        } else if matches!(self.animation, Animation::FiraCode) {
+            self.internal.charset = "\u{EE04}".to_string();
+            self.fill = "\u{EE01}".to_string();
         }
 
         if self.max_fps {
@@ -373,7 +376,7 @@ impl Bar {
         } else {
             let block = (self.ncols as f64 * progress) as i16;
             bar_animation = self.internal.charset.repeat(block as usize);
-            if matches!(self.animation, Animation::Classic) {
+            if matches!(self.animation, Animation::Classic) || matches!(self.animation, Animation::FiraCode) {
                 bar_animation += &self.fill.repeat((self.ncols - block) as usize);
             } else if matches!(self.animation, Animation::Arrow) {
                 let x = self.ncols - block - 1;
@@ -390,6 +393,11 @@ impl Bar {
 
         if matches!(self.animation, Animation::TqdmAscii) {
             return format!("|{}|", bar_animation);
+        } else if matches!(self.animation, Animation::FiraCode) {
+            if self.ncols - (self.ncols as f64 * progress) as i16 == 0 {
+                return format!(" \u{EE03}{}\u{EE05}", bar_animation);
+            }
+            return format!(" \u{EE03}{}\u{EE02}", bar_animation);
         } else {
             return format!("[{}]", bar_animation);
         }
