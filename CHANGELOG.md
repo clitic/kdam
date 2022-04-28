@@ -1,5 +1,11 @@
 # kdam Changelog (DD/MM/YYYY)
 
+## 0.1.3 (dev)
+
+Bug Fixes:
+
+- Unexcepted default print with fira code animation.
+
 ## 0.1.2 (28/04/2022)
 
 Features:

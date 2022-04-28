@@ -429,6 +429,8 @@ impl Bar {
                 };
 
                 if self.colour == "default" {
+                    return format!("\u{EE03}{}{}", bar_animation, bar_end);
+                } else {
                     return format!(
                         "{}\u{EE03}{}{}{}",
                         self.colour,
@@ -436,8 +438,6 @@ impl Bar {
                         bar_end,
                         term::COLOUR_RESET
                     );
-                } else {
-                    return format!("\u{EE03}{}{}", bar_animation, bar_end);
                 }
             }
         }
