@@ -37,40 +37,41 @@ pub(crate) fn init() {
 }
 
 /// Create a colour escape code from hex colour code.
-pub(crate) fn colour(c: &str) -> String {
-    if c.starts_with("#") {
-        if c.len() == 7 {
+pub(crate) fn colour(code: &str) -> String {
+    if code.starts_with("#") {
+        if code.len() == 7 {
             return format!(
                 "\x1b[38;2;{};{};{}m",
-                isize::from_str_radix(c.get(1..3).unwrap(), 16).unwrap(),
-                isize::from_str_radix(c.get(3..5).unwrap(), 16).unwrap(),
-                isize::from_str_radix(c.get(5..7).unwrap(), 16).unwrap()
+                isize::from_str_radix(code.get(1..3).unwrap(), 16).unwrap(),
+                isize::from_str_radix(code.get(3..5).unwrap(), 16).unwrap(),
+                isize::from_str_radix(code.get(5..7).unwrap(), 16).unwrap()
             );
         } else {
             panic!(
                 "Unknown hex colour format [{}]; Valid type: [hex (#00ff00)]",
-                c
+                code
             );
         }
     }
 
-    let compare_colour = c.to_uppercase();
+    let compare_colour = code.to_uppercase();
+    
     if compare_colour == "BLACK" {
-        "\x1b[30m".to_string()
+        return "\x1b[30m".to_string();
     } else if compare_colour == "RED" {
-        "\x1b[31m".to_string()
+        return "\x1b[31m".to_string();
     } else if compare_colour == "GREEN" {
-        "\x1b[32m".to_string()
+        return "\x1b[32m".to_string();
     } else if compare_colour == "YELLOW" {
-        "\x1b[33m".to_string()
+        return "\x1b[33m".to_string();
     } else if compare_colour == "BLUE" {
-        "\x1b[34m".to_string()
+        return "\x1b[34m".to_string();
     } else if compare_colour == "MAGENTA" {
-        "\x1b[35m".to_string()
+        return "\x1b[35m".to_string();
     } else if compare_colour == "CYAN" {
-        "\x1b[36m".to_string()
+        return "\x1b[36m".to_string();
     } else if compare_colour == "WHITE" {
-        "\x1b[37m".to_string()
+        return "\x1b[37m".to_string();
     } else {
         panic!("Unknown colour ({}); valid choices: [hex (#00ff00), BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE]", compare_colour);
     }

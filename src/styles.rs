@@ -6,6 +6,9 @@ pub(crate) static FILLUPCHARSET: [&str; 8] = [
     "\u{2581}", "\u{2582}", "\u{2583}", "\u{2584}", "\u{2585}", "\u{2586}", "\u{2587}", "\u{2588}",
 ];
 
+pub(crate) static CLASSICSPINNER: [&str; 4] = ["\\", "|", "/", "-"];
+pub(crate) static FIRACODESPINNER: [&str; 6] = ["\u{EE06}", "\u{EE07}", "\u{EE08}", "\u{EE09}", "\u{EE0A}", "\u{EE0B}"];
+
 /// Different types of pre-configured animation styles for `kdam::Bar`.
 #[derive(Debug, Clone)]
 pub enum Animation {

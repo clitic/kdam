@@ -1,4 +1,5 @@
 use std::io::Write;
+use std::iter::Cycle;
 
 use crate::format;
 use crate::styles::{Animation, Output};
@@ -15,6 +16,7 @@ pub struct BarInternal {
     pub charset_len: u64,
     pub timer: std::time::Instant,
     pub force_refresh: bool,
+    pub spinner: Cycle<std::slice::Iter<'static, &'static str>>,
 }
 
 impl Default for BarInternal {
@@ -29,6 +31,7 @@ impl Default for BarInternal {
             charset_len: 8,
             timer: std::time::Instant::now(),
             force_refresh: false,
+            spinner: crate::styles::CLASSICSPINNER.iter().cycle(),
         }
     }
 }
@@ -231,6 +234,7 @@ impl Bar {
         } else if matches!(self.animation, Animation::FiraCode) {
             self.internal.charset = "\u{EE04}".to_string();
             self.fill = "\u{EE01}".to_string();
+            self.internal.spinner = crate::styles::FIRACODESPINNER.iter().cycle();
         }
 
         if self.max_fps {
@@ -257,8 +261,15 @@ impl Bar {
         };
 
         return format!(
-            "{}{}{} [{}, {}{}/s{}]",
-            self.desc, desc_spacing, count, elapsed_time_fmt, rate_fmt, self.unit, self.postfix
+            "{} {}{}{} [{}, {}{}/s{}]",
+            self.internal.spinner.next().unwrap(),
+            self.desc,
+            desc_spacing,
+            count,
+            elapsed_time_fmt,
+            rate_fmt,
+            self.unit,
+            self.postfix
         );
     }
 
@@ -346,39 +357,45 @@ impl Bar {
     fn render_mbar(&mut self, progress: f64) -> String {
         let mut bar_animation: String;
 
-        if matches!(self.animation, Animation::TqdmAscii) {
-            let nsyms = self.internal.charset_len - 1;
-            let (bar_length, frac_bar_length) = format::divmod(
-                (progress * self.ncols as f64 * nsyms as f64) as u64,
-                nsyms as u64,
-            );
-            bar_animation = self
-                .internal
-                .charset
-                .chars()
-                .nth_back(0)
-                .unwrap()
-                .to_string()
-                .repeat(bar_length as usize);
-
-            if bar_length < self.ncols as u64 {
-                bar_animation += &self
+        match self.animation {
+            Animation::TqdmAscii | Animation::Tqdm | Animation::FillUp => {
+                let nsyms = self.internal.charset_len - 1;
+                let (bar_length, frac_bar_length) = format::divmod(
+                    (progress * self.ncols as f64 * nsyms as f64) as u64,
+                    nsyms as u64,
+                );
+                bar_animation = self
                     .internal
                     .charset
                     .chars()
-                    .nth((frac_bar_length as usize) + 1)
+                    .nth_back(0)
                     .unwrap()
-                    .to_string();
-                bar_animation += &self
-                    .fill
-                    .repeat((self.ncols - (bar_length as i16) - 1) as usize);
+                    .to_string()
+                    .repeat(bar_length as usize);
+
+                if bar_length < self.ncols as u64 {
+                    bar_animation += &self
+                        .internal
+                        .charset
+                        .chars()
+                        .nth((frac_bar_length as usize) + 1)
+                        .unwrap()
+                        .to_string();
+                    bar_animation += &self
+                        .fill
+                        .repeat((self.ncols - (bar_length as i16) - 1) as usize);
+                }
             }
-        } else {
-            let block = (self.ncols as f64 * progress) as i16;
-            bar_animation = self.internal.charset.repeat(block as usize);
-            if matches!(self.animation, Animation::Classic) || matches!(self.animation, Animation::FiraCode) {
+
+            Animation::Classic | Animation::FiraCode => {
+                let block = (self.ncols as f64 * progress) as i16;
+                bar_animation = self.internal.charset.repeat(block as usize);
                 bar_animation += &self.fill.repeat((self.ncols - block) as usize);
-            } else if matches!(self.animation, Animation::Arrow) {
+            }
+
+            Animation::Arrow => {
+                let block = (self.ncols as f64 * progress) as i16;
+                bar_animation = self.internal.charset.repeat(block as usize);
                 let x = self.ncols - block - 1;
                 if x > 0 {
                     bar_animation += ">";
@@ -387,19 +404,42 @@ impl Bar {
             }
         }
 
-        if self.colour != "default" {
-            bar_animation = format!("{}{}{}", self.colour, bar_animation, term::COLOUR_RESET);
-        }
-
-        if matches!(self.animation, Animation::TqdmAscii) {
-            return format!("|{}|", bar_animation);
-        } else if matches!(self.animation, Animation::FiraCode) {
-            if self.ncols - (self.ncols as f64 * progress) as i16 == 0 {
-                return format!(" \u{EE03}{}\u{EE05}", bar_animation);
+        match self.animation {
+            Animation::TqdmAscii | Animation::Tqdm | Animation::FillUp => {
+                if self.colour == "default" {
+                    return format!("|{}|", bar_animation);
+                } else {
+                    return format!("|{}{}{}|", self.colour, bar_animation, term::COLOUR_RESET);
+                }
             }
-            return format!(" \u{EE03}{}\u{EE02}", bar_animation);
-        } else {
-            return format!("[{}]", bar_animation);
+
+            Animation::Classic | Animation::Arrow => {
+                if self.colour == "default" {
+                    return format!("[{}]", bar_animation);
+                } else {
+                    return format!("[{}{}{}]", self.colour, bar_animation, term::COLOUR_RESET);
+                }
+            }
+
+            Animation::FiraCode => {
+                let bar_end = if progress >= 1.0 {
+                    "\u{EE05}"
+                } else {
+                    "\u{EE02}"
+                };
+
+                if self.colour == "default" {
+                    return format!(
+                        "{}\u{EE03}{}{}{}",
+                        self.colour,
+                        bar_animation,
+                        bar_end,
+                        term::COLOUR_RESET
+                    );
+                } else {
+                    return format!("\u{EE03}{}{}", bar_animation, bar_end);
+                }
+            }
         }
     }
 
@@ -563,6 +603,12 @@ impl Bar {
         }
     }
 
+    /// Set/Modify position of the progress bar.
+    pub fn set_position(&mut self, position: u64) {
+        self.n = position;
+        self.update(0);
+    }
+
     /// Set/Modify description of the progress bar.
     pub fn set_description(&mut self, desc: String) {
         self.desc = desc;
@@ -575,8 +621,10 @@ impl Bar {
 
     /// Set/Modify colour of the progress bar.
     pub fn set_colour(&mut self, colour: &str) {
-        if self.colour != "default" {
+        if colour != "default" {
             self.colour = term::colour(colour);
+        } else {
+            self.colour = "default".to_string();
         }
     }
 

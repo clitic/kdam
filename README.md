@@ -8,7 +8,7 @@
   <img src="https://img.shields.io/tokei/lines/github/clitic/kdam?style=flat-square">
 </p>
 
-kdam is a port of [tqdm](https://github.com/tqdm/tqdm) library which is written in python. kdam has almost same features as tqdm with extra features included. Some features couldn't be ported due to language barriers. kdam is also 8-10 times faster than tqdm.
+kdam is a port of [tqdm](https://github.com/tqdm/tqdm) library which is written in python. kdam has almost same features as tqdm with extra features included. Some features couldn't be ported due to language barriers. kdam is also 8-10 times faster than tqdm. kdam has only one external dependency which [terminal-size](https://github.com/eminence/terminal-size).
 
 Instantly make your loops show a smart progress meter. Just wrap any iterator with tqdm!(iterator) macro and you're done!
 
@@ -24,11 +24,16 @@ fn main() {
 100%|█████████████████████████████| 100/100 [00:00<00:00, 25854.49it/s]
 ```
 
-<!-- <p align="center">
-  <img src="https://raw.githubusercontent.com/clitic/kdam/main/images/animations.gif">
-</p> -->
+kdam also supports different animation styles. All available animations styles are:
+
+[examples/showcase_animations.rs](https://github.com/clitic/kdam/blob/main/examples/showcase_animations.rs)
 
 ![showcase_animations](https://raw.githubusercontent.com/clitic/kdam/main/images/animations.gif)
+
+[Fira Code](https://github.com/tonsky/FiraCode) is the first programming font to offer dedicated glyphs to render progress bars. kdam has an animation style to support it.
+
+[examples/misc_fira_code.rs](https://github.com/clitic/kdam/blob/main/examples/misc_fira_code.rs)
+
 ![showcase_fira_code_animation](https://raw.githubusercontent.com/clitic/kdam/main/images/fira_code.gif)
 
 ## Installations
@@ -37,7 +42,7 @@ Add this to your Cargo.toml file.
 
 ```toml
 [dependencies]
-kdam = "0.1.0"
+kdam = "0.1.1"
 ```
 
 Or add from github main branch.
@@ -95,7 +100,7 @@ fn main() {
 ```
 
 ```
-10000000 [00:03, 2998660.35it/s]
+/ 10000000 [00:03, 2998660.35it/s]
 ```
 
 ## Examples
