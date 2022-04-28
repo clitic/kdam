@@ -1,12 +1,13 @@
 # kdam Changelog (DD/MM/YYYY)
 
-## 0.1.1 (dev)
+## 0.1.2 (28/04/2022)
 
 Features:
 
 - [Fira Code](https://github.com/tonsky/FiraCode) animation style i.e. `kdam::Animation::FiraCode`.
 - Spinner for unknown length progress bar.
 - A method to `set_position` is added to `kdam::Bar` by referring issue [#1](https://github.com/clitic/kdam/issues/1)
+- Support to take input into a `String` by method `input`.
 
 Bug Fixes:
 

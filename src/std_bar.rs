@@ -603,6 +603,23 @@ impl Bar {
         }
     }
 
+    /// Take input via bar (without overlap with bars).
+    /// The input message is printed to stdout.
+    pub fn input(&mut self, text: &str) -> Result<String, std::io::Error> {
+        self.clear();
+
+        term::write_to_stdout(format_args!("{}", text));
+        
+        let mut input_string = String::new();
+        std::io::stdin().read_line(&mut input_string)?;
+
+        if self.leave {
+            self.refresh();
+        }
+
+        Ok(input_string)
+    }
+
     /// Set/Modify position of the progress bar.
     pub fn set_position(&mut self, position: u64) {
         self.n = position;
