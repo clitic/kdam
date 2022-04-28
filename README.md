@@ -42,7 +42,7 @@ Add this to your Cargo.toml file.
 
 ```toml
 [dependencies]
-kdam = "0.1.1"
+kdam = "0.1.2"
 ```
 
 Or add from github main branch.
@@ -156,7 +156,7 @@ fn main() {
 3rd loop:   0%|▎               | 0/50 [00:00<00:00, ?it/s]
 ```
 
-### Writing Messages
+### Writing Messages And Inputs
 
 Since `kdam` uses a simple printing mechanism to display progress bars, you should not write any message in the terminal using `println!()` while a progressbar is open.
 
@@ -191,6 +191,31 @@ Done task 7
 Done task 8
 Done task 9
 100%|███████████████████████████| 10/10 [00:02<00:00, 4.31it/s]
+```
+
+Similarly `.input()` method can be called to store an user input.
+
+```rust
+use kdam::tqdm;
+
+fn main() {
+    let mut pb = tqdm!(total = 10);
+
+    for i in 0..10 {
+        if i == 5 {
+            if pb.input("Break Loop [y/n]: ").unwrap() == "y\r\n" {
+                break;
+            }
+        }
+
+        pb.update(1);
+    }
+}
+```
+
+```
+Break Loop [y/n]: y
+ 50%|███████████████▎              | 5/10 [00:01<00:01, 3.83it/s]
 ```
 
 ## License
