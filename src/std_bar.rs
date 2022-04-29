@@ -185,7 +185,7 @@ impl Default for Bar {
             colour: "default".to_string(),
             delay: 0.0,
             fill: " ".to_string(),
-            animation: Animation::TqdmAscii,
+            animation: Animation::Tqdm,
             output: Output::Stderr,
             max_fps: false,
             n: 0,
@@ -213,32 +213,35 @@ impl Bar {
     /// Initialize struct values.
     fn init(&mut self) {
         self.n = self.initial;
+        self.set_colour(&self.colour.clone());
 
         if self.ncols != 10 {
             self.internal.user_ncols = self.ncols;
         }
 
-        self.set_colour(&self.colour.clone());
+        if self.max_fps {
+            self.internal.force_refresh = true;
+        }
 
         if self.ascii {
             self.set_charset(&crate::styles::TQDMASCIICHARSET);
-        } else if matches!(self.animation, Animation::Tqdm) {
-            self.set_charset(&crate::styles::TQDMCHARSET);
-        } else if matches!(self.animation, Animation::FillUp) {
-            self.set_charset(&crate::styles::FILLUPCHARSET);
-        } else if matches!(self.animation, Animation::Classic) {
-            self.internal.charset = "#".to_string();
-            self.fill = ".".to_string();
-        } else if matches!(self.animation, Animation::Arrow) {
-            self.internal.charset = "=".to_string();
-        } else if matches!(self.animation, Animation::FiraCode) {
-            self.internal.charset = "\u{EE04}".to_string();
-            self.fill = "\u{EE01}".to_string();
-            self.internal.spinner = crate::styles::FIRACODESPINNER.iter().cycle();
-        }
-
-        if self.max_fps {
-            self.internal.force_refresh = true;
+        } else {
+            match self.animation {
+                Animation::Tqdm => self.set_charset(&crate::styles::TQDMCHARSET),
+                Animation::TqdmAscii => self.set_charset(&crate::styles::TQDMASCIICHARSET),
+                Animation::FillUp => self.set_charset(&crate::styles::FILLUPCHARSET),
+                Animation::Classic => {
+                    self.internal.charset = "#".to_string();
+                    self.fill = ".".to_string();
+                }
+                Animation::Arrow => self.internal.charset = "=".to_string(),
+                Animation::FiraCode => {
+                    self.internal.charset = "\u{EE04}".to_string();
+                    self.fill = "\u{EE01}".to_string();
+                    self.internal.spinner = crate::styles::FIRACODESPINNER.iter().cycle();
+                }
+                Animation::Custom => (),
+            }
         }
     }
 
@@ -358,7 +361,7 @@ impl Bar {
         let mut bar_animation: String;
 
         match self.animation {
-            Animation::TqdmAscii | Animation::Tqdm | Animation::FillUp => {
+            Animation::Tqdm | Animation::TqdmAscii | Animation::FillUp | Animation::Custom => {
                 let nsyms = self.internal.charset_len - 1;
                 let (bar_length, frac_bar_length) = format::divmod(
                     (progress * self.ncols as f64 * nsyms as f64) as u64,
@@ -405,7 +408,7 @@ impl Bar {
         }
 
         match self.animation {
-            Animation::TqdmAscii | Animation::Tqdm | Animation::FillUp => {
+            Animation::Tqdm | Animation::TqdmAscii | Animation::FillUp | Animation::Custom => {
                 if self.colour == "default" {
                     return format!("|{}|", bar_animation);
                 } else {
@@ -429,10 +432,10 @@ impl Bar {
                 };
 
                 if self.colour == "default" {
-                    return format!("\u{EE03}{}{}", bar_animation, bar_end);
+                    return format!(" \u{EE03}{}{}", bar_animation, bar_end);
                 } else {
                     return format!(
-                        "{}\u{EE03}{}{}{}",
+                        " {}\u{EE03}{}{}{}",
                         self.colour,
                         bar_animation,
                         bar_end,
@@ -526,26 +529,24 @@ impl Bar {
             crate::lock::acquire();
 
             if self.position == 0 {
-                if matches!(self.output, Output::Stderr) {
-                    term::write_to_stderr(format_args!("\r{}", text));
-                } else if matches!(self.output, Output::Stdout) {
-                    term::write_to_stdout(format_args!("\r{}", text));
+                match self.output {
+                    Output::Stderr => term::write_to_stderr(format_args!("\r{}", text)),
+                    Output::Stdout => term::write_to_stdout(format_args!("\r{}", text)),
                 }
             } else {
-                if matches!(self.output, Output::Stderr) {
-                    term::write_to_stderr(format_args!(
+                match self.output {
+                    Output::Stderr => term::write_to_stderr(format_args!(
                         "{}{}{}",
                         "\n".repeat(self.position as usize),
                         text,
                         format!("\x1b[{}A", self.position)
-                    ));
-                } else if matches!(self.output, Output::Stdout) {
-                    term::write_to_stdout(format_args!(
+                    )),
+                    Output::Stdout => term::write_to_stdout(format_args!(
                         "{}{}{}",
                         "\n".repeat(self.position as usize),
                         text,
                         format!("\x1b[{}A", self.position)
-                    ));
+                    )),
                 }
             }
 
@@ -566,10 +567,13 @@ impl Bar {
                 columns = self.internal.bar_length as usize;
             }
 
-            if matches!(self.output, Output::Stderr) {
-                term::write_to_stderr(format_args!("\r{}\r", " ".repeat(columns)));
-            } else if matches!(self.output, Output::Stdout) {
-                term::write_to_stdout(format_args!("\r{}\r", " ".repeat(columns)));
+            match self.output {
+                Output::Stderr => {
+                    term::write_to_stderr(format_args!("\r{}\r", " ".repeat(columns)))
+                }
+                Output::Stdout => {
+                    term::write_to_stdout(format_args!("\r{}\r", " ".repeat(columns)))
+                }
             }
         }
     }
@@ -609,7 +613,7 @@ impl Bar {
         self.clear();
 
         term::write_to_stdout(format_args!("{}", text));
-        
+
         let mut input_string = String::new();
         std::io::stdin().read_line(&mut input_string)?;
 
@@ -649,7 +653,7 @@ impl Bar {
     pub fn set_charset(&mut self, charset: &[&str]) {
         self.internal.charset = charset.join("");
         self.internal.charset_len = charset.len() as u64;
-        self.animation = Animation::TqdmAscii;
+        self.animation = Animation::Custom;
     }
 
     /// EXPERIMENTAL - monitor mode support.
