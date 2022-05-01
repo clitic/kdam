@@ -1,22 +1,19 @@
 //! Thread safe sync between multiple bars.
+use std::sync::atomic::{AtomicBool, Ordering};
 
-static mut LOCKED: bool = false;
+static LOCKED: AtomicBool = AtomicBool::new(false);
 
 /// Wait until lock is free and then acquire it.
 pub fn acquire() {
     loop {
-        unsafe {
-            if !LOCKED {
-                LOCKED = true;
-                break;
-            }
+        if !LOCKED.load(Ordering::Acquire) {
+            LOCKED.store(true, Ordering::SeqCst);
+            break;
         }
     }
 }
 
 /// Release lock.
 pub fn release() {
-    unsafe {
-        LOCKED = false;
-    }
+    LOCKED.store(false, Ordering::Release);
 }

@@ -52,7 +52,7 @@ macro_rules! tqdm {
 /// ```
 #[macro_export]
 macro_rules! write_at {
-    ($position:literal, $($arg:tt)*) => {
+    ($position:tt, $($arg:tt)*) => {
         {
             use std::io::Write;
 

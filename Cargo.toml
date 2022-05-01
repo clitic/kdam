@@ -1,6 +1,6 @@
 [package]
 name = "kdam"
-version = "0.1.3"
+version = "0.1.4"
 edition = "2021"
 description = "A console progress bar library for Rust"
 repository = "https://github.com/clitic/kdam"
@@ -31,3 +31,6 @@ members = ["examples/file_download"]
 
 [dependencies]
 terminal_size = ">=0.1.17"
+
+[dev-dependencies]
+rand = "0.8"

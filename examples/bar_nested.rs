@@ -8,6 +8,7 @@ fn main() {
             }
         }
     }
-    print!("{}", "\n".repeat(3));
+
+    kdam::finish(3, kdam::Output::Stderr);
     println!("completed!");
 }

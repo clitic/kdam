@@ -49,5 +49,5 @@ fn main() {
         std::thread::sleep(std::time::Duration::from_secs_f32(0.02));
     }
 
-    print!("{}", "\n".repeat(9));
+    kdam::finish(9, kdam::Output::Stderr);
 }

@@ -27,13 +27,11 @@ fn main() {
 kdam also supports different animation styles. All available animations styles are:
 
 [examples/showcase_animations.rs](https://github.com/clitic/kdam/blob/main/examples/showcase_animations.rs)
-
 ![showcase_animations](https://raw.githubusercontent.com/clitic/kdam/main/images/animations.gif)
 
 [Fira Code](https://github.com/tonsky/FiraCode) is the first programming font to offer dedicated glyphs to render progress bars. kdam has an animation style to support it.
 
 [examples/misc_fira_code.rs](https://github.com/clitic/kdam/blob/main/examples/misc_fira_code.rs)
-
 ![showcase_fira_code_animation](https://raw.githubusercontent.com/clitic/kdam/main/images/fira_code.gif)
 
 ## Installations
@@ -145,7 +143,8 @@ fn main() {
             }
         }
     }
-    print!("{}", "\n".repeat(3));
+
+    kdam::finish(3, kdam::Output::Stderr);
     println!("completed!");
 }
 ```

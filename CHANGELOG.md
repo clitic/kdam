@@ -1,10 +1,20 @@
 # kdam Changelog (DD/MM/YYYY)
 
-## 0.1.3 (dev)
+## 0.1.3 (29/04/2022)
+
+Features:
+
+- New `kdam::finish` function to print newline.
+- New `wrap` field for `kdam::Bar`.
+
+Changes:
+
+- `lock` module has now `AtomicBool` lock.
 
 Bug Fixes:
 
 - Unexcepted default print with fira code animation.
+- `refresh` method fixed when using `max_fps = true`.
 
 ## 0.1.2 (28/04/2022)
 

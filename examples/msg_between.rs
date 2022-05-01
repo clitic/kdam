@@ -12,6 +12,6 @@ fn main() {
         pb2.update(1);
     }
 
-    print!("{}", "\n".repeat(5));
+    kdam::finish(5, kdam::Output::Stderr);
     println!("completed!");
 }

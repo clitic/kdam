@@ -155,6 +155,9 @@ pub struct Bar {
     /// If true, each update method call will be rendered.
     /// (default: `false`)
     pub max_fps: bool,
+    /// If true, progress bar of more length than terminal will be trimmed at end.
+    /// (default: `false`)
+    pub wrap: bool,
     /// Counter of progress bar.
     /// (default: `0`)
     pub n: u64,
@@ -188,6 +191,7 @@ impl Default for Bar {
             animation: Animation::Tqdm,
             output: Output::Stderr,
             max_fps: false,
+            wrap: false,
             n: 0,
             internal: BarInternal::default(),
         }
@@ -276,15 +280,15 @@ impl Bar {
         );
     }
 
-    fn render_lbar(&mut self, i: u64) -> (f64, String) {
-        let mut progress = (i as f64) / (self.total as f64);
+    fn render_lbar(&mut self, n: u64) -> (f64, String) {
+        let mut progress = (n as f64) / (self.total as f64);
 
         if progress >= 1.0 {
             progress = 1.0;
         }
 
         let desc_spacing = if self.desc == "" { "" } else { ": " };
-        let percentage = (progress * 100.0) as u64;
+        let percentage = (progress * 100.0) as u8;
         let mut spacing = if percentage >= 10 { " " } else { "  " };
 
         if progress >= 1.0 {
@@ -332,29 +336,6 @@ impl Bar {
             " {}/{} [{}<{}, {}{}/s{}]",
             count, total, elapsed_time_fmt, remaning_time_fmt, rate_fmt, self.unit, self.postfix,
         );
-    }
-
-    fn set_ncols(&mut self, lbar_rbar_len: i16) {
-        if self.dynamic_ncols || (lbar_rbar_len + self.ncols + 2 - self.internal.bar_length) > 0 {
-            if self.internal.user_ncols != -1 {
-                self.ncols = self.internal.user_ncols;
-            } else {
-                let columns = term::get_columns();
-
-                if columns != 0 {
-                    let new_ncols = columns as i16 - lbar_rbar_len - 3;
-                    if new_ncols >= 0 {
-                        self.ncols = new_ncols;
-                    }
-                } else {
-                    self.ncols = 10;
-
-                    if !self.dynamic_ncols {
-                        self.internal.user_ncols = 10;
-                    }
-                }
-            }
-        }
     }
 
     fn render_mbar(&mut self, progress: f64) -> String {
@@ -446,12 +427,35 @@ impl Bar {
         }
     }
 
-    /// Render progress bar text using given value.
-    fn render(&mut self, mut i: u64) -> (String, String, String) {
-        let (progress, lbar) = self.render_lbar(i);
+    fn set_ncols(&mut self, lbar_rbar_len: i16) {
+        if self.dynamic_ncols || (lbar_rbar_len + self.ncols + 2 - self.internal.bar_length) > 0 {
+            if self.internal.user_ncols != -1 {
+                self.ncols = self.internal.user_ncols;
+            } else {
+                let columns = term::get_columns();
 
-        if progress == 1.0 {
-            i = self.total;
+                if columns != 0 {
+                    let new_ncols = columns as i16 - lbar_rbar_len - 3;
+                    if new_ncols >= 0 {
+                        self.ncols = new_ncols;
+                    }
+                } else {
+                    self.ncols = 10;
+
+                    if !self.dynamic_ncols {
+                        self.internal.user_ncols = 10;
+                    }
+                }
+            }
+        }
+    }
+
+    /// Render progress bar text using given value.
+    fn render(&mut self, mut n: u64) -> (String, String, String) {
+        let (progress, lbar) = self.render_lbar(n);
+
+        if progress >= 1.0 {
+            n = self.total;
 
             if !self.leave {
                 return (
@@ -462,9 +466,9 @@ impl Bar {
             }
         }
 
-        let rbar = self.render_rbar(i);
+        let rbar = self.render_rbar(n);
 
-        self.set_ncols(format!("\r{}{}", lbar, rbar).len() as i16);
+        self.set_ncols(format!("\r{}{}", lbar, rbar).chars().count() as i16);
 
         if self.ncols <= 0 {
             return (lbar, "".to_string(), rbar);
@@ -513,12 +517,35 @@ impl Bar {
 
                 if self.total != 0 {
                     let (lbar, mbar, rbar) = self.render(self.n);
-                    self.internal.bar_length = ((lbar.len() + rbar.len()) as i16) + self.ncols + 2;
-                    self.write_at(format!("{}{}{}", lbar, mbar, rbar));
+                    self.internal.bar_length =
+                        ((lbar.chars().count() + rbar.chars().count()) as i16) + self.ncols + 2;
+
+                    if !self.wrap {
+                        self.write_at(format!("{}{}{}", lbar, mbar, rbar));
+                    } else {
+                        let columns = term::get_columns() as usize;
+                        if self.internal.bar_length as usize > columns {
+                            self.write_at(
+                                format!("{}{}{}", lbar, mbar, rbar)[..columns].to_string(),
+                            );
+                        } else {
+                            self.write_at(format!("{}{}{}", lbar, mbar, rbar));
+                        }
+                    }
                 } else {
                     let text = self.render_unknown(self.n);
-                    self.internal.bar_length = text.len() as i16;
-                    self.write_at(format!("{}", text));
+                    self.internal.bar_length = text.chars().count() as i16;
+
+                    if !self.wrap {
+                        self.write_at(text);
+                    } else {
+                        let columns = term::get_columns() as usize;
+                        if self.internal.bar_length as usize > columns {
+                            self.write_at(text[..columns].to_string());
+                        } else {
+                            self.write_at(text);
+                        }
+                    }
                 }
             }
         }
@@ -580,9 +607,13 @@ impl Bar {
 
     /// Force refresh the display of this bar.
     pub fn refresh(&mut self) {
-        self.internal.force_refresh = true;
-        self.update(0);
-        self.internal.force_refresh = false;
+        if !self.max_fps {
+            self.internal.force_refresh = true;
+            self.update(0);
+            self.internal.force_refresh = false;
+        } else {
+            self.update(0);
+        }
     }
 
     /// Resets to intial iterations for repeated use.
@@ -654,19 +685,5 @@ impl Bar {
         self.internal.charset = charset.join("");
         self.internal.charset_len = charset.len() as u64;
         self.animation = Animation::Custom;
-    }
-
-    /// EXPERIMENTAL - monitor mode support.
-    pub fn monitor(&mut self, maxinterval: f32) {
-        let mut n = self.n;
-
-        while self.n != self.total {
-            std::thread::sleep(std::time::Duration::from_secs_f32(maxinterval));
-            if self.n == n {
-                self.refresh();
-            } else {
-                n = self.n
-            }
-        }
     }
 }
