@@ -1,13 +1,16 @@
 //! Functions for formatting values.
 
 /// Returns floor division and modulus of two values.
-pub fn divmod(x: u64, y: u64) -> (u64, u64) {
-    (x / y as u64, x % y)
+pub fn divmod<T: Into<usize>>(x: T, y: T) -> (usize, usize) {
+    let (new_x, new_y) = (x.into(), y.into());
+    (new_x / new_y as usize, new_x % new_y)
 }
 
 /// Formats a number (greater than unity) with SI order of magnitude prefixes.
-pub fn format_sizeof(num: u64, divisor: u64) -> String {
-    let mut value = num as f64;
+pub fn format_sizeof<T: Into<usize>>(num: T, divisor: T) -> String {
+    let mut value = num.into() as f64;
+    let new_divisor = divisor.into() as f64;
+
     for i in ["", "k", "M", "G", "T", "P", "E", "Z"] {
         if value.abs() < 999.5 {
             if value.abs() < 99.95 {
@@ -18,14 +21,14 @@ pub fn format_sizeof(num: u64, divisor: u64) -> String {
             }
             return format!("{:3.0}{}", value, i);
         }
-        value = value / divisor as f64;
+        value = value / new_divisor;
     }
     return format!("{:3.1}Y", value);
 }
 
 /// Formats a number of seconds as a clock time, \[H:\]MM:SS
-pub fn format_interval(seconds: u64) -> String {
-    let (minutes, seconds) = divmod(seconds, 60);
+pub fn format_interval<T: Into<usize>>(seconds: T) -> String {
+    let (minutes, seconds) = divmod(seconds.into(), 60);
     let (hours, minutes) = divmod(minutes, 60);
 
     if hours == 0 {

@@ -12,7 +12,7 @@ fn main() {
     let mut pb2 = tqdm!(
         total = render_length,
         desc = "ascii   ".to_string(),
-        ascii = true,
+        animation = Animation::TqdmAscii,
         position = 2,
         max_fps = true
     );

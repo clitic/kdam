@@ -15,7 +15,7 @@ fn main() {
     let chunk_size = 1024;
 
     let mut pb = tqdm!(
-        total = std::fs::metadata(src_file_path).unwrap().len(),
+        total = std::fs::metadata(src_file_path).unwrap().len() as usize,
         unit_scale = true,
         unit_divisor = 1024,
         unit = "B".to_string()
@@ -26,7 +26,7 @@ fn main() {
         reader.by_ref().take(chunk_size).read_to_end(&mut chunk).unwrap();
         let chunk_len = chunk.len();
         dst_file.write(&chunk).unwrap();
-        pb.update(chunk_len as u64);
+        pb.update(chunk_len);
 
         if chunk_len == 0 {
             pb.refresh();

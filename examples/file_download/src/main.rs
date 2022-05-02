@@ -18,7 +18,7 @@ pub async fn download_file(client: &Client, url: &str, path: &str) -> Result<(),
         .ok_or(format!("Failed to get content length from '{}'", &url))?;
 
     let mut pb = tqdm!(
-        total = total_size,
+        total = total_size as usize,
         unit_scale = true,
         unit_divisor = 1024,
         unit = "B".to_string(),
@@ -33,7 +33,7 @@ pub async fn download_file(client: &Client, url: &str, path: &str) -> Result<(),
         let chunk = item.or(Err(format!("Error while downloading file")))?;
         file.write(&chunk)
             .or(Err(format!("Error while writing to file")))?;
-        pb.update(chunk.len() as u64);
+        pb.update(chunk.len());
     }
     pb.refresh();
     println!("\nDownloaded {} to {}", url, path);

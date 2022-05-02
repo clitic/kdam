@@ -12,19 +12,19 @@ pub struct BarIterator<T> {
 impl<T: Iterator> BarIterator<T> {
     /// Create a new instance of `kdam::BarIterator` from iterable.
     pub fn new(iterable: T) -> BarIterator<T> {
-        let total = iterable.size_hint().0;
+        // let total = iterable.size_hint().0;
+        let mut pb = Bar::default();
+        pb.total = iterable.size_hint().0;
+
         BarIterator {
             iterable: iterable,
-            pb: Bar {
-                total: total as u64,
-                ..Default::default()
-            },
+            pb: pb,
         }
     }
 
     /// Create a new instance of `kdam::BarIterator` from iterable and `kdam::Bar`.
     pub fn new_with_bar(iterable: T, pb: Bar) -> BarIterator<T> {
-        let total = iterable.size_hint().0 as u64;
+        let total = iterable.size_hint().0;
 
         let mut pb_iter = BarIterator {
             iterable: iterable,
@@ -63,7 +63,7 @@ impl<S, T: Iterator<Item = S>> Iterator for BarIterator<T> {
     type Item = S;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.pb.internal.started {
+        if self.pb.started {
             self.pb.update(1);
         } else {
             self.pb.refresh();
@@ -75,7 +75,7 @@ impl<S, T: Iterator<Item = S>> Iterator for BarIterator<T> {
 
 impl<T: DoubleEndedIterator> DoubleEndedIterator for BarIterator<T> {
     fn next_back(&mut self) -> Option<Self::Item> {
-        if self.pb.internal.started {
+        if self.pb.started {
             self.pb.update(1);
         } else {
             self.pb.refresh();
