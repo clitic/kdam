@@ -1,15 +1,21 @@
 # kdam Changelog (DD/MM/YYYY)
 
-## 0.1.3 (29/04/2022)
+## 0.1.4 (_/05/2022)
 
 Features:
 
+- Several optimizations (reduced memory consumption by 30%). 
+- Monitor mode is now supported.
 - New `kdam::finish` function to print newline.
 - New `wrap` field for `kdam::Bar`.
 
 Changes:
 
 - `lock` module has now `AtomicBool` lock.
+- `ascii` and few more fields are removed from `kdam::Bar`.
+- `BarInternal` is now merged into `kdam::Bar`.
+- All `u64` data types are changed to `usize`.
+- Spinner removed from unbounded progress bar
 
 Bug Fixes:
 
