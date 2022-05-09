@@ -1,8 +1,9 @@
 use std::io::Write;
 
 use crate::format;
-use crate::styles::{Animation, Output};
+use crate::styles::Animation;
 use crate::term;
+use crate::term::Output;
 
 /// Standard struct implemention of progress bar.
 ///
@@ -14,10 +15,7 @@ use crate::term;
 /// use kdam::Bar;
 ///
 /// fn main() {
-///     let mut pb = Bar {
-///         total: 100,
-///         ..Default::default()
-///     };
+///     let mut pb = Bar::new(100);
 ///
 ///     for _ in 0..100 {
 ///         pb.update(1);
@@ -38,6 +36,7 @@ use crate::term;
 ///     }
 /// }
 /// ```
+// #[derive(Debug, Clone)]
 #[derive(Debug)]
 pub struct Bar {
     /// Prefix for the progress bar.
@@ -119,11 +118,11 @@ pub struct Bar {
     /// (default: `0`)
     pub n: usize,
     pub(crate) started: bool,
-    timer: std::time::Instant,
-    elapsed_time: f32,
-    user_ncols: Option<i16>,
-    bar_length: i16,
-    force_refresh: bool,
+    pub timer: std::time::Instant,
+    pub elapsed_time: f32,
+    pub user_ncols: Option<i16>,
+    pub bar_length: i16,
+    pub force_refresh: bool,
 }
 
 impl Default for Bar {
@@ -170,205 +169,28 @@ impl Bar {
     /// ```rust
     /// let mut pb = kdam::Bar::new(100);
     /// ```
-    pub fn new(total: usize) -> Bar {
-        Bar {
+    pub fn new(total: usize) -> Self {
+        Self {
             total: total,
             ..Default::default()
         }
     }
 
-    /// Initialize struct values.
-    fn init(&mut self) {
-        self.set_colour(&self.colour.clone());
-
-        if self.ncols != 10 {
-            self.user_ncols = Some(self.ncols);
-        }
-
-        if self.max_fps {
-            self.force_refresh = true;
-        }
-    }
-
-    fn render_unknown(&mut self, i: usize) -> String {
-        let desc_spacing = if self.desc == "" { "" } else { ": " };
-        self.elapsed_time = self.timer.elapsed().as_secs_f32();
-        let its_per = i as f64 / self.elapsed_time as f64;
-        let elapsed_time_fmt = format::format_interval(self.elapsed_time as usize);
-
-        let count = if self.unit_scale {
-            format::format_sizeof(i, self.unit_divisor)
-        } else {
-            format!("{}", i)
-        };
-
-        let rate_fmt = if self.unit_scale {
-            format::format_sizeof(its_per as usize, self.unit_divisor)
-        } else {
-            format!("{:.2}", its_per)
-        };
-
-        return format!(
-            "{}{}{} [{}, {}{}/s{}]",
-            self.desc, desc_spacing, count, elapsed_time_fmt, rate_fmt, self.unit, self.postfix
-        );
-    }
-
-    fn render_lbar(&mut self, n: usize) -> (f32, String) {
-        let mut progress = (n as f64) / (self.total as f64);
-
-        if progress >= 1.0 {
-            progress = 1.0;
-        }
-
-        let desc_spacing = if self.desc == "" { "" } else { ": " };
-        let percentage = (progress * 100.0) as u8;
-        let mut spacing = if percentage >= 10 { " " } else { "  " };
-
-        if progress >= 1.0 {
-            spacing = "";
-        }
-
-        return (
-            progress as f32,
-            format!("{}{}{}{}%", self.desc, desc_spacing, spacing, percentage),
-        );
-    }
-
-    fn render_rbar(&mut self, n: usize) -> String {
-        let count = if self.unit_scale {
-            format::format_sizeof(n, self.unit_divisor)
-        } else {
-            format!("{}", n)
-        };
-
-        let total = if self.unit_scale {
-            format::format_sizeof(self.total, self.unit_divisor)
-        } else {
-            format!("{}", self.total)
-        };
-
-        self.elapsed_time = self.timer.elapsed().as_secs_f32();
-        let its_per = n as f64 / self.elapsed_time as f64;
-
-        let remaning_time = (self.total - n) as f64 / its_per;
-
-        let elapsed_time_fmt = format::format_interval(self.elapsed_time as usize);
-        let mut remaning_time_fmt = format::format_interval(remaning_time as usize);
-        let mut rate_fmt = if self.unit_scale {
-            format::format_sizeof(its_per as usize, self.unit_divisor)
-        } else {
-            format!("{:.2}", its_per).to_string()
-        };
-
-        if n == 0 {
-            remaning_time_fmt = "00:00".to_string();
-            rate_fmt = "?".to_string();
-        }
-
-        return format!(
-            " {}/{} [{}<{}, {}{}/s{}]",
-            count, total, elapsed_time_fmt, remaning_time_fmt, rate_fmt, self.unit, self.postfix,
-        );
-    }
-
-    fn render_mbar(&mut self, progress: f32) -> String {
-        let (bar_open, bar_close, bar_animation);
-
-        match self.animation {
-            Animation::Tqdm | Animation::TqdmAscii | Animation::FillUp | Animation::Custom(_) => {
-                (bar_open, bar_close) = ("|", "|");
-                bar_animation = crate::styles::progressive(
-                    progress,
-                    self.ncols.clone(),
-                    self.animation.clone(),
-                );
-            }
-
-            Animation::Classic | Animation::Arrow => {
-                (bar_open, bar_close) = ("[", "]");
-                bar_animation =
-                    crate::styles::simple(progress, self.ncols.clone(), self.animation.clone());
-            }
-
-            Animation::FiraCode => {
-                (bar_open, bar_close) = ("", "");
-                bar_animation =
-                    crate::styles::simple(progress, self.ncols.clone(), self.animation.clone());
-            }
-        }
-
-        if self.colour == "default" {
-            return format!("{}{}{}", bar_open, bar_animation, bar_close);
-        } else {
-            return format!(
-                "{}{}{}{}{}",
-                bar_open,
-                self.colour,
-                bar_animation,
-                term::COLOUR_RESET,
-                bar_close
-            );
-        }
-    }
-
-    fn set_ncols(&mut self, lbar_rbar_len: i16) {
-        if self.dynamic_ncols || (lbar_rbar_len + self.ncols + 2 - self.bar_length) > 0 {
-            if self.user_ncols.is_some() {
-                self.ncols = self.user_ncols.unwrap();
-            } else {
-                let columns = term::get_columns();
-
-                if columns != 0 {
-                    let new_ncols = columns as i16 - lbar_rbar_len - 3;
-                    if new_ncols >= 0 {
-                        self.ncols = new_ncols;
-                    }
-                } else {
-                    self.ncols = 10;
-
-                    if !self.dynamic_ncols {
-                        self.user_ncols = Some(10);
-                    }
-                }
-            }
-        }
-    }
-
-    /// Render progress bar text using given value.
-    fn render(&mut self, mut n: usize) -> (String, String, String) {
-        let (progress, lbar) = self.render_lbar(n);
-
-        if progress >= 1.0 {
-            n = self.total;
-
-            if !self.leave {
-                return (
-                    " ".repeat(self.bar_length as usize).to_string(),
-                    "".to_string(),
-                    "\r".to_string(),
-                );
-            }
-        }
-
-        let rbar = self.render_rbar(n);
-
-        self.set_ncols(format!("\r{}{}", lbar, rbar).chars().count() as i16);
-
-        if self.ncols <= 0 {
-            return (lbar, "".to_string(), rbar);
-        }
-
-        let mbar = self.render_mbar(progress);
-
-        return (lbar, mbar, rbar);
-    }
-
-    /// Manually update the progress bar, useful for streams such as reading files.
-    pub fn update(&mut self, n: usize) {
+    /// Checks wheter to trigger a display update or not.
+    /// This method will increment self.n
+    pub fn trigger(&mut self, n: usize) -> bool {
         if !self.started {
+            self.set_colour(&self.colour.clone());
+
+            if self.ncols != 10 {
+                self.user_ncols = Some(self.ncols);
+            }
+
+            if self.max_fps {
+                self.force_refresh = true;
+            }
+
             term::init();
-            self.init();
             self.timer = std::time::Instant::now();
             self.started = true;
         }
@@ -393,49 +215,359 @@ impl Bar {
 
             if (mininterval_constraint && miniters_constraint && (self.delay <= elapsed_time_now))
                 || self.n == self.total
-                || self.force_refresh
             {
                 if self.dynamic_miniters {
                     self.miniters = 0;
                 }
 
-                if self.total != 0 {
-                    let (lbar, mbar, rbar) = self.render(self.n);
-                    self.bar_length =
-                        ((lbar.chars().count() + rbar.chars().count()) as i16) + self.ncols + 2;
+                return true;
+            }
+        }
 
-                    if !self.wrap {
-                        self.write_at(format!("{}{}{}", lbar, mbar, rbar));
-                    } else {
-                        let columns = term::get_columns() as usize;
-                        if self.bar_length as usize > columns {
-                            self.write_at(
-                                format!("{}{}{}", lbar, mbar, rbar)[..columns].to_string(),
-                            );
-                        } else {
-                            self.write_at(format!("{}{}{}", lbar, mbar, rbar));
-                        }
+        return false;
+    }
+
+    /// Set and returns elapsed time of progress bar.
+    pub fn elapsed_time(&mut self) -> f32 {
+        self.elapsed_time = self.timer.elapsed().as_secs_f32();
+        self.elapsed_time
+    }
+
+    /// Format elapsed time of progress bar.
+    pub fn elapsed_time_fmt(&self) -> String {
+        format::format_interval(self.elapsed_time as usize)
+    }
+
+    /// Returns rate/iterations of update method calls.
+    pub fn rate(&self) -> f32 {
+        self.n as f32 / self.elapsed_time
+    }
+
+    /// Format rate/iterations of update method calls.
+    pub fn rate_fmt(&self) -> String {
+        let rate = if self.unit_scale {
+            format::format_sizeof(self.rate() as usize, self.unit_divisor)
+        } else {
+            format!("{:.2}", self.rate())
+        };
+
+        if self.n == 0 {
+            format!("?{}/s", self.unit)
+        } else {
+            format!("{}{}/s", rate, self.unit)
+        }
+    }
+
+    /// Returns ETA / remaining time of progress completion.
+    pub fn eta(&self) -> f32 {
+        if self.total != 0 {
+            (self.total - self.n) as f32 / self.rate()
+        } else {
+            0.0
+        }
+    }
+
+    /// Format remaining time / ETA of progress completion.
+    pub fn eta_fmt(&self) -> String {
+        if self.n == 0 {
+            "00:00".to_string()
+        } else {
+            format::format_interval(self.eta() as usize)
+        }
+    }
+
+    /// Returns progress percentage, like 0.62, 0.262
+    pub fn percentage(&self) -> f64 {
+        self.n as f64 / self.total as f64
+    }
+
+    /// Format pogress percentage.
+    pub fn percentage_fmt(&self, precision: usize) -> String {
+        format!(
+            "{:#1$.2$}%",
+            self.percentage() * 100.0,
+            precision + 3,
+            precision
+        )
+    }
+
+    /// Format progress in form of self.n/self.total
+    pub fn progress_fmt(&self) -> String {
+        let count = if self.unit_scale {
+            format::format_sizeof(self.n, self.unit_divisor)
+        } else {
+            format!("{}", self.n)
+        };
+
+        let total = if self.unit_scale {
+            format::format_sizeof(self.total, self.unit_divisor)
+        } else {
+            format!("{}", self.total)
+        };
+
+        if self.unit_divisor == 1024 {
+            format!("{}{}/{}{}", count, self.unit, total, self.unit)
+        } else {
+            format!("{}/{}", count, total)
+        }
+    }
+
+    /// Render progress bar.
+    fn render(&mut self) -> String {
+        self.elapsed_time();
+
+        let desc = if self.desc == "" {
+            "".to_string()
+        } else {
+            format!("{}: ", self.desc)
+        };
+
+        if self.total == 0 {
+            let count = if self.unit_scale {
+                format::format_sizeof(self.n, self.unit_divisor)
+            } else {
+                format!("{}", self.n)
+            };
+
+            let bar = format!(
+                "{}{}{} [{}, {}{}]",
+                desc,
+                count,
+                self.unit,
+                self.elapsed_time_fmt(),
+                self.rate_fmt(),
+                self.postfix
+            );
+
+            self.bar_length = bar.chars().count() as i16;
+            return bar;
+        }
+
+        let progress = self.percentage() as f32;
+
+        if progress >= 1.0 {
+            self.total = self.n;
+
+            if !self.leave {
+                return format!("{}\r", " ".repeat(self.bar_length as usize));
+            }
+        }
+
+        let lbar = format!("{}{}", desc, self.percentage_fmt(0));
+
+        let rbar = format!(
+            " {} [{}<{}, {}{}]",
+            self.progress_fmt(),
+            self.elapsed_time_fmt(),
+            self.eta_fmt(),
+            self.rate_fmt(),
+            self.postfix,
+        );
+
+        let spaces = match self.animation {
+            Animation::FiraCode => 3,
+            _ => 2,
+        };
+
+        let lbar_rbar_len = (lbar.chars().count() + rbar.chars().count() + spaces) as i16;
+        self.set_ncols(lbar_rbar_len);
+
+        if self.ncols <= 0 {
+            return format!("{}{}", lbar, rbar);
+        } else {
+            self.bar_length = lbar_rbar_len + self.ncols;
+        }
+
+        let (bar_open, bar_close, bar_animation, mbar);
+
+        match self.animation {
+            Animation::Tqdm | Animation::TqdmAscii | Animation::FillUp | Animation::Custom(_) => {
+                (bar_open, bar_close) = ("|", "|");
+                bar_animation = crate::styles::progressive(
+                    progress,
+                    self.ncols.clone(),
+                    self.animation.clone(),
+                );
+            }
+
+            Animation::Classic | Animation::Arrow => {
+                (bar_open, bar_close) = ("[", "]");
+                bar_animation =
+                    crate::styles::simple(progress, self.ncols.clone(), self.animation.clone());
+            }
+
+            Animation::FiraCode => {
+                (bar_open, bar_close) = (" ", "");
+                bar_animation =
+                    crate::styles::simple(progress, self.ncols.clone(), self.animation.clone());
+            }
+        }
+
+        if self.colour == "default" {
+            mbar = format!("{}{}{}", bar_open, bar_animation, bar_close);
+        } else {
+            mbar = format!(
+                "{}{}{}{}{}",
+                bar_open,
+                self.colour,
+                bar_animation,
+                term::COLOUR_RESET,
+                bar_close
+            );
+        }
+
+        format!("{}{}{}", lbar, mbar, rbar)
+    }
+
+    /// Manually update the progress bar, useful for streams such as reading files.
+    pub fn update(&mut self, n: usize) {
+        if self.trigger(n) || self.force_refresh {
+            let text = self.render();
+
+            if !self.wrap {
+                self.write_at(text);
+            } else {
+                let columns = term::get_columns() as usize;
+                if self.bar_length as usize > columns {
+                    self.write_at(text[..columns].to_string());
+                } else {
+                    self.write_at(text);
+                }
+            }
+        }
+    }
+
+    /// Set position of the progress bar.
+    /// Alternative way to update bar.
+    pub fn set_position(&mut self, position: usize) {
+        self.n = position;
+        self.update(0);
+    }
+
+    /// Force refresh the display of this bar.
+    pub fn refresh(&mut self) {
+        if !self.max_fps {
+            self.force_refresh = true;
+            self.update(0);
+            self.force_refresh = false;
+        } else {
+            self.update(0);
+        }
+    }
+
+    /// Resets to intial iterations for repeated use.
+    /// Consider combining with `leave=true`.
+    pub fn reset(&mut self, total: Option<usize>) {
+        self.started = false;
+
+        if total.is_some() {
+            self.total = total.unwrap();
+        }
+    }
+
+    /// Clear current bar display.
+    pub fn clear(&mut self) {
+        if self.file.is_none() {
+            let mut columns = term::get_columns() as usize;
+
+            if columns == 0 {
+                columns = self.bar_length as usize;
+            }
+
+            match self.output {
+                Output::Stderr => {
+                    term::write_to_stderr(format_args!("\r{}\r", " ".repeat(columns)))
+                }
+                Output::Stdout => {
+                    term::write_to_stdout(format_args!("\r{}\r", " ".repeat(columns)))
+                }
+            }
+        }
+    }
+
+    /// Print a message via bar (without overlap with bars).
+    pub fn write(&mut self, text: String) {
+        self.clear();
+
+        match self.output {
+            Output::Stderr => term::write_to_stderr(format_args!("{}\n", text)),
+            Output::Stdout => term::write_to_stdout(format_args!("{}\n", text)),
+        }
+
+        if self.leave {
+            self.refresh();
+        }
+    }
+
+    /// Take input via bar (without overlap with bars).
+    pub fn input(&mut self, text: &str) -> Result<String, std::io::Error> {
+        self.clear();
+
+        match self.output {
+            Output::Stderr => term::write_to_stderr(format_args!("{}", text)),
+            Output::Stdout => term::write_to_stdout(format_args!("{}", text)),
+        }
+
+        let mut input_string = String::new();
+        std::io::stdin().read_line(&mut input_string)?;
+
+        if self.leave {
+            self.refresh();
+        }
+
+        Ok(input_string)
+    }
+
+    /// Set/Modify description of the progress bar.
+    pub fn set_description(&mut self, desc: String) {
+        self.desc = desc;
+    }
+
+    /// Set/Modify postfix (additional stats) with automatic formatting based on datatype.
+    pub fn set_postfix(&mut self, postfix: String) {
+        self.postfix = format!(", {}", postfix);
+    }
+
+    /// Set/Modify colour of the progress bar.
+    pub fn set_colour(&mut self, colour: &str) {
+        if colour != "default" {
+            self.colour = term::colour(colour);
+        } else {
+            self.colour = "default".to_string();
+        }
+    }
+
+    /// Set/Modify charset of the progress bar.
+    pub fn set_charset(&mut self, charset: &'static [&'static str]) {
+        self.animation = Animation::Custom(charset);
+    }
+
+    /// Adjust number of columns for bar animation using length of remanining bar.
+    pub(crate) fn set_ncols(&mut self, lbar_rbar_len: i16) {
+        if self.dynamic_ncols || (lbar_rbar_len + self.ncols != self.bar_length) {
+            if self.user_ncols.is_some() {
+                self.ncols = self.user_ncols.unwrap();
+            } else {
+                let columns = term::get_columns();
+
+                if columns != 0 {
+                    let new_ncols = columns as i16 - lbar_rbar_len;
+                    if new_ncols >= 0 {
+                        self.ncols = new_ncols;
                     }
                 } else {
-                    let text = self.render_unknown(self.n);
-                    self.bar_length = text.chars().count() as i16;
+                    self.ncols = 10;
 
-                    if !self.wrap {
-                        self.write_at(text);
-                    } else {
-                        let columns = term::get_columns() as usize;
-                        if self.bar_length as usize > columns {
-                            self.write_at(text[..columns].to_string());
-                        } else {
-                            self.write_at(text);
-                        }
+                    if !self.dynamic_ncols {
+                        self.user_ncols = Some(10);
                     }
                 }
             }
         }
     }
 
-    fn write_at(&self, text: String) {
+    /// Print a string in position of bar.
+    pub fn write_at(&self, text: String) {
         if self.file.is_none() {
             crate::lock::acquire();
 
@@ -467,105 +599,5 @@ impl Bar {
             file.write_fmt(format_args!("{}\n", text.as_str())).unwrap();
             file.flush().unwrap();
         }
-    }
-
-    /// Clear current bar display.
-    pub fn clear(&mut self) {
-        if self.file.is_none() {
-            let mut columns = term::get_columns() as usize;
-
-            if columns == 0 {
-                columns = self.bar_length as usize;
-            }
-
-            match self.output {
-                Output::Stderr => {
-                    term::write_to_stderr(format_args!("\r{}\r", " ".repeat(columns)))
-                }
-                Output::Stdout => {
-                    term::write_to_stdout(format_args!("\r{}\r", " ".repeat(columns)))
-                }
-            }
-        }
-    }
-
-    /// Force refresh the display of this bar.
-    pub fn refresh(&mut self) {
-        if !self.max_fps {
-            self.force_refresh = true;
-            self.update(0);
-            self.force_refresh = false;
-        } else {
-            self.update(0);
-        }
-    }
-
-    /// Resets to intial iterations for repeated use.
-    /// Consider combining with `leave=true`.
-    pub fn reset(&mut self, total: Option<usize>) {
-        self.started = false;
-
-        if total.is_some() {
-            self.total = total.unwrap();
-        }
-    }
-
-    /// Print a message via bar (without overlap with bars).
-    /// This message is printed to stdout.
-    pub fn write(&mut self, text: String) {
-        self.clear();
-
-        term::write_to_stdout(format_args!("{}\n", text));
-
-        if self.leave {
-            self.refresh();
-        }
-    }
-
-    /// Take input via bar (without overlap with bars).
-    /// The input message is printed to stdout.
-    pub fn input(&mut self, text: &str) -> Result<String, std::io::Error> {
-        self.clear();
-
-        term::write_to_stdout(format_args!("{}", text));
-
-        let mut input_string = String::new();
-        std::io::stdin().read_line(&mut input_string)?;
-
-        if self.leave {
-            self.refresh();
-        }
-
-        Ok(input_string)
-    }
-
-    /// Set/Modify position of the progress bar.
-    pub fn set_position(&mut self, position: usize) {
-        self.n = position;
-        self.update(0);
-    }
-
-    /// Set/Modify description of the progress bar.
-    pub fn set_description(&mut self, desc: String) {
-        self.desc = desc;
-    }
-
-    /// Set/Modify postfix (additional stats) with automatic formatting based on datatype.
-    pub fn set_postfix(&mut self, postfix: String) {
-        self.postfix = format!(", {}", postfix);
-    }
-
-    /// Set/Modify colour of the progress bar.
-    pub fn set_colour(&mut self, colour: &str) {
-        if colour != "default" {
-            self.colour = term::colour(colour);
-        } else {
-            self.colour = "default".to_string();
-        }
-    }
-
-    /// Set/Modify charset of the progress bar.
-    pub fn set_charset(&mut self, charset: &'static [&'static str]) {
-        self.animation = Animation::Custom(Some(charset));
     }
 }

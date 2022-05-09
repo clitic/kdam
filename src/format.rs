@@ -1,6 +1,6 @@
 //! Functions for formatting values.
 
-/// Returns floor division and modulus of two values.
+/// Returns floor division and modulus of two values. //try
 pub fn divmod<T: Into<usize>>(x: T, y: T) -> (usize, usize) {
     let (new_x, new_y) = (x.into(), y.into());
     (new_x / new_y as usize, new_x % new_y)

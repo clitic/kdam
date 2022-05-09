@@ -5,4 +5,5 @@ fn main() {
     for _ in 0..100 {
         pb.update(1);
     }
+    println!("\n{:#?}\n{}", pb, std::mem::size_of_val(&pb));
 }

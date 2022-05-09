@@ -1,11 +1,12 @@
 # kdam Changelog (DD/MM/YYYY)
 
-## 0.1.4 (_/05/2022)
+## 0.1.6 (_/05/2022)
 
 Features:
 
-- Several optimizations (reduced memory consumption by 30%). 
-- Monitor mode is now supported.
+- Several optimizations (reduced memory consumption by 30%).
+- [Rich](https://github.com/Textualize/rich#rich-library) style progress bar support with custom builder.
+- Monitor mode is now supported. Use `kdam::monitor`.
 - New `kdam::finish` function to print newline.
 - New `wrap` field for `kdam::Bar`.
 
@@ -21,6 +22,7 @@ Bug Fixes:
 
 - Unexcepted default print with fira code animation.
 - `refresh` method fixed when using `max_fps = true`.
+- fixed `set_ncols` method to use full terminal length.
 
 ## 0.1.2 (28/04/2022)
 

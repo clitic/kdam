@@ -1,9 +1,9 @@
 use kdam::tqdm;
 
 fn main() {
-    let mut pb = tqdm!(total = 1000, max_fps = true);
+    let mut pb = tqdm!(total = 300, max_fps = true);
 
-    for _ in 0..1000 {
+    for _ in 0..300 {
         std::thread::sleep(std::time::Duration::from_secs_f32(0.02));
         pb.update(1);
     }

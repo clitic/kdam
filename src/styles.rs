@@ -1,3 +1,5 @@
+use crate::term::Colorizer;
+
 // Animation Unicodes
 static FILLUPCHARSET: [&str; 8] = [
     "\u{2581}", "\u{2582}", "\u{2583}", "\u{2584}", "\u{2585}", "\u{2586}", "\u{2587}", "\u{2588}",
@@ -18,18 +20,11 @@ static TQDMASCIICHARSET: [&str; 10] = ["1", "2", "3", "4", "5", "6", "7", "8", "
 pub enum Animation {
     Arrow,
     Classic,
-    Custom(Option<&'static [&'static str]>),
+    Custom(&'static [&'static str]),
     FillUp,
     FiraCode,
     Tqdm,
     TqdmAscii,
-}
-
-/// Different ouput locations of `kdam::Bar`.
-#[derive(Debug, Clone)]
-pub enum Output {
-    Stderr,
-    Stdout,
 }
 
 pub(crate) fn progressive(progress: f32, ncols: i16, animation: Animation) -> String {
@@ -38,21 +33,13 @@ pub(crate) fn progressive(progress: f32, ncols: i16, animation: Animation) -> St
     match animation {
         Animation::TqdmAscii => charset = &TQDMASCIICHARSET,
         Animation::FillUp => charset = &FILLUPCHARSET,
-        Animation::Custom(custom_charset) => {
-            charset = if custom_charset.is_some() {
-                custom_charset.unwrap()
-            } else {
-                &TQDMCHARSET
-            }
-        }
+        Animation::Custom(custom_charset) => charset = custom_charset,
         _ => charset = &TQDMCHARSET,
     }
 
     let nsyms = charset.len() - 1;
-    let (bar_length, frac_bar_length) = crate::format::divmod(
-        (progress * ncols as f32 * nsyms as f32) as usize,
-        nsyms,
-    );
+    let (bar_length, frac_bar_length) =
+        crate::format::divmod((progress * ncols as f32 * nsyms as f32) as usize, nsyms);
     let mut bar_animation = charset.last().unwrap().repeat(bar_length);
 
     if bar_length < ncols as usize {
@@ -105,4 +92,55 @@ pub(crate) fn simple(progress: f32, ncols: i16, animation: Animation) -> String 
     }
 
     bar_animation
+}
+
+pub fn rich_bar(progress: f32, ncols: i16) -> String {
+    let block = (ncols as f32 * progress) as i16;
+    let x = ncols - block - 1;
+
+    if x >= 0 {
+        format!(
+            "{}{}╸{}{}{}{}",
+            crate::term::colour("#F92672"),
+            "━".repeat(block as usize),
+            crate::term::COLOUR_RESET,
+            crate::term::colour("#525252"),
+            "━".repeat(x as usize),
+            crate::term::COLOUR_RESET
+        )
+    } else {
+        format!(
+            "{}{}{}",
+            crate::term::colour("#729c1f"),
+            "━".repeat(ncols as usize),
+            crate::term::COLOUR_RESET
+        )
+    }
+}
+
+pub fn rich_pulse(ncols: i16, current_time: f32) -> String {
+    let pulse: Vec<String> = [
+        "#3a3a3a", "#3e393b", "#4c383f", "#613545", "#7b334d", "#b72c5e", "#d12a66", "#e6276c",
+        "#f42670", "#f92672", "#f42670", "#e6276c", "#d12a66", "#b72c5e", "#993056", "#7b334d",
+        "#613545", "#4c383f",
+    ]
+    .repeat((ncols as f32 / 18 as f32) as usize + 2)
+    .iter()
+    .map(|x| "━".colorize(x))
+    .collect();
+
+    let offset = (-current_time * 15 as f32) as i16 % 18;
+    let mut pulse_string = String::new();
+
+    for i in offset..(offset + ncols) {
+        if i.is_negative() {
+            pulse_string += pulse
+                .get(pulse.len() - (i * -1) as usize)
+                .unwrap();
+        } else {
+            pulse_string += pulse.get(i as usize).unwrap();
+        }
+    }
+
+    pulse_string
 }

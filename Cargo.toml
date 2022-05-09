@@ -1,8 +1,8 @@
 [package]
 name = "kdam"
-version = "0.1.4"
+version = "0.1.6"
 edition = "2021"
-description = "A console progress bar library for Rust"
+description = "Ultimate Console Progress Bar For Rust"
 repository = "https://github.com/clitic/kdam"
 documentation = "https://docs.rs/kdam"
 categories = ["command-line-interface"]

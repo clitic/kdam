@@ -1,7 +1,7 @@
 use std::thread;
 use std::time::Duration;
 
-use kdam::tqdm;
+use kdam::{tqdm, term::Output};
 
 fn main() {
     let mut pb1 = tqdm!(total = 150, position = 0);
@@ -34,6 +34,6 @@ fn main() {
         thread.join().unwrap();
     }
 
-    kdam::finish(3, kdam::Output::Stderr);
+    kdam::finish(3, Output::Stderr);
     println!("completed!");
 }
