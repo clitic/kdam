@@ -198,6 +198,10 @@ impl Bar {
         self.n += n;
 
         if !self.disable {
+            if self.force_refresh {
+                return true;
+            }
+
             let elapsed_time_now = self.timer.elapsed().as_secs_f32();
             let mininterval_constraint = self.mininterval <= (elapsed_time_now - self.elapsed_time);
 
@@ -291,24 +295,33 @@ impl Bar {
         )
     }
 
-    /// Format progress in form of self.n/self.total
-    pub fn progress_fmt(&self) -> String {
+    /// Format self.n
+    pub fn count_fmt(&self) -> String {
         let count = if self.unit_scale {
             format::format_sizeof(self.n, self.unit_divisor)
         } else {
             format!("{}", self.n)
         };
 
+        if self.unit_divisor == 1024 {
+            format!("{}{}", count, self.unit)
+        } else {
+            count
+        }
+    }
+
+    /// Format self.total
+    pub fn total_fmt(&self) -> String {
         let total = if self.unit_scale {
             format::format_sizeof(self.total, self.unit_divisor)
         } else {
-            format!("{}", self.total)
+            format!("{}", self.n)
         };
 
         if self.unit_divisor == 1024 {
-            format!("{}{}/{}{}", count, self.unit, total, self.unit)
+            format!("{}{}", total, self.unit)
         } else {
-            format!("{}/{}", count, total)
+            total
         }
     }
 
@@ -356,8 +369,9 @@ impl Bar {
         let lbar = format!("{}{}", desc, self.percentage_fmt(0));
 
         let rbar = format!(
-            " {} [{}<{}, {}{}]",
-            self.progress_fmt(),
+            " {}/{} [{}<{}, {}{}]",
+            self.count_fmt(),
+            self.total_fmt(),
             self.elapsed_time_fmt(),
             self.eta_fmt(),
             self.rate_fmt(),
@@ -421,19 +435,9 @@ impl Bar {
 
     /// Manually update the progress bar, useful for streams such as reading files.
     pub fn update(&mut self, n: usize) {
-        if self.trigger(n) || self.force_refresh {
+        if self.trigger(n) {
             let text = self.render();
-
-            if !self.wrap {
-                self.write_at(text);
-            } else {
-                let columns = term::get_columns() as usize;
-                if self.bar_length as usize > columns {
-                    self.write_at(text[..columns].to_string());
-                } else {
-                    self.write_at(text);
-                }
-            }
+            self.write_at(text);
         }
     }
 
@@ -567,7 +571,15 @@ impl Bar {
     }
 
     /// Print a string in position of bar.
-    pub fn write_at(&self, text: String) {
+    pub fn write_at(&self, mut text: String) {
+        if self.wrap {
+            let columns = crate::term::get_columns() as usize;
+
+            if self.bar_length as usize > columns {
+                text = text[..columns].to_string();
+            }
+        }
+
         if self.file.is_none() {
             crate::lock::acquire();
 
