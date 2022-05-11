@@ -45,7 +45,7 @@ Add this to your Cargo.toml file.
 
 ```toml
 [dependencies]
-kdam = "0.1.2"
+kdam = "0.1.6"
 ```
 
 Or add from github main branch.
