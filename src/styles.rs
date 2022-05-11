@@ -94,7 +94,7 @@ pub(crate) fn simple(progress: f32, ncols: i16, animation: Animation) -> String 
     bar_animation
 }
 
-pub fn rich_bar(progress: f32, ncols: i16) -> String {
+pub(crate) fn rich_bar(progress: f32, ncols: i16) -> String {
     let block = (ncols as f32 * progress) as i16;
     let x = ncols - block - 1;
 
@@ -118,7 +118,7 @@ pub fn rich_bar(progress: f32, ncols: i16) -> String {
     }
 }
 
-pub fn rich_pulse(ncols: i16, current_time: f32) -> String {
+pub(crate) fn rich_pulse(ncols: i16, current_time: f32) -> String {
     let pulse: Vec<String> = [
         "#3a3a3a", "#3e393b", "#4c383f", "#613545", "#7b334d", "#b72c5e", "#d12a66", "#e6276c",
         "#f42670", "#f92672", "#f42670", "#e6276c", "#d12a66", "#b72c5e", "#993056", "#7b334d",

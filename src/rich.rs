@@ -2,42 +2,100 @@ use crate::std_bar::Bar;
 use crate::term::Colorizer;
 use crate::{term, term::Output};
 
+/// Renderable columns for `kdam::RichProgress`.
+///
+/// These columns may differ in name as of `rich.progress`.
 #[derive(Debug, Clone)]
 pub enum Column {
-    /// progress bar
+    /// Progress bar column.
+    /// If self.pb.n || self.pb.total == 0, then an pulsating animation
+    /// else rich style animation.
     Bar,
-    /// self.n
+    /// Progress counter i.e. `sel.pb.n`.
     Count,
-    /// self.n / self.total
+    /// Formatted counter i.e. `self.pb.n / self.pb.total`
     CountTotal,
+    /// Progress elapsed time
     ElapsedTime,
+    /// Progress percentage done, with precision.
     Percentage(usize),
+    /// Progress update rate.
     Rate,
+    /// Progress remaining time / ETA.
     RemainingTime,
+    /// Spinner for progress. See more styles at [rich repository](https://github.com/Textualize/rich/blob/master/rich/_spinners.py).
+    /// - first argument is Vec<String> of frames.
+    /// - second argument is interval of frames.
+    /// - third argument is speed of frames.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// Column::Spinner(
+    ///     "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
+    ///     .chars()
+    ///     .map(|x| x.to_string())
+    ///     .collect::<Vec<String>>(),
+    ///     80.0,
+    ///     1.0
+    /// )
+    /// ````
     Spinner(Vec<String>, f32, f32),
+    /// Text column.
+    /// - first argument is text to render.
+    /// - second argument is colour style.
+    ///
+    /// # Example`
+    ///
+    /// ```rust
+    /// Column::Text("•".to_string(), None);
+    /// Column::Text("caught an error".to_string(), Some("bold red"));
+    /// ```
     Text(String, Option<String>),
+    /// Progress total i.e. `self.pb.total`.
     Total,
 }
 
+/// An implementation [rich.progress](https://rich.readthedocs.io/en/latest/progress.html) using `kdam::Bar`.
+///
+/// # Example
+///
+/// ```rust
+/// use kdam::{tqdm, Column, RichProgress};
+///
+/// fn main() {
+///     let mut pb = RichProgress::new(
+///         tqdm!(total = 100),
+///         vec![Column::Bar, Column::Percentage(2)]
+///     );
+///
+///     for _ in 0..100 {
+///         pb.update(1);
+///     }
+///
+///     eprint!("\n");
+/// }
+/// ```
 #[derive(Debug)]
 pub struct RichProgress {
+    /// Instance of `kdam::Bar` to render `kdam::RichProgress`.
     pub pb: Bar,
-    columns: Vec<Column>,
+    /// Vector of renderable columns.
+    pub columns: Vec<Column>,
 }
 
 impl RichProgress {
-    pub fn new(pb: Bar) -> Self {
-        Self {
-            pb,
-            columns: vec![],
-        }
+    /// Create a new instance of `kdam::RichProgress`.
+    pub fn new(pb: Bar, columns: Vec<Column>) -> Self {
+        Self { pb, columns }
     }
 
-    pub fn add(&mut self, col: Column) {
-        self.columns.push(col);
+    /// Replace a column value at specific index.
+    pub fn replace(&mut self, index: usize, col: Column) {
+        let _ = std::mem::replace(&mut self.columns[index], col);
     }
 
-    pub fn render(&mut self) -> String {
+    fn render(&mut self) -> String {
         let mut bar_text = vec![];
         let mut bar_length = 0;
         let mut progress_bar_index = None;
@@ -130,6 +188,7 @@ impl RichProgress {
         bar_text.join(" ")
     }
 
+    /// Manually update the progress bar, useful for streams such as reading files.
     pub fn update(&mut self, n: usize) {
         if self.pb.trigger(n) {
             let text = self.render();

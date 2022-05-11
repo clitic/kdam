@@ -1,13 +1,12 @@
 # kdam Changelog (DD/MM/YYYY)
 
-## 0.1.6 (_/05/2022)
+## 0.1.6 (11/05/2022)
 
 Features:
 
 - Several optimizations (reduced memory consumption by 30%).
-- [Rich](https://github.com/Textualize/rich#rich-library) style progress bar support with custom builder.
+- [rich.progress](https://rich.readthedocs.io/en/latest/progress.html) style progress bar support with custom builder.
 - Monitor mode is now supported. Use `kdam::monitor`.
-- New `kdam::finish` function to print newline.
 - New `wrap` field for `kdam::Bar`.
 
 Changes:

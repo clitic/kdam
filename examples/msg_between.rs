@@ -1,4 +1,4 @@
-use kdam::{tqdm, term::Output};
+use kdam::tqdm;
 
 fn main() {
     let mut pb1 = tqdm!(total = 100, position = 0);
@@ -12,6 +12,6 @@ fn main() {
         pb2.update(1);
     }
 
-    kdam::finish(5, Output::Stderr);
+    eprint!("{}", "\n".repeat(5));
     println!("completed!");
 }

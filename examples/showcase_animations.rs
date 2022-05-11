@@ -1,4 +1,4 @@
-use kdam::{tqdm, Animation, term::Output};
+use kdam::{tqdm, Animation};
 
 fn main() {
     let render_length = 300;
@@ -49,5 +49,5 @@ fn main() {
         std::thread::sleep(std::time::Duration::from_secs_f32(0.02));
     }
 
-    kdam::finish(9, Output::Stderr);
+    eprint!("{}", "\n".repeat(9));
 }

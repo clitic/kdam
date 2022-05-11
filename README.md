@@ -8,7 +8,7 @@
   <img src="https://img.shields.io/tokei/lines/github/clitic/kdam?style=flat-square">
 </p>
 
-kdam is a port of [tqdm](https://github.com/tqdm/tqdm) library which is written in python. kdam has almost same features as tqdm with extra features included. Some features couldn't be ported due to language barriers. kdam is also 8-10 times faster than tqdm. kdam has only one external dependency which [terminal-size](https://github.com/eminence/terminal-size).
+kdam is a port of [tqdm](https://github.com/tqdm/tqdm) library which is written in python. kdam has almost same features as tqdm with extra features included. kdam is also 4 times faster than tqdm. kdam has only one external dependency which [terminal-size](https://github.com/eminence/terminal-size).
 
 Instantly make your loops show a smart progress meter. Just wrap any iterator with tqdm!(iterator) macro and you're done!
 
@@ -28,6 +28,11 @@ kdam also supports different animation styles. All available animations styles a
 
 [examples/showcase_animations.rs](https://github.com/clitic/kdam/blob/main/examples/showcase_animations.rs)
 ![showcase_animations](https://raw.githubusercontent.com/clitic/kdam/main/images/animations.gif)
+
+kdam also support [rich.progress](https://rich.readthedocs.io/en/latest/progress.html) style bars with customizable columns.
+
+[examples/bar_rich.rs](https://github.com/clitic/kdam/blob/main/examples/bar_rich.rs)
+![showcase_rich_progress_animation](https://raw.githubusercontent.com/clitic/kdam/main/images/rich_progress.gif)
 
 [Fira Code](https://github.com/tonsky/FiraCode) is the first programming font to offer dedicated glyphs to render progress bars. kdam has an animation style to support it.
 
@@ -98,7 +103,7 @@ fn main() {
 ```
 
 ```
-/ 10000000 [00:03, 2998660.35it/s]
+10000000 [00:03, 2998660.35it/s]
 ```
 
 ## Examples
@@ -144,7 +149,7 @@ fn main() {
         }
     }
 
-    kdam::finish(3, kdam::Output::Stderr);
+    eprint!("{}", "\n".repeat(3));
     println!("completed!");
 }
 ```
@@ -159,7 +164,7 @@ fn main() {
 
 Since `kdam` uses a simple printing mechanism to display progress bars, you should not write any message in the terminal using `println!()` while a progressbar is open.
 
-To write messages in the terminal without any collision with `kdam` bar display, a `.write()` method is provided.
+To write messages in the terminal without any collision with `kdam` bar display, a `.write()` method is provided. This message will print at bar output location, which is stderr by default.
 
 ```rust
 use kdam::tqdm;
@@ -175,8 +180,6 @@ fn main() {
     }
 }
 ```
-
-By default, this will print to standard output.
 
 ```
 Done task 0

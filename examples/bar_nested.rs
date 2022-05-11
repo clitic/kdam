@@ -1,4 +1,4 @@
-use kdam::{tqdm, term::Output};
+use kdam::tqdm;
 
 fn main() {
     for _ in tqdm!(0..4, desc = "1st loop".to_string(), position = 0) {
@@ -9,6 +9,6 @@ fn main() {
         }
     }
 
-    kdam::finish(3, Output::Stderr);
+    eprint!("{}", "\n".repeat(3));
     println!("completed!");
 }
