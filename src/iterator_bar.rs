@@ -95,7 +95,7 @@ where
     /// # Example
     ///
     /// ```rust
-    /// use kdam::BarIter;
+    /// use kdam::BarIterator;
     ///
     /// fn main() {
     ///     let chars = ["a", "b", "c", "d"];

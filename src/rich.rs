@@ -31,6 +31,8 @@ pub enum Column {
     /// # Example
     ///
     /// ```rust
+    /// use kdam::Column;
+    /// 
     /// Column::Spinner(
     ///     "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
     ///     .chars()
@@ -48,6 +50,8 @@ pub enum Column {
     /// # Example`
     ///
     /// ```rust
+    /// use kdam::Column;
+    /// 
     /// Column::Text("•".to_string(), None);
     /// Column::Text("caught an error".to_string(), Some("bold red"));
     /// ```
