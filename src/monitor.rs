@@ -8,7 +8,7 @@ use crate::std_bar::Bar;
 /// 
 /// # Example
 /// 
-/// ```rust
+/// ```no_run
 /// use kdam::tqdm;
 /// 
 /// fn main() {

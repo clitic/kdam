@@ -40,7 +40,7 @@ pub enum Column {
     ///     .collect::<Vec<String>>(),
     ///     80.0,
     ///     1.0
-    /// )
+    /// );
     /// ````
     Spinner(Vec<String>, f32, f32),
     /// Text column.
@@ -53,7 +53,7 @@ pub enum Column {
     /// use kdam::Column;
     /// 
     /// Column::Text("•".to_string(), None);
-    /// Column::Text("caught an error".to_string(), Some("bold red"));
+    /// Column::Text("caught an error".to_string(), Some("bold red".to_string()));
     /// ```
     Text(String, Option<String>),
     /// Progress total i.e. `self.pb.total`.

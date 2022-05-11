@@ -31,6 +31,3 @@ members = ["examples/file_download"]
 
 [dependencies]
 terminal_size = ">=0.1.17"
-
-[dev-dependencies]
-rand = "0.8"
