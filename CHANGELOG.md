@@ -1,5 +1,11 @@
 # kdam Changelog (DD/MM/YYYY)
 
+## 0.1.7 (18/05/2022)
+
+Bug Fixes:
+
+- Fixed displaying counter instead of total value.
+
 ## 0.1.6 (11/05/2022)
 
 Features:
@@ -21,7 +27,7 @@ Bug Fixes:
 
 - Unexcepted default print with fira code animation.
 - `refresh` method fixed when using `max_fps = true`.
-- fixed `set_ncols` method to use full terminal length.
+- Fixed `set_ncols` method to use full terminal length.
 
 ## 0.1.2 (28/04/2022)
 

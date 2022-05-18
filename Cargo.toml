@@ -1,6 +1,6 @@
 [package]
 name = "kdam"
-version = "0.1.6"
+version = "0.1.7"
 edition = "2021"
 description = "Ultimate Console Progress Bar For Rust"
 repository = "https://github.com/clitic/kdam"
@@ -30,4 +30,4 @@ members = ["examples/file_download"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-terminal_size = ">=0.1.17"
+terminal_size = "0.1"

@@ -315,7 +315,7 @@ impl Bar {
         let total = if self.unit_scale {
             format::format_sizeof(self.total, self.unit_divisor)
         } else {
-            format!("{}", self.n)
+            format!("{}", self.total)
         };
 
         if self.unit_divisor == 1024 {
