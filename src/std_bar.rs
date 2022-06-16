@@ -23,20 +23,7 @@ use crate::term::Output;
 /// }
 /// ```
 ///
-/// Another example without a total value. This only shows basic stats.
-///
-/// ```rust
-/// use kdam::Bar;
-///
-/// fn main() {
-///     let mut pb = Bar::default();
-///
-///     for _ in 0..100 {
-///         pb.update(1);
-///     }
-/// }
-/// ```
-// #[derive(Debug, Clone)]
+/// If total is unknown then `kdam::Bar` could be constructed with total as 0 i.e. `Bar::new(0)`
 #[derive(Debug)]
 pub struct Bar {
     /// Prefix for the progress bar.
