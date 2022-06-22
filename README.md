@@ -1,11 +1,24 @@
 # kdam
 
 <p align="center">
-  <img src="https://img.shields.io/crates/d/kdam?style=flat-square">
-  <img src="https://img.shields.io/crates/v/kdam?style=flat-square">
-  <img src="https://img.shields.io/github/license/clitic/kdam?style=flat-square">
-  <img src="https://img.shields.io/github/repo-size/clitic/kdam?style=flat-square">
-  <img src="https://img.shields.io/tokei/lines/github/clitic/kdam?style=flat-square">
+  <a href="https://crates.io/crates/kdam">
+    <img src="https://img.shields.io/crates/d/kdam?style=flat-square">
+  </a>
+  <a href="https://crates.io/crates/kdam">
+    <img src="https://img.shields.io/crates/v/kdam?style=flat-square">
+  </a>
+  <a href="https://docs.rs/kdam/latest/kdam">
+    <img src="https://img.shields.io/docsrs/kdam?logo=docsdotrs&style=flat-square">
+  </a>
+  <a href="https://github.com/clitic/kdam">
+    <img src="https://img.shields.io/github/license/clitic/kdam?style=flat-square">
+  </a>
+  <a href="https://github.com/clitic/kdam">
+    <img src="https://img.shields.io/github/repo-size/clitic/kdam?style=flat-square">
+  </a>
+  <a href="https://github.com/clitic/kdam">
+    <img src="https://img.shields.io/tokei/lines/github/clitic/kdam?logo=github&style=flat-square">
+  </a>
 </p>
 
 kdam is a port of [tqdm](https://github.com/tqdm/tqdm) library which is written in python. kdam has almost same features as tqdm with extra features included. kdam is also 4 times faster than tqdm. kdam has only one external dependency which [terminal-size](https://github.com/eminence/terminal-size).
