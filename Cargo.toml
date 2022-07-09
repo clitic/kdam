@@ -14,20 +14,13 @@ keywords = [
 ]
 license = "MIT"
 readme = "README.md"
-include = [
-  "examples/**/*",
-  "src/**/*",
-  "Cargo.toml",
-  "CHANGELOG.md",
-  "LICENSE*",
-  "README.md",
-]
-
-[workspace]
-
-members = ["examples/file_download"]
+exclude = ["images"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-terminal_size = "0.1"
+terminal_size = "0.2"
+
+[workspace]
+
+members = ["examples/file_download"]
