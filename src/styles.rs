@@ -99,22 +99,10 @@ pub(crate) fn rich_bar(progress: f32, ncols: i16) -> String {
     let x = ncols - block - 1;
 
     if x >= 0 {
-        format!(
-            "{}{}╸{}{}{}{}",
-            crate::term::colour("#F92672"),
-            "━".repeat(block as usize),
-            crate::term::COLOUR_RESET,
-            crate::term::colour("#525252"),
-            "━".repeat(x as usize),
-            crate::term::COLOUR_RESET
-        )
+        ("━".repeat(block as usize) + "╸").colorize("#F92672")
+            + &"━".repeat(x as usize).colorize("#525252")
     } else {
-        format!(
-            "{}{}{}",
-            crate::term::colour("#729c1f"),
-            "━".repeat(ncols as usize),
-            crate::term::COLOUR_RESET
-        )
+        "━".repeat(ncols as usize).colorize("#729c1f")
     }
 }
 
@@ -134,9 +122,7 @@ pub(crate) fn rich_pulse(ncols: i16, current_time: f32) -> String {
 
     for i in offset..(offset + ncols) {
         if i.is_negative() {
-            pulse_string += pulse
-                .get(pulse.len() - (i * -1) as usize)
-                .unwrap();
+            pulse_string += pulse.get(pulse.len() - (i * -1) as usize).unwrap();
         } else {
             pulse_string += pulse.get(i as usize).unwrap();
         }

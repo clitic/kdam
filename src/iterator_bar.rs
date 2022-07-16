@@ -86,7 +86,7 @@ impl<T: DoubleEndedIterator> DoubleEndedIterator for BarIterator<T> {
 }
 
 /// Rust iterators decoration with `kdam::BarIterator`.
-pub trait BarProgress
+pub trait TqdmIterator
 where
     Self: Sized + Iterator,
 {
@@ -95,24 +95,30 @@ where
     /// # Example
     ///
     /// ```rust
-    /// use kdam::BarProgress;
+    /// use kdam::TqdmIterator;
     ///
     /// fn main() {
     ///     let chars = ["a", "b", "c", "d"];
     ///     let mut charset = String::new();
     ///
-    ///     for i in chars.iter().progress() {
+    ///     for i in chars.iter().tqdm() {
     ///         charset += i;
     ///     }
     ///
     ///     assert_eq!(charset, "abcd");
     /// }
     /// ```
-    fn progress(self) -> BarIterator<Self>;
+    fn tqdm(self) -> BarIterator<Self>;
+
+    fn tqdm_with_bar(self, pb: Bar) -> BarIterator<Self>;
 }
 
-impl<S, T: Iterator<Item = S>> BarProgress for T {
-    fn progress(self) -> BarIterator<Self> {
+impl<S, T: Iterator<Item = S>> TqdmIterator for T {
+    fn tqdm(self) -> BarIterator<Self> {
         BarIterator::new(self)
+    }
+
+    fn tqdm_with_bar(self, pb: Bar) -> BarIterator<Self> {
+        BarIterator::new_with_bar(self, pb)
     }
 }

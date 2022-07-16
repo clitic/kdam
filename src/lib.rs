@@ -24,7 +24,7 @@ pub mod format;
 pub mod lock;
 pub mod term;
 
-pub use iterator_bar::{BarIterator, BarProgress};
+pub use iterator_bar::{BarIterator, TqdmIterator};
 pub use monitor::{monitor, monitor_rich};
 pub use rich::{Column, RichProgress};
 pub use std_bar::Bar;

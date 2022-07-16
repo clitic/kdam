@@ -3,7 +3,7 @@ use std::io::Write;
 use crate::format;
 use crate::styles::Animation;
 use crate::term;
-use crate::term::Output;
+use crate::term::{Colorizer, Writer};
 
 /// Standard struct implemention of progress bar.
 ///
@@ -92,9 +92,9 @@ pub struct Bar {
     /// For custom type use set_charset method.
     /// (default: `kdam::Animation::TqdmAscii`)
     pub animation: Animation,
-    /// Select where to display progress bar output between stdout and stderr.
+    /// Select writer type to display progress bar output between stdout and stderr.
     /// (default: `kdam::Output::Stderr`)
-    pub output: Output,
+    pub writer: Writer,
     /// If true, each update method call will be rendered.
     /// (default: `false`)
     pub max_fps: bool,
@@ -133,7 +133,7 @@ impl Default for Bar {
             colour: "default".to_string(),
             delay: 0.0,
             animation: Animation::Tqdm,
-            output: Output::Stderr,
+            writer: Writer::Stderr,
             max_fps: false,
             wrap: false,
             n: 0,
@@ -177,7 +177,6 @@ impl Bar {
                 self.force_refresh = true;
             }
 
-            term::init();
             self.timer = std::time::Instant::now();
             self.started = true;
         }
@@ -408,11 +407,9 @@ impl Bar {
             mbar = format!("{}{}{}", bar_open, bar_animation, bar_close);
         } else {
             mbar = format!(
-                "{}{}{}{}{}",
+                "{}{}{}",
                 bar_open,
-                self.colour,
-                bar_animation,
-                term::COLOUR_RESET,
+                bar_animation.colorize(&self.colour),
                 bar_close
             );
         }
@@ -465,25 +462,15 @@ impl Bar {
                 columns = self.bar_length as usize;
             }
 
-            match self.output {
-                Output::Stderr => {
-                    term::write_to_stderr(format_args!("\r{}\r", " ".repeat(columns)))
-                }
-                Output::Stdout => {
-                    term::write_to_stdout(format_args!("\r{}\r", " ".repeat(columns)))
-                }
-            }
+            self.writer
+                .print(format_args!("\r{}\r", " ".repeat(columns)));
         }
     }
 
     /// Print a message via bar (without overlap with bars).
     pub fn write(&mut self, text: String) {
         self.clear();
-
-        match self.output {
-            Output::Stderr => term::write_to_stderr(format_args!("{}\n", text)),
-            Output::Stdout => term::write_to_stdout(format_args!("{}\n", text)),
-        }
+        self.writer.print(format_args!("{}\n", text));
 
         if self.leave {
             self.refresh();
@@ -493,11 +480,7 @@ impl Bar {
     /// Take input via bar (without overlap with bars).
     pub fn input(&mut self, text: &str) -> Result<String, std::io::Error> {
         self.clear();
-
-        match self.output {
-            Output::Stderr => term::write_to_stderr(format_args!("{}", text)),
-            Output::Stdout => term::write_to_stdout(format_args!("{}", text)),
-        }
+        self.writer.print_str(text);
 
         let mut input_string = String::new();
         std::io::stdin().read_line(&mut input_string)?;
@@ -571,25 +554,14 @@ impl Bar {
             crate::lock::acquire();
 
             if self.position == 0 {
-                match self.output {
-                    Output::Stderr => term::write_to_stderr(format_args!("\r{}", text)),
-                    Output::Stdout => term::write_to_stdout(format_args!("\r{}", text)),
-                }
+                self.writer.print(format_args!("\r{}", text));
             } else {
-                match self.output {
-                    Output::Stderr => term::write_to_stderr(format_args!(
-                        "{}{}{}",
-                        "\n".repeat(self.position as usize),
-                        text,
-                        format!("\x1b[{}A", self.position)
-                    )),
-                    Output::Stdout => term::write_to_stdout(format_args!(
-                        "{}{}{}",
-                        "\n".repeat(self.position as usize),
-                        text,
-                        format!("\x1b[{}A", self.position)
-                    )),
-                }
+                self.writer.print(format_args!(
+                    "{}{}{}",
+                    "\n".repeat(self.position as usize),
+                    text,
+                    format!("\x1b[{}A", self.position)
+                ));
             }
 
             crate::lock::release();

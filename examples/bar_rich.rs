@@ -30,7 +30,6 @@ fn main() {
         ],
     );
 
-    kdam::term::init();
     pb.write("download will begin in 5 seconds".colorize("bold red"));
 
     while pb.pb.elapsed_time() <= 5.0 {

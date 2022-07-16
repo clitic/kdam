@@ -1,6 +1,5 @@
 use crate::std_bar::Bar;
 use crate::term::Colorizer;
-use crate::{term, term::Output};
 
 /// Renderable columns for `kdam::RichProgress`.
 ///
@@ -232,11 +231,7 @@ impl RichProgress {
     /// Print a message via bar (without overlap with bars).
     pub fn write(&mut self, text: String) {
         self.pb.clear();
-
-        match self.pb.output {
-            Output::Stderr => term::write_to_stderr(format_args!("{}\n", text)),
-            Output::Stdout => term::write_to_stdout(format_args!("{}\n", text)),
-        }
+        self.pb.writer.print(format_args!("{}\n", text));
 
         if self.pb.leave {
             self.refresh();
@@ -246,11 +241,7 @@ impl RichProgress {
     /// Take input via bar (without overlap with bars).
     pub fn input(&mut self, text: &str) -> Result<String, std::io::Error> {
         self.pb.clear();
-
-        match self.pb.output {
-            Output::Stderr => term::write_to_stderr(format_args!("{}", text)),
-            Output::Stdout => term::write_to_stdout(format_args!("{}", text)),
-        }
+        self.pb.writer.print_str(text);
 
         let mut input_string = String::new();
         std::io::stdin().read_line(&mut input_string)?;
