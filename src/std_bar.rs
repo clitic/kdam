@@ -3,7 +3,7 @@ use std::io::Write;
 use crate::format;
 use crate::styles::Animation;
 use crate::term;
-use crate::term::{Colorizer, Writer};
+use crate::term::Writer;
 
 /// Standard struct implemention of progress bar.
 ///
@@ -253,7 +253,7 @@ impl Bar {
         if self.total != 0 {
             (self.total - self.n) as f32 / self.rate()
         } else {
-            0.0
+            f32::INFINITY
         }
     }
 
@@ -378,43 +378,13 @@ impl Bar {
             self.bar_length = lbar_rbar_len + self.ncols;
         }
 
-        let (bar_open, bar_close, bar_animation, mbar);
-
-        match self.animation {
-            Animation::Tqdm | Animation::TqdmAscii | Animation::FillUp | Animation::Custom(_) => {
-                (bar_open, bar_close) = ("|", "|");
-                bar_animation = crate::styles::progressive(
-                    progress,
-                    self.ncols.clone(),
-                    self.animation.clone(),
-                );
-            }
-
-            Animation::Classic | Animation::Arrow => {
-                (bar_open, bar_close) = ("[", "]");
-                bar_animation =
-                    crate::styles::simple(progress, self.ncols.clone(), self.animation.clone());
-            }
-
-            Animation::FiraCode => {
-                (bar_open, bar_close) = (" ", "");
-                bar_animation =
-                    crate::styles::simple(progress, self.ncols.clone(), self.animation.clone());
-            }
-        }
-
-        if self.colour == "default" {
-            mbar = format!("{}{}{}", bar_open, bar_animation, bar_close);
-        } else {
-            mbar = format!(
-                "{}{}{}",
-                bar_open,
-                bar_animation.colorize(&self.colour),
-                bar_close
-            );
-        }
-
-        format!("{}{}{}", lbar, mbar, rbar)
+        format!(
+            "{}{}{}",
+            lbar,
+            self.animation
+                .progress_fmt(progress, self.ncols.clone(), &self.colour),
+            rbar
+        )
     }
 
     /// Manually update the progress bar, useful for streams such as reading files.

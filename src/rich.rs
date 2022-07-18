@@ -31,7 +31,7 @@ pub enum Column {
     ///
     /// ```rust
     /// use kdam::Column;
-    /// 
+    ///
     /// Column::Spinner(
     ///     "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
     ///     .chars()
@@ -43,20 +43,37 @@ pub enum Column {
     /// ````
     Spinner(Vec<String>, f32, f32),
     /// Text column.
-    /// - first argument is text to render.
-    /// - second argument is colour style.
     ///
     /// # Example`
     ///
     /// ```rust
     /// use kdam::Column;
-    /// 
-    /// Column::Text("•".to_string(), None);
-    /// Column::Text("caught an error".to_string(), Some("bold red".to_string()));
+    ///
+    /// Column::Text("•".to_owned());
+    /// Column::Text("[bold red]Downloading".to_owned());
     /// ```
-    Text(String, Option<String>),
+    Text(String),
     /// Progress total i.e. `self.pb.total`.
     Total,
+}
+
+impl Column {
+    /// Text column.
+    ///
+    /// # Example`
+    ///
+    /// ```rust
+    /// use kdam::Column;
+    ///
+    /// Column::text("•");
+    /// Column::Text("•".to_owned());
+    /// 
+    /// Column::text("[bold red]Downloading");
+    /// Column::Text("[bold red]Downloading".to_owned());
+    /// ```
+    pub fn text(text: &str) -> Self {
+        Self::Text(text.to_owned())
+    }
 }
 
 /// An implementation [rich.progress](https://rich.readthedocs.io/en/latest/progress.html) using `kdam::Bar`.
@@ -154,12 +171,24 @@ impl RichProgress {
                     bar_text.push(frame.colorize("green"));
                 }
 
-                Column::Text(text, colour) => {
-                    bar_length += text.chars().count();
+                Column::Text(text) => {
+                    let color = match (text.find("["), text.find("]")) {
+                        (Some(start), Some(end)) => {
+                            if start == 0 {
+                                Some(&text[(start + 1)..(end)])
+                            } else {
+                                None
+                            }
+                        }
+                        _ => None,
+                    };
 
-                    if let Some(code) = colour {
-                        bar_text.push(text.colorize(code.as_str()));
+                    if let Some(code) = color {
+                        let text = text.replace(&format!("[{}]", code), "");
+                        bar_length += text.chars().count();
+                        bar_text.push(text.colorize(code));
                     } else {
+                        bar_length += text.chars().count();
                         bar_text.push(text);
                     }
                 }

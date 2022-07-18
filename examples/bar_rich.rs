@@ -18,14 +18,14 @@ fn main() {
                 80.0,
                 1.0,
             ),
-            Column::Text("?".to_string(), Some("bold blue".to_string())),
+            Column::text("[bold blue]?"),
             Column::Bar,
             Column::Percentage(1),
-            Column::Text("•".to_string(), None),
+            Column::text("•"),
             Column::CountTotal,
-            Column::Text("•".to_string(), None),
+            Column::text("•"),
             Column::Rate,
-            Column::Text("•".to_string(), None),
+            Column::text("•"),
             Column::RemainingTime,
         ],
     );
@@ -36,10 +36,7 @@ fn main() {
         pb.refresh();
     }
 
-    pb.replace(
-        1,
-        Column::Text("docker.exe".to_string(), Some("bold blue".to_string())),
-    );
+    pb.replace(1, Column::text("[bold blue]docker.exe"));
     pb.write("downloading docker.exe".colorize("bold cyan"));
 
     let total_size = 231231231;

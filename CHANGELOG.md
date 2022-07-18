@@ -5,14 +5,21 @@
 Faetures:
 
 - Optimizations for printing mechanism.
+- Optimized rich pulsating bars.
+- New `text` constructor for `kdam::Column`.
 
 Changes:
 
 - `kdam::Bar.output` field is replaced with `kdam::Bar.writer`.
-- `kdam::term::Colorizer` trait is now only implemented for `&str` and `String`.
+- `kdam::term::Colorizer` trait is now only implemented for `&str`.
 - `kdam::term::init` function is removed and merged insided `kdam::term::colour` function.
 - `kdam::term::get_columns` is now public.
 - `kdam::BarProgress` trait is replaced with `kdam::TqdmIterator`.
+- Colour argument removed from `kdam::Column::Text`. It is replaced with rich like syntax.
+
+Bug Fixes:
+
+- Fixed `Animation::Classic` animation lags.
 
 ## 0.1.7 (18/05/2022)
 
