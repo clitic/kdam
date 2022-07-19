@@ -246,7 +246,7 @@ impl BarMethods for RichProgress {
             let _ = std::mem::replace(&mut bar_text[progress_bar_index.unwrap()], pb);
         }
 
-        self.pb.bar_length = self.pb.bar_length as i16 + self.pb.ncols;
+        self.pb.bar_length = bar_length as i16 + self.pb.ncols;
         bar_text.join(" ")
     }
 
