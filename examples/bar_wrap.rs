@@ -1,8 +1,8 @@
-use kdam::tqdm;
+use kdam::prelude::*;
 
 fn main() {
     let mut pb = tqdm!(total = 10, wrap = true);
-    pb.set_postfix("abcdefghijklmnopqrstuvwxyz0123456789".to_string());
+    pb.set_postfix("abcdefghijklmnopqrstuvwxyz0123456789");
     pb.refresh();
 
     for _ in 0..10 {

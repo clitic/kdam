@@ -1,7 +1,7 @@
-use kdam::tqdm;
+use kdam::prelude::*;
 
 fn main() {
-    let pb = tqdm!(total = 100, max_fps = true);
+    let pb = tqdm!(total = 100, force_refresh = true);
     let (pb_arc, monitor_thread) = kdam::monitor(pb, 1.0);
 
     for _ in 0..100 {

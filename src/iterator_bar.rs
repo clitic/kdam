@@ -1,4 +1,4 @@
-use crate::std_bar::Bar;
+use crate::std_bar::{Bar, BarMethods};
 
 /// Struct which implements iterator trait and progress bar display updates for `kdam::Bar`.
 #[derive(Debug)]
@@ -63,7 +63,7 @@ impl<S, T: Iterator<Item = S>> Iterator for BarIterator<T> {
     type Item = S;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.pb.started {
+        if self.pb.started() {
             self.pb.update(1);
         } else {
             self.pb.refresh();
@@ -75,7 +75,7 @@ impl<S, T: Iterator<Item = S>> Iterator for BarIterator<T> {
 
 impl<T: DoubleEndedIterator> DoubleEndedIterator for BarIterator<T> {
     fn next_back(&mut self) -> Option<Self::Item> {
-        if self.pb.started {
+        if self.pb.started() {
             self.pb.update(1);
         } else {
             self.pb.refresh();

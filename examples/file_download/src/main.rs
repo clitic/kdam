@@ -4,7 +4,7 @@ use std::fs::File;
 use std::io::Write;
 
 use futures_util::StreamExt;
-use kdam::tqdm;
+use kdam::prelude::*;
 use reqwest::Client;
 
 pub async fn download_file(client: &Client, url: &str, path: &str) -> Result<(), String> {
@@ -22,7 +22,7 @@ pub async fn download_file(client: &Client, url: &str, path: &str) -> Result<(),
         unit_scale = true,
         unit_divisor = 1024,
         unit = "B".to_string(),
-        max_fps = true
+        force_refresh = true
     );
 
     let mut file = File::create(path).or(Err(format!("Failed to create file '{}'", path)))?;

@@ -1,8 +1,12 @@
-use kdam::tqdm;
+use kdam::prelude::*;
+use kdam::Animation;
 
 fn main() {
-    let mut pb = tqdm!(total = 300, max_fps = true);
-    pb.set_charset(&["\\", "|", "/", "-"]);
+    let mut pb = tqdm!(
+        total = 300,
+        animation = Animation::Custom(&["\\", "|", "/", "-"]),
+        force_refresh = true
+    );
 
     for _ in 0..300 {
         std::thread::sleep(std::time::Duration::from_secs_f32(0.02));

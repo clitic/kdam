@@ -1,10 +1,10 @@
-use kdam::tqdm;
+use kdam::prelude::*;
 
 fn main() {
     let mut pb = tqdm!(
         total = 300,
-        max_fps = true,
-        animation = kdam::Animation::FiraCode
+        animation = kdam::Animation::FiraCode,
+        force_refresh = true
     );
 
     for _ in 0..300 {

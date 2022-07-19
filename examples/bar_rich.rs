@@ -1,5 +1,5 @@
-use kdam::term::Colorizer;
-use kdam::{tqdm, Column, RichProgress};
+use kdam::prelude::*;
+use kdam::{Column, RichProgress};
 
 fn main() {
     let mut pb = RichProgress::new(
@@ -30,14 +30,14 @@ fn main() {
         ],
     );
 
-    pb.write("download will begin in 5 seconds".colorize("bold red"));
+    pb.write(&"download will begin in 5 seconds".colorize("bold red"));
 
-    while pb.pb.elapsed_time() <= 5.0 {
+    while pb.pb.bar_elapsed_time() <= 5.0 {
         pb.refresh();
     }
 
     pb.replace(1, Column::text("[bold blue]docker.exe"));
-    pb.write("downloading docker.exe".colorize("bold cyan"));
+    pb.write(&"downloading docker.exe".colorize("bold cyan"));
 
     let total_size = 231231231;
     let mut downloaded = 0;
@@ -45,10 +45,10 @@ fn main() {
     while downloaded < total_size {
         let new = std::cmp::min(downloaded + 223211, total_size);
         downloaded = new;
-        pb.set_position(new);
+        pb.update_to(new);
         std::thread::sleep(std::time::Duration::from_millis(12));
     }
 
-    pb.write("downloaded docker.exe".colorize("bold green"));
+    pb.write(&"downloaded docker.exe".colorize("bold green"));
     eprint!("\n");
 }

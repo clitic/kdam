@@ -1,4 +1,5 @@
-use kdam::tqdm;
+use kdam::prelude::*;
+
 fn main() {
     let mut pb = tqdm!(total = 100, colour = "#a485ca".to_string());
 

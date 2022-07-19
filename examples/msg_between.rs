@@ -1,4 +1,4 @@
-use kdam::tqdm;
+use kdam::prelude::*;
 
 fn main() {
     let mut pb1 = tqdm!(total = 100, position = 0);

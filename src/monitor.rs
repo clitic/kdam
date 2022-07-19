@@ -2,7 +2,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 
 use crate::rich::RichProgress;
-use crate::std_bar::Bar;
+use crate::std_bar::{Bar, BarMethods};
 
 /// Monitor mode for `kdam::Bar`
 /// 
@@ -31,7 +31,7 @@ pub fn monitor(pb: Bar, maxinterval: f32) -> (Arc<Mutex<Bar>>, thread::JoinHandl
         thread::sleep(std::time::Duration::from_secs_f32(maxinterval));
         let mut pb_monitor = pb_arc_clone.lock().unwrap();
 
-        if pb_monitor.n >= pb_monitor.total {
+        if pb_monitor.counter() >= pb_monitor.total {
             break;
         }
 
@@ -53,7 +53,7 @@ pub fn monitor_rich(
         thread::sleep(std::time::Duration::from_secs_f32(maxinterval));
         let mut pb_monitor = pb_arc_clone.lock().unwrap();
 
-        if pb_monitor.pb.n >= pb_monitor.pb.total {
+        if pb_monitor.pb.counter() >= pb_monitor.pb.total {
             break;
         }
 

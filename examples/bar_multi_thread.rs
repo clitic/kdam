@@ -1,7 +1,7 @@
 use std::thread;
 use std::time::Duration;
 
-use kdam::tqdm;
+use kdam::prelude::*;
 
 fn main() {
     let mut pb1 = tqdm!(total = 150, position = 0);

@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::io::BufReader;
 
-use kdam::tqdm;
+use kdam::prelude::*;
 
 fn main() {
     let src_file_path = "Cargo.toml"; // replace this with any big size file

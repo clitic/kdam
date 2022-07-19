@@ -97,7 +97,7 @@ impl Animation {
     }
 
     /// Formatted version of `self.progress` with opening and closing brackets.
-    pub fn progress_fmt(&self, progress: f32, ncols: i16, colour: &str) -> String {
+    pub fn fmt_progress(&self, progress: f32, ncols: i16, colour: &str) -> String {
         let (bar_open, bar_close) = match self {
             Self::Arrow | Self::Classic => ("[", "]"),
             Self::Custom(_) | Self::FillUp | Self::Tqdm | Self::TqdmAscii => ("|", "|"),
@@ -118,6 +118,14 @@ impl Animation {
                 self.progress(progress, ncols).colorize(colour),
                 bar_close
             )
+        }
+    }
+
+    /// Returns extra spaces consumed by `self.fmt_progress`.
+    pub fn spaces(&self) -> u8 {
+        match self {
+            Self::FiraCode => 3,
+            _ => 2,
         }
     }
 }

@@ -1,4 +1,5 @@
-use kdam::{tqdm, Animation};
+use kdam::prelude::*;
+use kdam::Animation;
 
 fn main() {
     let render_length = 300;
@@ -7,35 +8,35 @@ fn main() {
         total = render_length,
         desc = "tqdm    ".to_string(),
         position = 0,
-        max_fps = true
+        force_refresh = true
     );
     let mut pb2 = tqdm!(
         total = render_length,
         desc = "ascii   ".to_string(),
         animation = Animation::TqdmAscii,
         position = 2,
-        max_fps = true
+        force_refresh = true
     );
     let mut pb3 = tqdm!(
         total = render_length,
         desc = "fillup  ".to_string(),
         animation = Animation::FillUp,
         position = 4,
-        max_fps = true
+        force_refresh = true
     );
     let mut pb4 = tqdm!(
         total = render_length,
         desc = "classic ".to_string(),
         animation = Animation::Classic,
         position = 6,
-        max_fps = true
+        force_refresh = true
     );
     let mut pb5 = tqdm!(
         total = render_length,
         desc = "arrow   ".to_string(),
         animation = Animation::Arrow,
         position = 8,
-        max_fps = true
+        force_refresh = true
     );
 
     println!("animations:\n");

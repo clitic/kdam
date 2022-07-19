@@ -1,4 +1,4 @@
-use crate::std_bar::Bar;
+use crate::std_bar::{Bar, BarMethods};
 use crate::term::Colorizer;
 
 /// Renderable columns for `kdam::RichProgress`.
@@ -114,12 +114,42 @@ impl RichProgress {
     pub fn replace(&mut self, index: usize, col: Column) {
         let _ = std::mem::replace(&mut self.columns[index], col);
     }
+}
+
+impl BarMethods for RichProgress {
+    fn clear(&mut self) {
+        self.pb.clear();
+    }
+
+    fn input(&mut self, text: &str) -> Result<String, std::io::Error> {
+        self.clear();
+        self.pb.writer.print_str(text);
+
+        let mut input_string = String::new();
+        std::io::stdin().read_line(&mut input_string)?;
+
+        if self.pb.leave {
+            self.refresh();
+        }
+
+        Ok(input_string)
+    }
+
+    fn refresh(&mut self) {
+        if !self.pb.force_refresh {
+            self.pb.force_refresh = true;
+            self.update(0);
+            self.pb.force_refresh = false;
+        } else {
+            self.update(0);
+        }
+    }
 
     fn render(&mut self) -> String {
         let mut bar_text = vec![];
         let mut bar_length = 0;
         let mut progress_bar_index = None;
-        self.pb.elapsed_time();
+        self.pb.bar_elapsed_time();
 
         for col in self.columns.clone() {
             match col {
@@ -129,43 +159,43 @@ impl RichProgress {
                 }
 
                 Column::Count => {
-                    let fmt_progress = self.pb.count_fmt();
+                    let fmt_progress = self.pb.bar_fmt_count();
                     bar_length += fmt_progress.chars().count();
                     bar_text.push(fmt_progress.colorize("green"));
                 }
 
                 Column::CountTotal => {
-                    let fmt_progress = format!("{}/{}", self.pb.count_fmt(), self.pb.total_fmt());
+                    let fmt_progress = format!("{}/{}", self.pb.bar_fmt_count(), self.pb.bar_fmt_total());
                     bar_length += fmt_progress.chars().count();
                     bar_text.push(fmt_progress.colorize("green"));
                 }
 
                 Column::ElapsedTime => {
-                    let elapsed_time = self.pb.elapsed_time_fmt();
+                    let elapsed_time = self.pb.bar_fmt_elapsed_time();
                     bar_length += elapsed_time.chars().count();
                     bar_text.push(elapsed_time.colorize("cyan"));
                 }
 
                 Column::Percentage(precision) => {
-                    let percentage = format!("{:.1$}%", self.pb.percentage() * 100., precision);
+                    let percentage = format!("{:.1$}%", self.pb.bar_percentage() * 100., precision);
                     bar_length += percentage.chars().count();
                     bar_text.push(percentage.colorize("magenta"));
                 }
 
                 Column::Rate => {
-                    let speed = self.pb.rate_fmt();
+                    let speed = self.pb.bar_fmt_rate();
                     bar_length += speed.chars().count();
                     bar_text.push(speed.colorize("red"));
                 }
 
                 Column::RemainingTime => {
-                    let remaining_time = self.pb.eta_fmt();
+                    let remaining_time = self.pb.bar_fmt_remaining_time();
                     bar_length += remaining_time.chars().count();
                     bar_text.push(remaining_time.colorize("cyan"));
                 }
 
                 Column::Spinner(frames, interval, speed) => {
-                    let frame_no = (self.pb.elapsed_time() * speed) / (interval / 1000.0);
+                    let frame_no = (self.pb.bar_elapsed_time() * speed) / (interval / 1000.0);
                     let frame = frames.get(frame_no as usize % frames.len()).unwrap();
                     bar_length += frame.chars().count();
                     bar_text.push(frame.colorize("green"));
@@ -194,7 +224,7 @@ impl RichProgress {
                 }
 
                 Column::Total => {
-                    let fmt_progress = self.pb.total_fmt();
+                    let fmt_progress = self.pb.bar_fmt_total();
                     bar_length += fmt_progress.chars().count();
                     bar_text.push(fmt_progress.colorize("green"));
                 }
@@ -207,83 +237,39 @@ impl RichProgress {
             self.pb.set_ncols(bar_length as i16);
             let pb;
 
-            if self.pb.total == 0 || self.pb.n == 0 {
-                pb = crate::styles::rich_pulse(self.pb.ncols.clone(), self.pb.elapsed_time.clone());
+            if self.pb.total == 0 || self.pb.counter() == 0 {
+                pb = crate::styles::rich_pulse(self.pb.ncols.clone(), self.pb.elapsed_time);
             } else {
-                pb = crate::styles::rich_bar(self.pb.percentage() as f32, self.pb.ncols.clone());
+                pb = crate::styles::rich_bar(self.pb.bar_percentage() as f32, self.pb.ncols.clone());
             }
 
             let _ = std::mem::replace(&mut bar_text[progress_bar_index.unwrap()], pb);
         }
 
-        self.pb.bar_length = bar_length as i16 + self.pb.ncols;
+        self.pb.bar_length = self.pb.bar_length as i16 + self.pb.ncols;
         bar_text.join(" ")
     }
 
-    /// Manually update the progress bar, useful for streams such as reading files.
-    pub fn update(&mut self, n: usize) {
+    fn update(&mut self, n: usize) {
+        self.pb.init();
+
         if self.pb.trigger(n) {
             let text = self.render();
             self.pb.write_at(text);
         }
     }
 
-    /// Set position of the progress bar.
-    /// Alternative way to update bar.
-    pub fn set_position(&mut self, position: usize) {
-        self.pb.n = position;
+    fn update_to(&mut self, update_to_n: usize) {
+        self.pb.n = update_to_n;
         self.update(0);
     }
 
-    /// Force refresh the display of this bar.
-    pub fn refresh(&mut self) {
-        if !self.pb.max_fps {
-            self.pb.force_refresh = true;
-            self.update(0);
-            self.pb.force_refresh = false;
-        } else {
-            self.update(0);
-        }
-    }
-
-    /// Resets to intial iterations for repeated use.
-    /// Consider combining with `leave=true`.
-    pub fn reset(&mut self, total: Option<usize>) {
-        self.pb.reset(total);
-    }
-
-    /// Clear current bar display.
-    pub fn clear(&mut self) {
-        self.pb.clear();
-    }
-
-    /// Print a message via bar (without overlap with bars).
-    pub fn write(&mut self, text: String) {
+    fn write(&mut self, text: &str) {
         self.pb.clear();
         self.pb.writer.print(format_args!("{}\n", text));
 
         if self.pb.leave {
             self.refresh();
         }
-    }
-
-    /// Take input via bar (without overlap with bars).
-    pub fn input(&mut self, text: &str) -> Result<String, std::io::Error> {
-        self.pb.clear();
-        self.pb.writer.print_str(text);
-
-        let mut input_string = String::new();
-        std::io::stdin().read_line(&mut input_string)?;
-
-        if self.pb.leave {
-            self.pb.refresh();
-        }
-
-        Ok(input_string)
-    }
-
-    /// Print a string in position of bar.
-    pub fn write_at(&self, text: String) {
-        self.pb.write_at(text);
     }
 }
