@@ -156,7 +156,7 @@ impl BarMethods for RichProgress {
             match col {
                 Column::Bar => {
                     progress_bar_index = Some(bar_text.len());
-                    bar_text.push("".to_string());
+                    bar_text.push("".to_owned());
                 }
 
                 Column::Count => {
@@ -249,6 +249,10 @@ impl BarMethods for RichProgress {
 
         self.pb.bar_length = bar_length as i16 + self.pb.ncols;
         bar_text.join(" ")
+    }
+
+    fn reset(&mut self, total: Option<usize>) {
+        self.pb.reset(total);
     }
 
     fn update(&mut self, n: usize) {

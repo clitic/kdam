@@ -19,7 +19,7 @@ use crate::Animation;
 /// fn main() {
 ///     let mut pb = Bar::new(100);
 ///     // let mut pb = tqdm!(total = 100);
-/// 
+///
 ///     for _ in 0..100 {
 ///         pb.update(1);
 ///     }
@@ -74,6 +74,9 @@ pub struct Bar {
     /// If true, constantly alters ncols to the environment (allowing for window resizes).
     /// (default: `false`)
     pub dynamic_ncols: bool,
+    /// The initial counter value. Useful when restarting a progress bar.
+    /// (default: 0)
+    pub initial: usize,
     /// Specify the line offset to print this bar (starting from 0).
     /// Useful to manage multiple bars at once (eg, from threads).
     /// (default: `0`)
@@ -113,7 +116,7 @@ pub struct Bar {
 impl Default for Bar {
     fn default() -> Self {
         Self {
-            desc: "".to_string(),
+            desc: "".to_owned(),
             total: 0,
             leave: true,
             file: None,
@@ -122,13 +125,14 @@ impl Default for Bar {
             miniters: 1,
             dynamic_miniters: false,
             disable: false,
-            unit: "it".to_string(),
+            unit: "it".to_owned(),
             unit_scale: false,
             dynamic_ncols: false,
+            initial: 0,
             position: 0,
             postfix: "".to_string(),
             unit_divisor: 1000,
-            colour: "default".to_string(),
+            colour: "default".to_owned(),
             delay: 0.0,
             animation: Animation::Tqdm,
             writer: Writer::Stderr,
@@ -233,7 +237,7 @@ impl Bar {
     /// Format remaining time / ETA of progress completion.
     pub fn bar_fmt_remaining_time(&self) -> String {
         if self.n == 0 {
-            "00:00".to_string()
+            "inf".to_owned()
         } else {
             format::format_interval(self.bar_remaining_time() as usize)
         }
@@ -322,7 +326,7 @@ impl Bar {
     /// Intialize some values and starts the timer.
     pub(crate) fn init(&mut self) {
         if !self.started {
-            self.set_colour(&self.colour.clone());
+            self.n = self.initial;
 
             if self.ncols != 10 {
                 self.user_ncols = Some(self.ncols);
@@ -363,7 +367,7 @@ impl Bar {
             let columns = crate::term::get_columns() as usize;
 
             if self.bar_length as usize > columns {
-                text = text[..columns].to_string();
+                text = text[..columns].to_owned();
             }
         }
 
@@ -403,6 +407,10 @@ pub trait BarMethods {
     /// Render progress bar.
     fn render(&mut self) -> String;
 
+    /// Resets to intial iterations for repeated use.
+    /// Consider combining with `leave=true`.
+    fn reset(&mut self, total: Option<usize>);
+
     /// Manually update the progress bar, useful for streams such as reading files.
     fn update(&mut self, n: usize);
 
@@ -412,16 +420,6 @@ pub trait BarMethods {
 
     /// Print a message via bar (without overlap with bars).
     fn write(&mut self, text: &str);
-
-    // /// Resets to intial iterations for repeated use.
-    // /// Consider combining with `leave=true`.
-    // pub fn reset(&mut self, total: Option<usize>) {
-    //     self.started = false;
-
-    //     if total.is_some() {
-    //         self.total = total.unwrap();
-    //     }
-    // }
 }
 
 impl BarMethods for Bar {
@@ -466,7 +464,7 @@ impl BarMethods for Bar {
         self.bar_elapsed_time();
 
         let desc = if self.desc == "" {
-            "".to_string()
+            "".to_owned()
         } else {
             format!("{}: ", self.desc)
         };
@@ -521,6 +519,15 @@ impl BarMethods for Bar {
             .animation
             .fmt_progress(progress, self.ncols.clone(), &self.colour)
             + &rbar
+    }
+
+    fn reset(&mut self, total: Option<usize>) {
+        if let Some(x) = total {
+            self.total = x;
+        }
+
+        self.n = self.initial;
+        self.timer = std::time::Instant::now();
     }
 
     fn update(&mut self, n: usize) {

@@ -1,5 +1,12 @@
 # kdam Changelog (DD/MM/YYYY)
 
+## 0.2.1 (21/07/2022)
+
+Faetures:
+
+- Added `reset` method `BarMethods` trait.
+- New `initial` field for `kdam::Bar`.
+
 ## 0.2.0 (21/07/2022)
 
 Faetures:
