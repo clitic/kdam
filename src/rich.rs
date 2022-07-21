@@ -81,7 +81,8 @@ impl Column {
 /// # Example
 ///
 /// ```rust
-/// use kdam::{tqdm, Column, RichProgress};
+/// use kdam::prelude::*;
+/// use kdam::{Column, RichProgress};
 ///
 /// fn main() {
 ///     let mut pb = RichProgress::new(
