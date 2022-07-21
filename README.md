@@ -21,12 +21,12 @@
   </a>
 </p>
 
-kdam is a port of [tqdm](https://github.com/tqdm/tqdm) library which is written in python. kdam has almost same features as tqdm with extra features included. kdam is also 4 times faster than tqdm. kdam has only one external dependency which [terminal-size](https://github.com/eminence/terminal-size).
+kdam is port of [tqdm](https://github.com/tqdm/tqdm) library which is written in python. kdam has almost same features as tqdm except bar templating. kdam is also 4 times faster than tqdm. kdam has only one external dependency which is [terminal-size](https://github.com/eminence/terminal-size).
 
 Instantly make your loops show a smart progress meter. Just wrap any iterator with tqdm!(iterator) macro and you're done!
 
 ```rust
-use kdam::tqdm;
+use kdam::prelude::*;
 
 fn main() {
     for _ in tqdm!(0..100) {}
@@ -35,6 +35,15 @@ fn main() {
 
 ```
 100%|█████████████████████████████| 100/100 [00:00<00:00, 25854.49it/s]
+```
+
+kdam also provides a text colorization trait for printing colored text in terminal. It can be used as an alternative for existing [colored](https://github.com/mackwic/colored) library.
+
+```rust
+use kdam::prelude::*;
+
+println!("{}", "hello world!".colorize("bold red"));
+println!("{}", "hello world!".colorize("bright white on blue"));
 ```
 
 kdam also supports different animation styles. All available animations styles are:
@@ -58,7 +67,7 @@ Add this to your Cargo.toml file.
 
 ```toml
 [dependencies]
-kdam = "0.1.7"
+kdam = "0.2"
 
 # Or add from github main branch.
 kdam = { git = "https://github.com/clitic/kdam.git", branch = "main" }
@@ -66,10 +75,12 @@ kdam = { git = "https://github.com/clitic/kdam.git", branch = "main" }
 
 ## Usage
 
+See docs.rs [DOCUMENTATION](https://docs.rs/kdam)
+
 ### Iterator Based
 
 ```rust
-use kdam::tqdm;
+use kdam::prelude::*;
 
 fn main() {
     let chars = ["a", "b", "c", "d"];
@@ -79,6 +90,7 @@ fn main() {
         charset += i;
     }
 
+    eprint!("\n");
     assert_eq!(charset, "abcd");
 }
 ```
@@ -86,20 +98,23 @@ fn main() {
 ### Manual
 
 ```rust
-use kdam::tqdm;
+use kdam::prelude::*;
 
 fn main() {
     let mut pb = tqdm!(total = 100);
+
     for _ in 0..100 {
         pb.update(1);
     }
+
+    eprint!("\n");
 }
 ```
 
 Another example without a total value. This only shows basic stats.
 
 ```rust
-use kdam::tqdm;
+use kdam::prelude::*;
 
 fn main() {
     let mut pb = tqdm!();
@@ -108,6 +123,8 @@ fn main() {
         pb.update(1);
     }
     pb.refresh();
+
+    eprint!("\n");
 }
 ```
 
@@ -122,19 +139,20 @@ fn main() {
 Custom information can be displayed and updated dynamically on `kdam` bars with the `desc` and `postfix`.
 
 ```rust
-use kdam::tqdm;
+use kdam::prelude::*;
 
 fn main() {
     let mut pb = tqdm!(total = 10);
+    pb.set_postfix(&format!("str={}, lst={:?}", "h", [1, 2]));
     pb.refresh();
 
     for i in 0..10 {
         std::thread::sleep(std::time::Duration::from_secs_f32(0.5));
-
-        pb.set_description(format!("GEN {}", i));
-        pb.set_postfix(format!("str={}, lst={:?}", "h", [1, 2]));
+        pb.set_description(&format!("GEN {}", i));
         pb.update(1);
     }
+    
+    eprint!("\n");
 }
 ```
 
@@ -150,9 +168,9 @@ GEN 4:  50%|█████████▎        | 5/10 [00:02<00:02, 1.95it/s,
 use kdam::tqdm;
 
 fn main() {
-    for _ in tqdm!(0..4, desc = "1st loop".to_string(), position = 0) {
-        for _ in tqdm!(0..5, desc = "2nd loop".to_string(), position = 1) {
-            for _ in tqdm!(0..50, desc = "3rd loop".to_string(), position = 2) {
+    for _ in tqdm!(0..4, desc = "1st loop".to_owned(), position = 0) {
+        for _ in tqdm!(0..5, desc = "2nd loop".to_owned(), position = 1) {
+            for _ in tqdm!(0..50, desc = "3rd loop".to_owned(), position = 2) {
                 std::thread::sleep(std::time::Duration::from_secs_f32(0.0001));
             }
         }
@@ -176,7 +194,7 @@ Since `kdam` uses a simple printing mechanism to display progress bars, you shou
 To write messages in the terminal without any collision with `kdam` bar display, a `.write()` method is provided. This message will print at bar output location, which is stderr by default.
 
 ```rust
-use kdam::tqdm;
+use kdam::prelude::*;
 
 fn main() {
     let mut pb = tqdm!(total = 10);
@@ -185,8 +203,10 @@ fn main() {
         std::thread::sleep(std::time::Duration::from_secs_f32(0.1));
 
         pb.update(1);
-        pb.write(format!("Done task {}", i));
+        pb.write(&format!("Done task {}", i));
     }
+
+    eprint!("\n");
 }
 ```
 
@@ -207,20 +227,22 @@ Done task 9
 Similarly `.input()` method can be called to store an user input.
 
 ```rust
-use kdam::tqdm;
+use kdam::prelude::*;
 
 fn main() {
     let mut pb = tqdm!(total = 10);
 
     for i in 0..10 {
         if i == 5 {
-            if pb.input("Break Loop [y/n]: ").unwrap() == "y\r\n" {
+            if pb.input("Break Loop [y/n]: ").unwrap().trim() == "y" {
                 break;
             }
         }
 
         pb.update(1);
     }
+
+    eprint!("\n");
 }
 ```
 

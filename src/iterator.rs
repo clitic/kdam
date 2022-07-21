@@ -1,6 +1,7 @@
-use crate::std_bar::{Bar, BarMethods};
+use crate::prelude::*;
+use crate::Bar;
 
-/// Struct which implements iterator trait and progress bar display updates for `kdam::Bar`.
+/// Iterable version of `kdam::Bar`.
 #[derive(Debug)]
 pub struct BarIterator<T> {
     /// Iterator to decorate with a progress bar.
@@ -12,7 +13,6 @@ pub struct BarIterator<T> {
 impl<T: Iterator> BarIterator<T> {
     /// Create a new instance of `kdam::BarIterator` from iterable.
     pub fn new(iterable: T) -> BarIterator<T> {
-        // let total = iterable.size_hint().0;
         let mut pb = Bar::default();
         pb.total = iterable.size_hint().0;
 
@@ -95,7 +95,7 @@ where
     /// # Example
     ///
     /// ```rust
-    /// use kdam::TqdmIterator;
+    /// use kdam::prelude::*;
     ///
     /// fn main() {
     ///     let chars = ["a", "b", "c", "d"];
@@ -105,11 +105,13 @@ where
     ///         charset += i;
     ///     }
     ///
+    ///     eprint!("\n");
     ///     assert_eq!(charset, "abcd");
     /// }
     /// ```
     fn tqdm(self) -> BarIterator<Self>;
 
+    /// Decorate any sized iterator to `kdam::BarIterator` with existing `kdam::Bar`.
     fn tqdm_with_bar(self, pb: Bar) -> BarIterator<Self>;
 }
 

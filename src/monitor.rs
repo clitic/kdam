@@ -1,29 +1,32 @@
+//! Monitor mode for progress bars.
+
 use std::sync::{Arc, Mutex};
 use std::thread;
 
-use crate::rich::RichProgress;
-use crate::std_bar::{Bar, BarMethods};
+use crate::prelude::*;
+use crate::{Bar, RichProgress};
 
 /// Monitor mode for `kdam::Bar`
-/// 
+///
 /// # Example
-/// 
+///
 /// ```no_run
-/// use kdam::tqdm;
-/// 
+/// use kdam::prelude::*;
+///
 /// fn main() {
-///     let pb = tqdm!(total = 100, max_fps = true);
-///     let (pb_arc, monitor_thread) = kdam::monitor(pb, 1.0);
-/// 
+///     let pb = tqdm!(total = 100, force_refresh = true);
+///     let (pb_arc, monitor_thread) = kdam::monitor::bar(pb, 1.0);
+///
 ///     for _ in 0..100 {
 ///         pb_arc.lock().unwrap().update(1);
 ///         std::thread::sleep(std::time::Duration::from_secs_f32(3.0));
 ///     }
-/// 
+///
 ///     monitor_thread.join().unwrap();
+///     eprint!("\n");
 /// }
-/// ``` 
-pub fn monitor(pb: Bar, maxinterval: f32) -> (Arc<Mutex<Bar>>, thread::JoinHandle<()>) {
+/// ```
+pub fn bar(pb: Bar, maxinterval: f32) -> (Arc<Mutex<Bar>>, thread::JoinHandle<()>) {
     let pb_arc = Arc::new(Mutex::new(pb));
     let pb_arc_clone = pb_arc.clone();
 
@@ -41,8 +44,8 @@ pub fn monitor(pb: Bar, maxinterval: f32) -> (Arc<Mutex<Bar>>, thread::JoinHandl
     (pb_arc, handle)
 }
 
-/// Monitor mode for `kdam::RichProgress`. See `kdam::monitor` for example usecase.
-pub fn monitor_rich(
+/// Monitor mode for `kdam::RichProgress`. See `kdam::monitor::bar` for example usecase.
+pub fn rich(
     pb: RichProgress,
     maxinterval: f32,
 ) -> (Arc<Mutex<RichProgress>>, thread::JoinHandle<()>) {

@@ -211,7 +211,7 @@ pub trait Colorizer {
     /// # Example
     ///
     /// ```rust
-    /// use kdam::term::Colorizer;
+    /// use kdam::prelude::*;
     ///
     /// println!("{}", "hello world!".colorize("bold red"));
     /// println!("{}", "hello world!".colorize("bright white on blue"));

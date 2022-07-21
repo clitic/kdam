@@ -11,4 +11,6 @@ fn main() {
         std::thread::sleep(std::time::Duration::from_secs_f32(0.02));
         pb.update(1);
     }
+
+    eprint!("\n");
 }

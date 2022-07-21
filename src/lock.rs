@@ -1,4 +1,5 @@
 //! Thread safe sync between multiple bars.
+
 use std::sync::atomic::{AtomicBool, Ordering};
 
 static LOCKED: AtomicBool = AtomicBool::new(false);

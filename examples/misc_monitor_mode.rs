@@ -2,7 +2,7 @@ use kdam::prelude::*;
 
 fn main() {
     let pb = tqdm!(total = 100, force_refresh = true);
-    let (pb_arc, monitor_thread) = kdam::monitor(pb, 1.0);
+    let (pb_arc, monitor_thread) = kdam::monitor::bar(pb, 1.0);
 
     for _ in 0..100 {
         pb_arc.lock().unwrap().update(1);
@@ -10,4 +10,5 @@ fn main() {
     }
 
     monitor_thread.join().unwrap();
+    eprint!("\n");
 }

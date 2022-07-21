@@ -1,29 +1,30 @@
 use std::io::Write;
 
 use crate::format;
-use crate::styles::Animation;
 use crate::term;
-use crate::term::Writer;
 
-/// Standard struct implemention of progress bar.
+use crate::term::Writer;
+use crate::Animation;
+
+/// Core implemention of console progress bar.
 ///
-/// # Examples
+/// # Example
 ///
 /// A clean nice progress bar with a total value.
 ///
 /// ```rust
+/// use kdam::prelude::*;
 /// use kdam::Bar;
 ///
 /// fn main() {
 ///     let mut pb = Bar::new(100);
-///
+///     // let mut pb = tqdm!(total = 100);
+/// 
 ///     for _ in 0..100 {
 ///         pb.update(1);
 ///     }
 /// }
 /// ```
-///
-/// If total is unknown then `kdam::Bar` could be constructed with total as 0 i.e. `Bar::new(0)`
 #[derive(Debug)]
 pub struct Bar {
     /// Prefix for the progress bar.
@@ -187,7 +188,7 @@ impl Bar {
     /// Format self.n
     pub fn bar_fmt_count(&self) -> String {
         let count = if self.unit_scale {
-            format::format_sizeof(self.n, self.unit_divisor)
+            format::format_sizeof(self.n as f64, self.unit_divisor as f64)
         } else {
             format!("{}", self.n)
         };
@@ -217,7 +218,7 @@ impl Bar {
     /// Format rate / iterations of update method calls.
     pub fn bar_fmt_rate(&self) -> String {
         let rate = if self.unit_scale {
-            format::format_sizeof(self.bar_rate() as usize, self.unit_divisor)
+            format::format_sizeof(self.bar_rate() as f64, self.unit_divisor as f64)
         } else {
             format!("{:.2}", self.bar_rate())
         };
@@ -241,7 +242,7 @@ impl Bar {
     /// Format self.total
     pub fn bar_fmt_total(&self) -> String {
         let total = if self.unit_scale {
-            format::format_sizeof(self.total, self.unit_divisor)
+            format::format_sizeof(self.total as f64, self.unit_divisor as f64)
         } else {
             format!("{}", self.total)
         };
@@ -260,11 +261,7 @@ impl Bar {
 
     /// Set/Modify colour of the progress bar.
     pub fn set_colour(&mut self, colour: &str) {
-        if colour != "default" {
-            self.colour = term::colour(colour);
-        } else {
-            self.colour = "default".to_string();
-        }
+        self.colour = colour.to_owned();
     }
 
     /// Set/Modify description of the progress bar.

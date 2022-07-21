@@ -1,12 +1,6 @@
-use crate::term::Colorizer;
+use crate::prelude::*;
 
-// Spinner Unicodes
-// pub(crate) static CLASSICSPINNER: [&str; 4] = ["\\", "|", "/", "-"];
-// pub(crate) static FIRACODESPINNER: [&str; 6] = [
-//     "\u{EE06}", "\u{EE07}", "\u{EE08}", "\u{EE09}", "\u{EE0A}", "\u{EE0B}",
-// ];
-
-/// Pre configured animation styles for `kdam::Bar`.
+/// Bar animation styles for `kdam::Bar`.
 #[derive(Debug, Clone)]
 pub enum Animation {
     Arrow,

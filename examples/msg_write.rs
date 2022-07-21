@@ -9,4 +9,6 @@ fn main() {
         pb.update(1);
         pb.write(&format!("Done task {}", i));
     }
+
+    eprint!("\n");
 }

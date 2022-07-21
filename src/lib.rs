@@ -1,5 +1,5 @@
 // #![doc=include_str!("../README.md")]
-//! Ultimate Console Progress Bar For Rust.
+//! Ultimate console progress bar for Rust.
 //!
 //! Inspired by [tqdm](https://github.com/tqdm/tqdm) & [rich.progress](https://rich.readthedocs.io/en/latest/progress.html)
 //!
@@ -12,21 +12,34 @@
 //!
 //! - [One Page Usage](https://github.com/clitic/kdam#usage)
 //! - [Project Examples](https://github.com/clitic/kdam/tree/main/examples)
+//! 
+//! ```rust
+//! use kdam::prelude::*;
+//! 
+//! fn main() {
+//!     let mut pb = tqdm!(total = 100);
+//! 
+//!     for _ in 0..100 {
+//!         pb.update(1);
+//!     }
+//! 
+//!     eprint!("\n");
+//! }
+//! ```
 
-mod iterator_bar;
-mod monitor;
+mod bar;
+mod iterator;
 mod rich;
-mod std_bar;
 mod styles;
-mod tqdm_macro;
+mod macros;
 
 pub mod format;
 pub mod lock;
+pub mod monitor;
 pub mod prelude;
 pub mod term;
 
-pub use iterator_bar::BarIterator;
-pub use monitor::{monitor, monitor_rich};
+pub use bar::Bar;
+pub use iterator::BarIterator;
 pub use rich::{Column, RichProgress};
-pub use std_bar::Bar;
 pub use styles::Animation;

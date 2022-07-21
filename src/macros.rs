@@ -1,9 +1,11 @@
-/// [tqdm](https://github.com/tqdm/tqdm) like macro using `kdam::Bar` and `kdam::BarIterator`.
+/// [tqdm](https://github.com/tqdm/tqdm) like macro for constructing `kdam::Bar` if iterable is not given else `kdam::BarIterator`.
 ///
+/// See available all [fields](https://docs.rs/kdam/latest/kdam/struct.Bar.html#fields).
+/// 
 /// # Examples
 ///
 /// ```rust
-/// use kdam::tqdm;
+/// use kdam::prelude::*;
 ///
 /// tqdm!();
 /// tqdm!(total = 100);
@@ -48,10 +50,12 @@ macro_rules! tqdm {
 /// # Example
 ///
 /// ```rust
-/// kdam::write_at!(1, "1 + 1 = {}", 2);
+/// use kdam::prelude::*;
+/// 
+/// eprint_at!(1, "1 + 1 = {}", 2);
 /// ```
 #[macro_export]
-macro_rules! write_at {
+macro_rules! eprint_at {
     ($position:tt, $($arg:tt)*) => {
         {
             use std::io::Write;

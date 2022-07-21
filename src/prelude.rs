@@ -1,10 +1,14 @@
-//! Brings traits and macros in scope.
+//! Import traits and macros in current scope.
+//! 
+//! ```rust
+//! use kdam::prelude::*;
+//! ```
 
 // Traits
-pub use crate::iterator_bar::TqdmIterator;
-pub use crate::std_bar::BarMethods;
+pub use crate::iterator::TqdmIterator;
+pub use crate::bar::BarMethods;
 pub use crate::term::Colorizer;
 
 // Macros
 pub use crate::tqdm;
-pub use crate::write_at;
+pub use crate::eprint_at;

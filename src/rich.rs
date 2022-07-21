@@ -1,5 +1,5 @@
-use crate::std_bar::{Bar, BarMethods};
-use crate::term::Colorizer;
+use crate::prelude::*;
+use crate::Bar;
 
 /// Renderable columns for `kdam::RichProgress`.
 ///

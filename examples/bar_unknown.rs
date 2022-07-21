@@ -7,4 +7,6 @@ fn main() {
         pb.update(1);
     }
     pb.refresh();
+
+    eprint!("\n");
 }

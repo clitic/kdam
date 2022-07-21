@@ -9,4 +9,6 @@ fn main() {
         std::thread::sleep(std::time::Duration::from_secs_f32(0.5));
         pb.update(1);
     }
+
+    eprint!("\n");
 }
