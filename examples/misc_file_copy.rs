@@ -18,7 +18,7 @@ fn main() {
         total = std::fs::metadata(src_file_path).unwrap().len() as usize,
         unit_scale = true,
         unit_divisor = 1024,
-        unit = "B".to_owned()
+        unit = "B"
     );
 
     loop {

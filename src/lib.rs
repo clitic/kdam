@@ -39,7 +39,7 @@ pub mod monitor;
 pub mod prelude;
 pub mod term;
 
-pub use bar::Bar;
+pub use bar::{Bar, BarBuilder};
 pub use iterator::BarIterator;
 pub use rich::{Column, RichProgress};
 pub use styles::Animation;

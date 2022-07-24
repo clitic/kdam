@@ -67,7 +67,7 @@ impl Column {
     ///
     /// Column::text("•");
     /// Column::Text("•".to_owned());
-    /// 
+    ///
     /// Column::text("[bold red]Downloading");
     /// Column::Text("[bold red]Downloading".to_owned());
     /// ```
@@ -122,9 +122,9 @@ impl BarMethods for RichProgress {
         self.pb.clear();
     }
 
-    fn input(&mut self, text: &str) -> Result<String, std::io::Error> {
+    fn input<T: Into<String>>(&mut self, text: T) -> Result<String, std::io::Error> {
         self.clear();
-        self.pb.writer.print_str(text);
+        self.pb.writer.print_str(&text.into());
 
         let mut input_string = String::new();
         std::io::stdin().read_line(&mut input_string)?;
@@ -166,7 +166,8 @@ impl BarMethods for RichProgress {
                 }
 
                 Column::CountTotal => {
-                    let fmt_progress = format!("{}/{}", self.pb.bar_fmt_count(), self.pb.bar_fmt_total());
+                    let fmt_progress =
+                        format!("{}/{}", self.pb.bar_fmt_count(), self.pb.bar_fmt_total());
                     bar_length += fmt_progress.chars().count();
                     bar_text.push(fmt_progress.colorize("green"));
                 }
@@ -241,7 +242,8 @@ impl BarMethods for RichProgress {
             if self.pb.total == 0 || self.pb.counter() == 0 {
                 pb = crate::styles::rich_pulse(self.pb.ncols.clone(), self.pb.elapsed_time);
             } else {
-                pb = crate::styles::rich_bar(self.pb.bar_percentage() as f32, self.pb.ncols.clone());
+                pb =
+                    crate::styles::rich_bar(self.pb.bar_percentage() as f32, self.pb.ncols.clone());
             }
 
             let _ = std::mem::replace(&mut bar_text[progress_bar_index.unwrap()], pb);
@@ -269,9 +271,9 @@ impl BarMethods for RichProgress {
         self.update(0);
     }
 
-    fn write(&mut self, text: &str) {
+    fn write<T: Into<String>>(&mut self, text: T) {
         self.pb.clear();
-        self.pb.writer.print(format_args!("{}\n", text));
+        self.pb.writer.print(format_args!("{}\n", text.into()));
 
         if self.pb.leave {
             self.refresh();

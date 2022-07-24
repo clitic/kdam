@@ -73,6 +73,12 @@ kdam = "0.2"
 kdam = { git = "https://github.com/clitic/kdam.git", branch = "main" }
 ```
 
+Or add from command line.
+
+```bash
+$ cargo add kdam@0.2
+```
+
 ## Usage
 
 See docs.rs [DOCUMENTATION](https://docs.rs/kdam)
@@ -143,12 +149,12 @@ use kdam::prelude::*;
 
 fn main() {
     let mut pb = tqdm!(total = 10);
-    pb.set_postfix(&format!("str={}, lst={:?}", "h", [1, 2]));
+    pb.set_postfix(format!("str={}, lst={:?}", "h", [1, 2]));
     pb.refresh();
 
     for i in 0..10 {
         std::thread::sleep(std::time::Duration::from_secs_f32(0.5));
-        pb.set_description(&format!("GEN {}", i));
+        pb.set_description(format!("GEN {}", i));
         pb.update(1);
     }
     
@@ -168,9 +174,9 @@ GEN 4:  50%|█████████▎        | 5/10 [00:02<00:02, 1.95it/s,
 use kdam::tqdm;
 
 fn main() {
-    for _ in tqdm!(0..4, desc = "1st loop".to_owned(), position = 0) {
-        for _ in tqdm!(0..5, desc = "2nd loop".to_owned(), position = 1) {
-            for _ in tqdm!(0..50, desc = "3rd loop".to_owned(), position = 2) {
+    for _ in tqdm!(0..4, desc = "1st loop", position = 0) {
+        for _ in tqdm!(0..5, desc = "2nd loop", position = 1) {
+            for _ in tqdm!(0..50, desc = "3rd loop", position = 2) {
                 std::thread::sleep(std::time::Duration::from_secs_f32(0.0001));
             }
         }
@@ -203,7 +209,7 @@ fn main() {
         std::thread::sleep(std::time::Duration::from_secs_f32(0.1));
 
         pb.update(1);
-        pb.write(&format!("Done task {}", i));
+        pb.write(format!("Done task {}", i));
     }
 
     eprint!("\n");

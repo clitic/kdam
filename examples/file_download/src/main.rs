@@ -21,7 +21,7 @@ pub async fn download_file(client: &Client, url: &str, path: &str) -> Result<(),
         total = total_size as usize,
         unit_scale = true,
         unit_divisor = 1024,
-        unit = "B".to_string(),
+        unit = "B",
         force_refresh = true
     );
 

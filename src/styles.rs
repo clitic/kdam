@@ -12,6 +12,19 @@ pub enum Animation {
     TqdmAscii,
 }
 
+impl From<&str> for Animation {
+    fn from(animation: &str) -> Self {
+        match animation.to_lowercase().as_str() {
+            "arrow" => Self::Arrow,
+            "classic" => Self::Classic,
+            "fillup" => Self::FillUp,
+            "firacode" => Self::FiraCode,
+            "tqdmascii" => Self::TqdmAscii,
+            _ => Self::Tqdm,
+        }
+    }
+}
+
 impl Animation {
     /// Generate progress bar animation.
     ///

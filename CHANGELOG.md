@@ -1,5 +1,19 @@
 # kdam Changelog (DD/MM/YYYY)
 
+## 0.2.2 (24/07/2022)
+
+Faetures:
+
+- New `kdam::BarBuilder` struct.
+- Implemented `From<&str>` for `kdam::Animation` and `kdam::term::Writer`.
+
+Changes:
+
+- All fields in `kdam::Bar` are private.
+- `tqdm` macro now uses `kdam::BarBuilder` for setting values instead of setting values in `kdam::Bar` directly.
+- `&str` consuming methods are switched with generic `Into<String>` trait.
+- `kdam::term::get_columns` is now renamed to `kdam::term::get_columns_or`.
+
 ## 0.2.1 (21/07/2022)
 
 Faetures:

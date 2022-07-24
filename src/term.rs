@@ -6,10 +6,19 @@ use std::sync::atomic::{AtomicBool, Ordering};
 static COLOURS_ENABLED: AtomicBool = AtomicBool::new(false);
 
 /// Stderr and Stdout writer for `kdam::Bar`.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Writer {
     Stderr,
     Stdout,
+}
+
+impl From<&str> for Writer {
+    fn from(output: &str) -> Self {
+        match output.to_lowercase().as_str() {
+            "stdout" => Self::Stdout,
+            _ => Self::Stderr,
+        }
+    }
 }
 
 impl Writer {
@@ -46,11 +55,10 @@ impl Writer {
     }
 }
 
-/// Get number of columns in current window.
-/// On encountering error returns 0.
-pub fn get_columns() -> u16 {
+/// Get number of columns in current window or default to specified value.
+pub fn get_columns_or(width: u16) -> u16 {
     terminal_size::terminal_size()
-        .unwrap_or((terminal_size::Width(0), terminal_size::Height(0)))
+        .unwrap_or((terminal_size::Width(width), terminal_size::Height(0)))
         .0
          .0
 }

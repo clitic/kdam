@@ -6,36 +6,43 @@ fn main() {
 
     let mut pb1 = tqdm!(
         total = render_length,
-        desc = "tqdm    ".to_owned(),
+        desc = "tqdm    ",
         position = 0,
         force_refresh = true
     );
     let mut pb2 = tqdm!(
         total = render_length,
-        desc = "ascii   ".to_owned(),
-        animation = Animation::TqdmAscii,
+        desc = "ascii   ",
+        animation = "tqdmascii",
         position = 2,
         force_refresh = true
     );
     let mut pb3 = tqdm!(
         total = render_length,
-        desc = "fillup  ".to_owned(),
-        animation = Animation::FillUp,
+        desc = "fillup  ",
+        animation = "fillup",
         position = 4,
         force_refresh = true
     );
     let mut pb4 = tqdm!(
         total = render_length,
-        desc = "classic ".to_owned(),
-        animation = Animation::Classic,
+        desc = "classic ",
+        animation = "classic",
         position = 6,
         force_refresh = true
     );
     let mut pb5 = tqdm!(
         total = render_length,
-        desc = "arrow   ".to_owned(),
-        animation = Animation::Arrow,
+        desc = "arrow   ",
+        animation = "arrow",
         position = 8,
+        force_refresh = true
+    );
+    let mut pb6 = tqdm!(
+        total = render_length,
+        desc = "custom  ",
+        animation = Animation::Custom(&["\\", "|", "/", "-"]),
+        position = 10,
         force_refresh = true
     );
 
@@ -47,8 +54,9 @@ fn main() {
         pb3.update(1);
         pb4.update(1);
         pb5.update(1);
+        pb6.update(1);
         std::thread::sleep(std::time::Duration::from_secs_f32(0.02));
     }
 
-    eprint!("{}", "\n".repeat(9));
+    eprint!("{}", "\n".repeat(11));
 }

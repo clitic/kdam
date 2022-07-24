@@ -3,7 +3,7 @@ use kdam::prelude::*;
 fn main() {
     let mut pb = tqdm!(
         total = 300,
-        animation = kdam::Animation::FiraCode,
+        animation = "firacode",
         force_refresh = true
     );
 

@@ -19,6 +19,7 @@ use crate::Animation;
 /// fn main() {
 ///     let mut pb = Bar::new(100);
 ///     // let mut pb = tqdm!(total = 100);
+///     // let mut pb = Bar::builder().total(100).build();
 ///
 ///     for _ in 0..100 {
 ///         pb.update(1);
@@ -27,84 +28,29 @@ use crate::Animation;
 /// ```
 #[derive(Debug)]
 pub struct Bar {
-    /// Prefix for the progress bar.
-    /// (default: `""`)
-    pub desc: String,
-    /// The number of expected iterations.
-    /// If unspecified, iterable.size_hint().0 is used if possible.
-    /// If 0, only basic progress statistics are displayed (no ETA, no progressbar).
-    /// (default: `0`)
-    pub total: usize,
-    /// If true, keeps all traces of the progressbar upon termination of iteration.
-    /// If false, will leave only if position is 0.
-    /// (default: `true`)
-    pub leave: bool,
-    /// Specifies where to output the progress messages (default: stderr).
-    /// Uses file.write_fmt and file.flush methods.
-    /// (default: `None`)
-    pub file: Option<std::fs::File>,
-    /// The width of the entire output message.
-    /// If specified, dynamically resizes the progressbar to stay within this bound.
-    /// If unspecified, attempts to use environment width.
-    /// The fallback is a meter width of 10 and no limit for the counter and statistics.
-    /// If 0, will not print any meter (only stats).
-    /// (default: `10`)
-    pub ncols: i16,
-    /// Minimum progress display update interval (in seconds).
-    /// (default: `0.1`)
-    pub mininterval: f32,
-    /// Minimum progress display update interval, in iterations.
-    /// If > 0, will skip display of specified number of iterations. Tweak this and mininterval to get very efficient loops.
-    /// If your progress is erratic with both fast and slow iterations (network, skipping items, etc) you should set miniters=1.
-    /// (default: `1`)
-    pub miniters: usize,
-    /// Automatically adjusts miniters to correspond to mininterval after long display update lag.
-    /// (default: `false`)
-    pub dynamic_miniters: bool,
-    /// Whether to disable the entire progress bar wrapper.
-    /// (default: `false`)
-    pub disable: bool,
-    /// String that will be used to define the unit of each iteration.
-    /// (default: `"it"`)
-    pub unit: String,
-    /// If true, the number of iterations will be reduced/scaled automatically
-    /// and a metric prefix following the International System of Units standard will be added (kilo, mega, etc.).
-    /// (default: `false`)
-    pub unit_scale: bool,
-    /// If true, constantly alters ncols to the environment (allowing for window resizes).
-    /// (default: `false`)
-    pub dynamic_ncols: bool,
-    /// The initial counter value. Useful when restarting a progress bar.
-    /// (default: 0)
-    pub initial: usize,
-    /// Specify the line offset to print this bar (starting from 0).
-    /// Useful to manage multiple bars at once (eg, from threads).
-    /// (default: `0`)
-    pub position: u8,
-    /// Specify additional stats to display at the end of the bar.
-    /// (default: `""`)
-    pub postfix: String,
-    /// ignored unless unit_scale is true.
-    /// (default: `1024`)
-    pub unit_divisor: usize,
-    /// Bar colour (e.g. "green", "#00ff00").
-    pub colour: String,
-    /// Don't display until few seconds have elapsed.
-    /// (default: `0`)
-    pub delay: f32,
-    /// Defines the animation style to use with progress bar.
-    /// For custom type use set_charset method.
-    /// (default: `kdam::Animation::TqdmAscii`)
-    pub animation: Animation,
-    /// Select writer type to display progress bar output between stdout and stderr.
-    /// (default: `kdam::Output::Stderr`)
-    pub writer: Writer,
-    /// If true, each update method call will be rendered.
-    /// (default: `false`)
-    pub force_refresh: bool,
-    /// If true, progress bar of more length than terminal will be trimmed at end.
-    /// (default: `false`)
-    pub wrap: bool,
+    desc: String,
+    pub(crate) total: usize,
+    pub(crate) leave: bool,
+    file: Option<std::fs::File>,
+    pub(crate) ncols: i16,
+    mininterval: f32,
+    miniters: usize,
+    dynamic_miniters: bool,
+    disable: bool,
+    unit: String,
+    unit_scale: bool,
+    dynamic_ncols: bool,
+    initial: usize,
+    position: u8,
+    postfix: String,
+    unit_divisor: usize,
+    colour: String,
+    delay: f32,
+    animation: Animation,
+    pub(crate) writer: Writer,
+    pub(crate) force_refresh: bool,
+    wrap: bool,
+
     pub(crate) n: usize,
     started: bool,
     timer: std::time::Instant,
@@ -162,6 +108,17 @@ impl Bar {
             total: total,
             ..Default::default()
         }
+    }
+
+    /// Create a instance of `kdam::BarBuilder`.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// let mut pb = kdam::Bar::builder().total(100).build();
+    /// ```
+    pub fn builder() -> BarBuilder {
+        BarBuilder::default()
     }
 
     /// Set and returns elapsed time of progress bar.
@@ -264,18 +221,18 @@ impl Bar {
     }
 
     /// Set/Modify colour of the progress bar.
-    pub fn set_colour(&mut self, colour: &str) {
-        self.colour = colour.to_owned();
+    pub fn set_colour<T: Into<String>>(&mut self, colour: T) {
+        self.colour = colour.into();
     }
 
     /// Set/Modify description of the progress bar.
-    pub fn set_description(&mut self, desc: &str) {
-        self.desc = desc.to_owned();
+    pub fn set_description<T: Into<String>>(&mut self, desc: T) {
+        self.desc = desc.into();
     }
 
     /// Set/Modify postfix (additional stats) with automatic formatting based on datatype.
-    pub fn set_postfix(&mut self, postfix: &str) {
-        self.postfix = ", ".to_owned() + postfix;
+    pub fn set_postfix<T: Into<String>>(&mut self, postfix: T) {
+        self.postfix = ", ".to_owned() + &postfix.into();
     }
 
     /// Returns wheter bar is started or not.
@@ -343,7 +300,7 @@ impl Bar {
             if self.user_ncols.is_some() {
                 self.ncols = self.user_ncols.unwrap();
             } else {
-                let columns = term::get_columns();
+                let columns = term::get_columns_or(0);
 
                 if columns != 0 {
                     let new_ncols = columns as i16 - lbar_rbar_len;
@@ -364,7 +321,7 @@ impl Bar {
     /// Print a string in position of bar.
     pub(crate) fn write_at(&self, mut text: String) {
         if self.wrap {
-            let columns = crate::term::get_columns() as usize;
+            let columns = crate::term::get_columns_or(0) as usize;
 
             if self.bar_length as usize > columns {
                 text = text[..columns].to_owned();
@@ -399,7 +356,7 @@ pub trait BarMethods {
     fn clear(&mut self);
 
     /// Take input via bar (without overlap with bars).
-    fn input(&mut self, text: &str) -> Result<String, std::io::Error>;
+    fn input<T: Into<String>>(&mut self, text: T) -> Result<String, std::io::Error>;
 
     /// Force refresh the display of this bar.
     fn refresh(&mut self);
@@ -419,26 +376,20 @@ pub trait BarMethods {
     fn update_to(&mut self, update_to_n: usize);
 
     /// Print a message via bar (without overlap with bars).
-    fn write(&mut self, text: &str);
+    fn write<T: Into<String>>(&mut self, text: T);
 }
 
 impl BarMethods for Bar {
     fn clear(&mut self) {
         if self.file.is_none() {
-            let mut columns = term::get_columns() as usize;
-
-            if columns == 0 {
-                columns = self.bar_length as usize;
-            }
-
             self.writer
-                .print(format_args!("\r{}\r", " ".repeat(columns)));
+                .print(format_args!("\r{}\r", " ".repeat(term::get_columns_or(self.bar_length as u16) as usize)));
         }
     }
 
-    fn input(&mut self, text: &str) -> Result<String, std::io::Error> {
+    fn input<T: Into<String>>(&mut self, text: T) -> Result<String, std::io::Error> {
         self.clear();
-        self.writer.print_str(text);
+        self.writer.print_str(&text.into());
 
         let mut input_string = String::new();
         std::io::stdin().read_line(&mut input_string)?;
@@ -544,12 +495,203 @@ impl BarMethods for Bar {
         self.update(0);
     }
 
-    fn write(&mut self, text: &str) {
+    fn write<T: Into<String>>(&mut self, text: T) {
         self.clear();
-        self.writer.print(format_args!("{}\n", text));
+        self.writer.print(format_args!("{}\n", text.into()));
 
         if self.leave {
             self.refresh();
         }
+    }
+}
+
+/// Create `kdam::Bar` with custom configurations.
+///
+/// # Example
+///
+/// ```rust
+/// use kdam::BarBuilder;
+///
+/// let mut pb = BarBuilder::default().total(100).build();
+/// ```
+pub struct BarBuilder {
+    pb: Bar,
+}
+
+impl Default for BarBuilder {
+    fn default() -> Self {
+        Self { pb: Bar::default() }
+    }
+}
+
+impl BarBuilder {
+    /// Prefix for the progress bar.
+    /// (default: `""`)
+    pub fn desc<T: Into<String>>(mut self, desc: T) -> Self {
+        self.pb.desc = desc.into();
+        self
+    }
+
+    /// The number of expected iterations.
+    /// If unspecified, iterable.size_hint().0 is used if possible.
+    /// If 0, only basic progress statistics are displayed (no ETA, no progressbar).
+    /// (default: `0`)
+    pub fn total(mut self, total: usize) -> Self {
+        self.pb.total = total;
+        self
+    }
+
+    /// If true, keeps all traces of the progressbar upon termination of iteration.
+    /// If false, will leave only if position is 0.
+    /// (default: `true`)
+    pub fn leave(mut self, leave: bool) -> Self {
+        self.pb.leave = leave;
+        self
+    }
+
+    /// Specifies where to output the progress messages (default: stderr).
+    /// Uses file.write_fmt and file.flush methods.
+    /// (default: `None`)
+    pub fn file(mut self, file: Option<std::fs::File>) -> Self {
+        self.pb.file = file.into();
+        self
+    }
+
+    /// The width of the entire output message.
+    /// If specified, dynamically resizes the progressbar to stay within this bound.
+    /// If unspecified, attempts to use environment width.
+    /// The fallback is a meter width of 10 and no limit for the counter and statistics.
+    /// If 0, will not print any meter (only stats).
+    /// (default: `10`)
+    pub fn ncols<T: Into<i16>>(mut self, ncols: T) -> Self {
+        self.pb.ncols = ncols.into();
+        self
+    }
+
+    /// Minimum progress display update interval (in seconds).
+    /// (default: `0.1`)
+    pub fn mininterval<T: Into<f32>>(mut self, mininterval: T) -> Self {
+        self.pb.mininterval = mininterval.into();
+        self
+    }
+
+    /// Minimum progress display update interval, in iterations.
+    /// If > 0, will skip display of specified number of iterations. Tweak this and mininterval to get very efficient loops.
+    /// If your progress is erratic with both fast and slow iterations (network, skipping items, etc) you should set miniters=1.
+    /// (default: `1`)
+    pub fn miniters(mut self, miniters: usize) -> Self {
+        self.pb.miniters = miniters;
+        self
+    }
+
+    /// Automatically adjusts miniters to correspond to mininterval after long display update lag.
+    /// (default: `false`)
+    pub fn dynamic_miniters(mut self, dynamic_miniters: bool) -> Self {
+        self.pb.dynamic_miniters = dynamic_miniters;
+        self
+    }
+
+    /// Whether to disable the entire progress bar wrapper.
+    /// (default: `false`)
+    pub fn disable(mut self, disable: bool) -> Self {
+        self.pb.disable = disable.into();
+        self
+    }
+
+    /// String that will be used to define the unit of each iteration.
+    /// (default: `"it"`)
+    pub fn unit<T: Into<String>>(mut self, unit: T) -> Self {
+        self.pb.unit = unit.into();
+        self
+    }
+
+    /// If true, the number of iterations will be reduced/scaled automatically
+    /// and a metric prefix following the International System of Units standard will be added (kilo, mega, etc.).
+    /// (default: `false`)
+    pub fn unit_scale(mut self, unit_scale: bool) -> Self {
+        self.pb.unit_scale = unit_scale;
+        self
+    }
+
+    /// If true, constantly alters ncols to the environment (allowing for window resizes).
+    /// (default: `false`)
+    pub fn dynamic_ncols(mut self, dynamic_ncols: bool) -> Self {
+        self.pb.dynamic_ncols = dynamic_ncols;
+        self
+    }
+
+    /// The initial counter value. Useful when restarting a progress bar.
+    /// (default: 0)
+    pub fn initial(mut self, initial: usize) -> Self {
+        self.pb.initial = initial;
+        self
+    }
+
+    /// Specify the line offset to print this bar (starting from 0).
+    /// Useful to manage multiple bars at once (eg, from threads).
+    /// (default: `0`)
+    pub fn position<T: Into<u8>>(mut self, position: T) -> Self {
+        self.pb.position = position.into();
+        self
+    }
+
+    /// Specify additional stats to display at the end of the bar.
+    /// (default: `""`)
+    pub fn postfix<T: Into<String>>(mut self, postfix: T) -> Self {
+        self.pb.set_postfix(postfix.into());
+        self
+    }
+
+    /// ignored unless unit_scale is true.
+    /// (default: `1024`)
+    pub fn unit_divisor(mut self, unit_divisor: usize) -> Self {
+        self.pb.unit_divisor = unit_divisor;
+        self
+    }
+
+    /// Bar colour (e.g. "green", "#00ff00").
+    pub fn colour<T: Into<String>>(mut self, colour: T) -> Self {
+        self.pb.colour = colour.into();
+        self
+    }
+
+    /// Don't display until few seconds have elapsed.
+    /// (default: `0`)
+    pub fn delay<T: Into<f32>>(mut self, delay: T) -> Self {
+        self.pb.delay = delay.into();
+        self
+    }
+
+    /// Defines the animation style to use with progress bar.
+    /// For custom type use set_charset method.
+    /// (default: `kdam::Animation::TqdmAscii`)
+    pub fn animation<T: Into<Animation>>(mut self, animation: T) -> Self {
+        self.pb.animation = animation.into();
+        self
+    }
+
+    /// Select writer type to display progress bar output between stdout and stderr.
+    /// (default: `kdam::Output::Stderr`)
+    pub fn writer<T: Into<Writer>>(mut self, writer: T) -> Self {
+        self.pb.writer = writer.into();
+        self
+    }
+    /// If true, each update method call will be rendered.
+    /// (default: `false`)
+    pub fn force_refresh(mut self, force_refresh: bool) -> Self {
+        self.pb.force_refresh = force_refresh;
+        self
+    }
+
+    /// If true, progress bar of more length than terminal will be trimmed at end.
+    /// (default: `false`)
+    pub fn wrap(mut self, wrap: bool) -> Self {
+        self.pb.wrap = wrap;
+        self
+    }
+
+    /// Build `kdam::Bar`
+    pub fn build(self) -> Bar {
+        self.pb
     }
 }

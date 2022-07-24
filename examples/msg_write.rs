@@ -7,7 +7,7 @@ fn main() {
         std::thread::sleep(std::time::Duration::from_secs_f32(0.1));
 
         pb.update(1);
-        pb.write(&format!("Done task {}", i));
+        pb.write(format!("Done task {}", i));
     }
 
     eprint!("\n");

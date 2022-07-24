@@ -7,7 +7,7 @@ fn main() {
             total = 231231231,
             unit_scale = true,
             unit_divisor = 1024,
-            unit = "B".to_string()
+            unit = "B"
         ),
         vec![
             Column::Spinner(
@@ -30,14 +30,14 @@ fn main() {
         ],
     );
 
-    pb.write(&"download will begin in 5 seconds".colorize("bold red"));
+    pb.write("download will begin in 5 seconds".colorize("bold red"));
 
     while pb.pb.bar_elapsed_time() <= 5.0 {
         pb.refresh();
     }
 
     pb.replace(1, Column::text("[bold blue]docker.exe"));
-    pb.write(&"downloading docker.exe".colorize("bold cyan"));
+    pb.write("downloading docker.exe".colorize("bold cyan"));
 
     let total_size = 231231231;
     let mut downloaded = 0;
@@ -49,6 +49,6 @@ fn main() {
         std::thread::sleep(std::time::Duration::from_millis(12));
     }
 
-    pb.write(&"downloaded docker.exe".colorize("bold green"));
+    pb.write("downloaded docker.exe".colorize("bold green"));
     eprint!("\n");
 }
