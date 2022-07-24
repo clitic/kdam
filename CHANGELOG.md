@@ -2,7 +2,7 @@
 
 ## 0.2.2 (24/07/2022)
 
-Faetures:
+Features:
 
 - New `kdam::BarBuilder` struct.
 - Implemented `From<&str>` for `kdam::Animation` and `kdam::term::Writer`.
@@ -16,14 +16,14 @@ Changes:
 
 ## 0.2.1 (21/07/2022)
 
-Faetures:
+Features:
 
 - Added `reset` method `BarMethods` trait.
 - New `initial` field for `kdam::Bar`.
 
 ## 0.2.0 (21/07/2022)
 
-Faetures:
+Features:
 
 - Optimizations for printing mechanism.
 - Optimized rich pulsating bars.
