@@ -1,5 +1,11 @@
 # kdam Changelog (DD/MM/YYYY)
 
+## 0.2.3 (dev)
+
+Features:
+
+- Number of columns of progress bar can now be adjusted by KDAM_NCOLS envoirnment variable.
+
 ## 0.2.2 (24/07/2022)
 
 Features:

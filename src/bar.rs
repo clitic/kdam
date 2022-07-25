@@ -230,6 +230,11 @@ impl Bar {
         self.desc = desc.into();
     }
 
+    /// Set/Modify visibility of the progress bar.
+    pub fn set_disable(&mut self, disable: bool) {
+        self.disable = disable;
+    }
+
     /// Set/Modify postfix (additional stats) with automatic formatting based on datatype.
     pub fn set_postfix<T: Into<String>>(&mut self, postfix: T) {
         self.postfix = ", ".to_owned() + &postfix.into();
@@ -283,12 +288,16 @@ impl Bar {
     /// Intialize some values and starts the timer.
     pub(crate) fn init(&mut self) {
         if !self.started {
-            self.n = self.initial;
-
-            if self.ncols != 10 {
-                self.user_ncols = Some(self.ncols);
+            if self.user_ncols.is_none() {
+                if let Ok(kdam_ncols) = std::env::var("KDAM_NCOLS") {
+                    self.ncols = kdam_ncols
+                        .parse::<i16>()
+                        .expect("KDAM_NCOLS is not an valid integer (i16).");
+                    self.user_ncols = Some(self.ncols);
+                }
             }
 
+            self.n = self.initial;
             self.timer = std::time::Instant::now();
             self.started = true;
         }
@@ -297,16 +306,14 @@ impl Bar {
     /// Adjust number of columns for bar animation using length of remanining bar.
     pub(crate) fn set_ncols(&mut self, lbar_rbar_len: i16) {
         if self.dynamic_ncols || (lbar_rbar_len + self.ncols != self.bar_length) {
-            if self.user_ncols.is_some() {
-                self.ncols = self.user_ncols.unwrap();
+            if let Some(ncols) = self.user_ncols {
+                self.ncols = ncols;
             } else {
                 let columns = term::get_columns_or(0);
 
                 if columns != 0 {
                     let new_ncols = columns as i16 - lbar_rbar_len;
-                    if new_ncols >= 0 {
-                        self.ncols = new_ncols;
-                    }
+                    self.ncols = if new_ncols > 0 { new_ncols } else { 0 };
                 } else {
                     self.ncols = 10;
 
@@ -382,8 +389,10 @@ pub trait BarMethods {
 impl BarMethods for Bar {
     fn clear(&mut self) {
         if self.file.is_none() {
-            self.writer
-                .print(format_args!("\r{}\r", " ".repeat(term::get_columns_or(self.bar_length as u16) as usize)));
+            self.writer.print(format_args!(
+                "\r{}\r",
+                " ".repeat(term::get_columns_or(self.bar_length as u16) as usize)
+            ));
         }
     }
 
@@ -432,6 +441,14 @@ impl BarMethods for Bar {
             );
 
             self.bar_length = bar.chars().count() as i16;
+
+            if !self.leave && self.position != 0 {
+                return format!(
+                    "{}\r",
+                    " ".repeat(crate::term::get_columns_or(self.bar_length as u16) as usize)
+                );
+            }
+
             return bar;
         }
 
@@ -440,8 +457,11 @@ impl BarMethods for Bar {
         if progress >= 1.0 {
             self.total = self.n;
 
-            if !self.leave {
-                return format!("{}\r", " ".repeat(self.bar_length as usize));
+            if !self.leave && self.position != 0 {
+                return format!(
+                    "{}\r",
+                    " ".repeat(crate::term::get_columns_or(self.bar_length as u16) as usize)
+                );
             }
         }
 
@@ -514,14 +534,9 @@ impl BarMethods for Bar {
 ///
 /// let mut pb = BarBuilder::default().total(100).build();
 /// ```
+#[derive(Default)]
 pub struct BarBuilder {
     pb: Bar,
-}
-
-impl Default for BarBuilder {
-    fn default() -> Self {
-        Self { pb: Bar::default() }
-    }
 }
 
 impl BarBuilder {
@@ -559,12 +574,13 @@ impl BarBuilder {
 
     /// The width of the entire output message.
     /// If specified, dynamically resizes the progressbar to stay within this bound.
-    /// If unspecified, attempts to use environment width.
+    /// If unspecified, attempts to use KDAM_NCOLS environment variable or adjust width automatically.
     /// The fallback is a meter width of 10 and no limit for the counter and statistics.
     /// If 0, will not print any meter (only stats).
     /// (default: `10`)
     pub fn ncols<T: Into<i16>>(mut self, ncols: T) -> Self {
         self.pb.ncols = ncols.into();
+        self.pb.user_ncols = Some(self.pb.ncols);
         self
     }
 
@@ -642,7 +658,8 @@ impl BarBuilder {
         self
     }
 
-    /// ignored unless unit_scale is true.
+    /// Divide values by this unit_divisor.
+    /// Ignored unless `unit_scale` is true.
     /// (default: `1024`)
     pub fn unit_divisor(mut self, unit_divisor: usize) -> Self {
         self.pb.unit_divisor = unit_divisor;
@@ -663,8 +680,7 @@ impl BarBuilder {
     }
 
     /// Defines the animation style to use with progress bar.
-    /// For custom type use set_charset method.
-    /// (default: `kdam::Animation::TqdmAscii`)
+    /// (default: `kdam::Animation::Tqdm`)
     pub fn animation<T: Into<Animation>>(mut self, animation: T) -> Self {
         self.pb.animation = animation.into();
         self

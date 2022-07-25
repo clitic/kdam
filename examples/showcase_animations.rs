@@ -1,5 +1,4 @@
 use kdam::prelude::*;
-use kdam::Animation;
 
 fn main() {
     let render_length = 300;
@@ -13,7 +12,7 @@ fn main() {
     let mut pb2 = tqdm!(
         total = render_length,
         desc = "ascii   ",
-        animation = "tqdmascii",
+        animation = "ascii",
         position = 2,
         force_refresh = true
     );
@@ -41,7 +40,9 @@ fn main() {
     let mut pb6 = tqdm!(
         total = render_length,
         desc = "custom  ",
-        animation = Animation::Custom(&["\\", "|", "/", "-"]),
+        animation = "custom[\\|/-]", 
+        // For more complex charsets use.
+        // animation = kdam::Animation::custom(&["\\", "|", "/", "-"]),
         position = 10,
         force_refresh = true
     );

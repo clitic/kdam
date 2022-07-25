@@ -5,7 +5,7 @@ use crate::prelude::*;
 pub enum Animation {
     Arrow,
     Classic,
-    Custom(&'static [&'static str]),
+    Custom(Vec<String>),
     FillUp,
     FiraCode,
     Tqdm,
@@ -19,13 +19,43 @@ impl From<&str> for Animation {
             "classic" => Self::Classic,
             "fillup" => Self::FillUp,
             "firacode" => Self::FiraCode,
-            "tqdmascii" => Self::TqdmAscii,
-            _ => Self::Tqdm,
+            "ascii" => Self::TqdmAscii,
+            x => {
+                if x.starts_with("custom[") || x.ends_with("]") {
+                    Self::Custom(
+                        x.trim_start_matches("custom[")
+                            .trim_end_matches("]")
+                            .chars()
+                            .map(|i| i.to_string())
+                            .collect::<Vec<String>>(),
+                    )
+                } else {
+                    Self::Tqdm
+                }
+            }
         }
     }
 }
 
 impl Animation {
+    /// Construct `kdam::Animation::Custom` enum variant.
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use kdam::Animation;
+    /// 
+    /// let anim = Animation::custom(&["\\", "|", "/", "-"]);
+    /// ```
+    pub fn custom(charset: &[&str]) -> Self {
+        Self::Custom(
+            charset
+                .iter()
+                .map(|x| x.to_string())
+                .collect::<Vec<String>>(),
+        )
+    }
+
     /// Generate progress bar animation.
     ///
     /// # Arguments
@@ -75,14 +105,16 @@ impl Animation {
             }
 
             _ => {
-                let charset: &[&str] = match self {
-                    Self::TqdmAscii => &["1", "2", "3", "4", "5", "6", "7", "8", "9", "#"],
-                    Self::FillUp => &[
+                let charset = match self {
+                    Self::TqdmAscii => vec!["1", "2", "3", "4", "5", "6", "7", "8", "9", "#"],
+                    Self::FillUp => vec![
                         "\u{2581}", "\u{2582}", "\u{2583}", "\u{2584}", "\u{2585}", "\u{2586}",
                         "\u{2587}", "\u{2588}",
                     ],
-                    Self::Custom(custom_charset) => custom_charset,
-                    _ => &[
+                    Self::Custom(custom_charset) => {
+                        custom_charset.iter().map(|x| x.as_str()).collect::<_>()
+                    }
+                    _ => vec![
                         "\u{258F}", "\u{258E}", "\u{258D}", "\u{258C}", "\u{258B}", "\u{258A}",
                         "\u{2589}", "\u{2588}",
                     ],

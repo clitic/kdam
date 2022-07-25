@@ -1,6 +1,6 @@
 /// [tqdm](https://github.com/tqdm/tqdm) like macro for constructing `kdam::BarIterator` if iterable is given else `kdam::Bar`.
 ///
-/// This macro use `kdam::Bar::Builder` for creating `kdam::Bar`.
+/// This macro use `kdam::BarBuilder` for creating `kdam::Bar`.
 /// See all available [methods](https://docs.rs/kdam/latest/kdam/struct.BarBuilder.html).
 ///
 /// # Examples
