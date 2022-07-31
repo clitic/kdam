@@ -53,6 +53,64 @@ impl Writer {
             }
         }
     }
+
+    /// Prints to the standard error at specified position.
+    ///
+    /// Also cursor position is restored to original position after print.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use kdam::term::Writer;
+    ///
+    /// Writer::Stderr.print_at(1, format!("1 + 1 = {}", 2));
+    /// ```
+    pub fn print_at<T: Into<String>>(&self, position: usize, text: T) {
+        match self {
+            Self::Stderr => {
+                let mut writer = std::io::stderr();
+
+                crate::lock::acquire();
+
+                if position > 0 {
+                    writer
+                        .write_fmt(format_args!(
+                            "{}{}\x1b[{}A",
+                            "\n".repeat(position),
+                            text.into(),
+                            position
+                        ))
+                        .unwrap();
+                } else {
+                    writer.write_fmt(format_args!("{}", text.into())).unwrap();
+                }
+
+                writer.flush().unwrap();
+                crate::lock::release();
+            }
+            Self::Stdout => {
+                let mut writer = std::io::stdout();
+
+                crate::lock::acquire();
+
+                if position > 0 {
+                    writer
+                        .write_fmt(format_args!(
+                            "{}{}\x1b[{}A",
+                            "\n".repeat(position),
+                            text.into(),
+                            position
+                        ))
+                        .unwrap();
+                } else {
+                    writer.write_fmt(format_args!("{}", text.into())).unwrap();
+                }
+
+                writer.flush().unwrap();
+                crate::lock::release();
+            }
+        }
+    }
 }
 
 /// Get number of columns in current window or default to specified value.
@@ -122,12 +180,9 @@ pub fn colour(colour_code: &str) -> String {
     if let Some(hex_code) = colour_code.find("#") {
         code += &format!(
             "38;2;{};{};{}",
-            i16::from_str_radix(&colour_code[(hex_code + 1)..(hex_code + 3)], 16)
-                .unwrap(),
-            i16::from_str_radix(&colour_code[(hex_code + 3)..(hex_code + 5)], 16)
-                .unwrap(),
-            i16::from_str_radix(&colour_code[(hex_code + 5)..(hex_code + 7)], 16)
-                .unwrap()
+            i16::from_str_radix(&colour_code[(hex_code + 1)..(hex_code + 3)], 16).unwrap(),
+            i16::from_str_radix(&colour_code[(hex_code + 3)..(hex_code + 5)], 16).unwrap(),
+            i16::from_str_radix(&colour_code[(hex_code + 5)..(hex_code + 7)], 16).unwrap()
         );
     } else {
         if color.contains("BRIGHT") {

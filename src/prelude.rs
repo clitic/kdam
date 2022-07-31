@@ -11,4 +11,3 @@ pub use crate::term::Colorizer;
 
 // Macros
 pub use crate::tqdm;
-pub use crate::eprint_at;

@@ -32,6 +32,7 @@ mod iterator;
 mod rich;
 mod styles;
 mod macros;
+mod manager;
 
 pub mod format;
 pub mod lock;

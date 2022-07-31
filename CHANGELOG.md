@@ -6,6 +6,10 @@ Features:
 
 - Number of columns of progress bar can now be adjusted by KDAM_NCOLS envoirnment variable.
 
+Changes:
+
+-  `eprint_at!` replaced with `Writer::Stderr.print_at`.
+
 ## 0.2.2 (24/07/2022)
 
 Features:
