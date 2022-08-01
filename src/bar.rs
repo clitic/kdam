@@ -389,8 +389,8 @@ pub trait BarMethods {
 impl BarMethods for Bar {
     fn clear(&mut self) {
         if self.file.is_none() {
-            self.writer.print(format_args!(
-                "\r{}\r",
+            self.write_at(format!(
+                "\r{}",
                 " ".repeat(term::get_columns_or(self.bar_length as u16) as usize)
             ));
         }

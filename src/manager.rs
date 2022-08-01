@@ -86,8 +86,8 @@ impl RowManager {
         self.bars.get_mut(index)
     }
 
-    /// Append a progress bar.
-    pub fn append(&mut self, mut pb: Bar) {
+    /// Append a progress bar returning index.
+    pub fn append(&mut self, mut pb: Bar) -> usize {
         pb.position = self.acquired_pos.len() as u16;
         self.bars_true_disable.push(pb.disable);
 
@@ -99,6 +99,7 @@ impl RowManager {
         }
 
         self.bars.push(pb);
+        self.bars.len() - 1
     }
 
     /// Update and print the required stuff for progress bar at that index.
@@ -133,8 +134,13 @@ impl RowManager {
             let mut count = 0;
             for (i, bar) in self.bars.iter_mut().enumerate() {
                 if bar.total > bar.n && !self.bars_true_disable.get(i).unwrap() {
-                    bar.position = count;
-                    bar.disable = false;
+                    if bar.position != count {
+                        bar.clear();
+                        bar.position = count;
+                        bar.disable = false;
+                        bar.refresh();
+                    }
+
                     count += 1;
                 }
             }

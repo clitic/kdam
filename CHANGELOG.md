@@ -11,6 +11,10 @@ Changes:
 
 -  `eprint_at!` replaced with `Writer::Stderr.print_at`.
 
+Bug Fixes:
+
+- Fixed `BarMethods.clear` method for bar position above 0.
+  
 ## 0.2.2 (24/07/2022)
 
 Features:
