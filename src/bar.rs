@@ -36,12 +36,12 @@ pub struct Bar {
     mininterval: f32,
     miniters: usize,
     dynamic_miniters: bool,
-    disable: bool,
+    pub(crate) disable: bool,
     unit: String,
     unit_scale: bool,
     dynamic_ncols: bool,
     initial: usize,
-    position: u8,
+    pub(crate) position: u16,
     postfix: String,
     unit_divisor: usize,
     colour: String,
@@ -646,8 +646,8 @@ impl BarBuilder {
     /// Specify the line offset to print this bar (starting from 0).
     /// Useful to manage multiple bars at once (eg, from threads).
     /// (default: `0`)
-    pub fn position<T: Into<u8>>(mut self, position: T) -> Self {
-        self.pb.position = position.into();
+    pub fn position(mut self, position: u16) -> Self {
+        self.pb.position = position;
         self
     }
 

@@ -5,6 +5,7 @@
 Features:
 
 - Number of columns of progress bar can now be adjusted by KDAM_NCOLS envoirnment variable.
+- New `kdam::RowManager` for managing many progress bars. [ISSUE #3](https://github.com/clitic/kdam/issues/3)
 
 Changes:
 

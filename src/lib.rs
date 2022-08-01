@@ -12,35 +12,36 @@
 //!
 //! - [One Page Usage](https://github.com/clitic/kdam#usage)
 //! - [Project Examples](https://github.com/clitic/kdam/tree/main/examples)
-//! 
+//!
 //! ```rust
 //! use kdam::prelude::*;
-//! 
+//!
 //! fn main() {
 //!     let mut pb = tqdm!(total = 100);
-//! 
+//!
 //!     for _ in 0..100 {
 //!         pb.update(1);
 //!     }
-//! 
+//!
 //!     eprint!("\n");
 //! }
 //! ```
 
 mod bar;
 mod iterator;
-mod rich;
-mod styles;
+mod lock;
 mod macros;
 mod manager;
+mod rich;
+mod styles;
 
 pub mod format;
-pub mod lock;
 pub mod monitor;
 pub mod prelude;
 pub mod term;
 
 pub use bar::{Bar, BarBuilder};
 pub use iterator::BarIterator;
+pub use manager::RowManager;
 pub use rich::{Column, RichProgress};
 pub use styles::Animation;
