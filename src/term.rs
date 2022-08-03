@@ -5,7 +5,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 
 static COLOURS_ENABLED: AtomicBool = AtomicBool::new(false);
 
-/// Stderr and Stdout writer for `kdam::Bar`.
+/// Stderr and Stdout writer for [Bar](crate::Bar).
 #[derive(Debug, Clone)]
 pub enum Writer {
     Stderr,
@@ -22,7 +22,7 @@ impl From<&str> for Writer {
 }
 
 impl Writer {
-    /// Print `std::fmt::Arguments` in terminal followed by a flush.
+    /// Print [Arguments](std::fmt::Arguments) in terminal followed by a flush.
     pub fn print(&self, args: std::fmt::Arguments) {
         match self {
             Self::Stderr => {

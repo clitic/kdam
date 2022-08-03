@@ -1,7 +1,7 @@
 use crate::prelude::*;
 use crate::Bar;
 
-/// Renderable columns for `kdam::RichProgress`.
+/// Renderable columns for [RichProgress](crate::RichProgress).
 ///
 /// These columns may differ in name as of `rich.progress`.
 #[derive(Debug, Clone)]
@@ -76,7 +76,7 @@ impl Column {
     }
 }
 
-/// An implementation [rich.progress](https://rich.readthedocs.io/en/latest/progress.html) using `kdam::Bar`.
+/// An implementation [rich.progress](https://rich.readthedocs.io/en/latest/progress.html) using [Bar](crate::Bar).
 ///
 /// # Example
 ///
@@ -99,14 +99,14 @@ impl Column {
 /// ```
 #[derive(Debug)]
 pub struct RichProgress {
-    /// Instance of `kdam::Bar` to render `kdam::RichProgress`.
+    /// Instance of [Bar](crate::Bar) to render [RichProgress](crate::RichProgress).
     pub pb: Bar,
     /// Vector of renderable columns.
     pub columns: Vec<Column>,
 }
 
 impl RichProgress {
-    /// Create a new instance of `kdam::RichProgress`.
+    /// Create a new instance of [RichProgress](crate::RichProgress).
     pub fn new(pb: Bar, columns: Vec<Column>) -> Self {
         Self { pb, columns }
     }

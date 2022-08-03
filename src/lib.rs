@@ -5,8 +5,8 @@
 //!
 //! ## Quick Insight
 //!
-//! - [kdam::Bar](https://docs.rs/kdam/latest/kdam/struct.Bar.html) can be used to create progress bars like tqdm.
-//! - [kdam::RichProgress](https://docs.rs/kdam/latest/kdam/struct.RichProgress.html) can be used to create progress bars like rich.progress.
+//! - [Bar](crate::Bar) can be used to create progress bars like tqdm.
+//! - [RichProgress](crate::RichProgress) can be used to create progress bars like rich.progress.
 //!
 //! ## Examples
 //!

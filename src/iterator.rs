@@ -1,17 +1,17 @@
 use crate::prelude::*;
 use crate::Bar;
 
-/// Iterable version of `kdam::Bar`.
+/// Iterable version of [Bar](crate::Bar).
 #[derive(Debug)]
 pub struct BarIterator<T> {
     /// Iterator to decorate with a progress bar.
     pub iterable: T,
-    /// Instance of `kdam::Bar` to display progress updates for iterable.
+    /// Instance of [Bar](crate::Bar) to display progress updates for iterable.
     pub pb: Bar,
 }
 
 impl<T: Iterator> BarIterator<T> {
-    /// Create a new instance of `kdam::BarIterator` from iterable.
+    /// Create a new instance of [BarIterator](crate::BarIterator) from iterable.
     pub fn new(iterable: T) -> BarIterator<T> {
         let mut pb = Bar::default();
         pb.total = iterable.size_hint().0;
@@ -22,7 +22,7 @@ impl<T: Iterator> BarIterator<T> {
         }
     }
 
-    /// Create a new instance of `kdam::BarIterator` from iterable and `kdam::Bar`.
+    /// Create a new instance of [BarIterator](crate::BarIterator) from iterable and [Bar](crate::Bar).
     pub fn new_with_bar(iterable: T, pb: Bar) -> BarIterator<T> {
         let total = iterable.size_hint().0;
 
@@ -85,12 +85,12 @@ impl<T: DoubleEndedIterator> DoubleEndedIterator for BarIterator<T> {
     }
 }
 
-/// Rust iterators decoration with `kdam::BarIterator`.
+/// Rust iterators decoration with [BarIterator](crate::BarIterator).
 pub trait TqdmIterator
 where
     Self: Sized + Iterator,
 {
-    /// Decorate any sized iterator to `kdam::BarIterator`.
+    /// Decorate any sized iterator to [BarIterator](crate::BarIterator)`.
     ///
     /// # Example
     ///
@@ -111,7 +111,7 @@ where
     /// ```
     fn tqdm(self) -> BarIterator<Self>;
 
-    /// Decorate any sized iterator to `kdam::BarIterator` with existing `kdam::Bar`.
+    /// Decorate any sized iterator to [BarIterator](crate::BarIterator) with existing [Bar](crate::Bar).
     fn tqdm_with_bar(self, pb: Bar) -> BarIterator<Self>;
 }
 

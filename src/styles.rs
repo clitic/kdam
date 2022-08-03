@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-/// Bar animation styles for `kdam::Bar`.
+/// Bar animation styles for [Bar](crate::Bar).
 #[derive(Debug, Clone)]
 pub enum Animation {
     Arrow,
@@ -38,7 +38,7 @@ impl From<&str> for Animation {
 }
 
 impl Animation {
-    /// Construct `kdam::Animation::Custom` enum variant.
+    /// Construct [Animation::Custom](crate::Animation) enum variant.
     /// 
     /// # Example
     /// 

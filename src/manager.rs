@@ -1,7 +1,7 @@
 use crate::{prelude::BarMethods, Bar};
 use std::collections::HashSet;
 
-/// RowManger allows to store and update many progress bars.
+/// RowManager allows to store and update many progress bars.
 ///
 /// `nrows` is the number of progress bars to display at once.
 /// All other bars are hidden and visible once any active progress bar is completed.
@@ -32,7 +32,7 @@ pub struct RowManager {
 }
 
 impl RowManager {
-    /// Create a new `RowManager` instance with specific number of rows.
+    /// Create a new [RowManager](crate::RowManager) instance with specific number of rows.
     ///
     /// # Example
     ///
@@ -52,7 +52,7 @@ impl RowManager {
         }
     }
 
-    /// Create a new `RowManager` instance from terminal window size.
+    /// Create a new [RowManager](crate::RowManager) instance from terminal window size.
     ///
     /// # Example
     ///

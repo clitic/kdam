@@ -1,4 +1,4 @@
-# kdam
+<h1 align="center">kdam</h1>
 
 <p align="center">
   <a href="https://crates.io/crates/kdam">
@@ -6,6 +6,9 @@
   </a>
   <a href="https://crates.io/crates/kdam">
     <img src="https://img.shields.io/crates/v/kdam?style=flat-square">
+  </a>
+  <a href="https://github.com/clitic/kdam">
+    <img src="https://img.shields.io/github/workflow/status/clitic/kdam/Rust?logo=github&style=flat-square">
   </a>
   <a href="https://docs.rs/kdam/latest/kdam">
     <img src="https://img.shields.io/docsrs/kdam?logo=docsdotrs&style=flat-square">

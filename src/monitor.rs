@@ -6,7 +6,7 @@ use std::thread;
 use crate::prelude::*;
 use crate::{Bar, RichProgress};
 
-/// Monitor mode for `kdam::Bar`
+/// Monitor mode for [Bar](crate::Bar)
 ///
 /// # Example
 ///
@@ -44,7 +44,7 @@ pub fn bar(pb: Bar, maxinterval: f32) -> (Arc<Mutex<Bar>>, thread::JoinHandle<()
     (pb_arc, handle)
 }
 
-/// Monitor mode for `kdam::RichProgress`. See `kdam::monitor::bar` for example usecase.
+/// Monitor mode for [RichProgress](crate::RichProgress). See [monitor::bar](crate::monitor::bar) for example usecase.
 pub fn rich(
     pb: RichProgress,
     maxinterval: f32,

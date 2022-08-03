@@ -95,7 +95,7 @@ impl Default for Bar {
 }
 
 impl Bar {
-    /// Create a new instance of `kdam::Bar` with a total value.
+    /// Create a new instance of [Bar](crate::Bar) with a total value.
     /// You can also set `total=0` if total is unknown.
     ///
     /// # Example
@@ -110,7 +110,7 @@ impl Bar {
         }
     }
 
-    /// Create a instance of `kdam::BarBuilder`.
+    /// Create a instance of [BarBuilder](crate::BarBuilder).
     ///
     /// # Example
     ///

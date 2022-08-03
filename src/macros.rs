@@ -1,6 +1,6 @@
-/// [tqdm](https://github.com/tqdm/tqdm) like macro for constructing `kdam::BarIterator` if iterable is given else `kdam::Bar`.
+/// [tqdm](https://github.com/tqdm/tqdm) like macro for constructing [BarIterator](crate::BarIterator) if iterable is given else [Bar](crate::Bar).
 ///
-/// This macro use `kdam::BarBuilder` for creating `kdam::Bar`.
+/// This macro use [BarBuilder](crate::BarBuilder) for creating [Bar](crate::Bar).
 /// See all available [methods](https://docs.rs/kdam/latest/kdam/struct.BarBuilder.html).
 ///
 /// # Examples
@@ -18,14 +18,14 @@
 #[macro_export]
 macro_rules! tqdm {
     ($($setter_method: ident = $value: expr),*) => {
-        kdam::BarBuilder::default()$(.$setter_method($value))*.build()
+        $crate::BarBuilder::default()$(.$setter_method($value))*.build()
     };
 
     ($iterable: expr) => {
-        kdam::BarIterator::new_with_bar($iterable, kdam::Bar::default())
+        $crate::BarIterator::new_with_bar($iterable, kdam::Bar::default())
     };
 
     ($iterable: expr, $($setter_method: ident = $value: expr),*) => {
-        kdam::BarIterator::new_with_bar($iterable, kdam::BarBuilder::default()$(.$setter_method($value))*.build())
+        $crate::BarIterator::new_with_bar($iterable, kdam::BarBuilder::default()$(.$setter_method($value))*.build())
     };
 }
