@@ -45,3 +45,6 @@ pub use iterator::BarIterator;
 pub use manager::RowManager;
 pub use rich::{Column, RichProgress};
 pub use styles::Animation;
+
+// External Re-exports
+pub use formatx;

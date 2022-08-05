@@ -121,6 +121,15 @@ pub fn get_columns_or(width: u16) -> u16 {
          .0
 }
 
+/// Get length of string.
+pub fn string_length(mut text: String) -> usize {
+    while let Some(start) = text.find("\x1b[") {
+        text = text.replace(&text[start..(start + text[start..].find("m").unwrap() + 1)], "");
+    }
+
+    text.chars().count()
+}
+
 /// Create colour escape code from primary colours or hex colour code.
 ///
 /// # Example

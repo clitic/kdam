@@ -16,7 +16,7 @@ edition = "2021"
 
 [dependencies]
 terminal_size = "0.2"
-formatx = "0.1"
+formatx = "0.1.2"
 
 [workspace]
 

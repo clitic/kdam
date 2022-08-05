@@ -6,6 +6,8 @@ use crate::term;
 use crate::term::Writer;
 use crate::Animation;
 
+use formatx::Template;
+
 /// Core implemention of console progress bar.
 ///
 /// # Example
@@ -41,6 +43,7 @@ pub struct Bar {
     unit_scale: bool,
     dynamic_ncols: bool,
     initial: usize,
+    bar_format: Option<Template>,
     pub(crate) position: u16,
     postfix: String,
     unit_divisor: usize,
@@ -50,7 +53,7 @@ pub struct Bar {
     pub(crate) writer: Writer,
     pub(crate) force_refresh: bool,
     wrap: bool,
-
+    // Internal
     pub(crate) n: usize,
     started: bool,
     timer: std::time::Instant,
@@ -75,6 +78,7 @@ impl Default for Bar {
             unit_scale: false,
             dynamic_ncols: false,
             initial: 0,
+            bar_format: None,
             position: 0,
             postfix: "".to_string(),
             unit_divisor: 1000,
@@ -233,6 +237,16 @@ impl Bar {
     /// Set/Modify visibility of the progress bar.
     pub fn set_disable(&mut self, disable: bool) {
         self.disable = disable;
+    }
+
+    /// Set/Modify leave property of the progress bar.
+    pub fn set_leave(&mut self, leave: bool) {
+        self.leave = leave;
+    }
+
+    /// Set/Modify position of the progress bar.
+    pub fn set_position(&mut self, position: u16) {
+        self.position = position;
     }
 
     /// Set/Modify postfix (additional stats) with automatic formatting based on datatype.
@@ -423,73 +437,136 @@ impl BarMethods for Bar {
     fn render(&mut self) -> String {
         self.bar_elapsed_time();
 
-        let desc = if self.desc == "" {
-            "".to_owned()
-        } else {
-            format!("{}: ", self.desc)
-        };
+        if self.bar_format.is_some() {
+            let mut bar_format = self.bar_format.as_ref().unwrap().clone();
 
-        if self.total == 0 {
-            let bar = format!(
-                "{}{}{} [{}, {}{}]",
-                desc,
+            if bar_format.contains("desc") {
+                bar_format.replace_from_callback("desc", |placeholder| {
+                    if self.desc != "" {
+                        return self.desc.clone()
+                            + &placeholder.attr("suffix").unwrap_or(":".to_owned());
+                    }
+
+                    self.desc.clone()
+                });
+            }
+
+            if bar_format.contains("percentage") {
+                bar_format.replace_from_callback("percentage", |placeholder| {
+                    self.bar_fmt_percentage(
+                        placeholder
+                            .attr("precision")
+                            .unwrap_or("0".to_owned())
+                            .parse::<usize>()
+                            .unwrap(),
+                    )
+                });
+            }
+
+
+
+            if bar_format.contains("count") {
+                bar_format.replace_from_callback("count", |_| self.bar_fmt_count());
+            }
+            if bar_format.contains("total") {
+                bar_format.replace_from_callback("total", |_| self.bar_fmt_total());
+            }
+            if bar_format.contains("elapsed") {
+                bar_format.replace_from_callback("elapsed", |_| self.bar_fmt_elapsed_time());
+            }
+            if bar_format.contains("remaining") {
+                bar_format.replace_from_callback("remaining", |_| self.bar_fmt_remaining_time());
+            }
+            if bar_format.contains("rate") {
+                // prec
+                bar_format.replace_from_callback("rate", |_| self.bar_fmt_rate());
+            }
+            // @ colour
+
+            if bar_format.contains("animation") {
+                self.set_ncols(crate::term::string_length(bar_format.unchecked_text()) as i16 - 9);
+
+                bar_format.replace(
+                    "animation",
+                    self.animation.fmt_progress(
+                        self.bar_percentage() as f32,
+                        self.ncols.clone(),
+                        &self.colour,
+                    ),
+                );
+            }
+
+            bar_format.text().unwrap()
+        } else {
+            let desc = if self.desc == "" {
+                "".to_owned()
+            } else {
+                format!("{}: ", self.desc)
+            };
+
+            if self.total == 0 {
+                let bar = format!(
+                    "{}{}{} [{}, {}{}]",
+                    desc,
+                    self.bar_fmt_count(),
+                    self.unit,
+                    self.bar_fmt_elapsed_time(),
+                    self.bar_fmt_rate(),
+                    self.postfix
+                );
+
+                self.bar_length = bar.chars().count() as i16;
+
+                if !self.leave && self.position != 0 {
+                    return format!(
+                        "{}\r",
+                        " ".repeat(crate::term::get_columns_or(self.bar_length as u16) as usize)
+                    );
+                }
+
+                return bar;
+            }
+
+            let progress = self.bar_percentage() as f32;
+
+            if progress >= 1.0 {
+                self.total = self.n;
+
+                if !self.leave && self.position != 0 {
+                    return format!(
+                        "{}\r",
+                        " ".repeat(crate::term::get_columns_or(self.bar_length as u16) as usize)
+                    );
+                }
+            }
+
+            let lbar = desc + &self.bar_fmt_percentage(0);
+            let rbar = format!(
+                " {}/{} [{}<{}, {}{}]",
                 self.bar_fmt_count(),
-                self.unit,
+                self.bar_fmt_total(),
                 self.bar_fmt_elapsed_time(),
+                self.bar_fmt_remaining_time(),
                 self.bar_fmt_rate(),
-                self.postfix
+                self.postfix,
             );
 
-            self.bar_length = bar.chars().count() as i16;
+            let lbar_rbar_len = (lbar.chars().count()
+                + rbar.chars().count()
+                + self.animation.spaces() as usize) as i16;
+            self.set_ncols(lbar_rbar_len);
 
-            if !self.leave && self.position != 0 {
-                return format!(
-                    "{}\r",
-                    " ".repeat(crate::term::get_columns_or(self.bar_length as u16) as usize)
-                );
+            if self.ncols <= 0 {
+                return lbar + &rbar;
+            } else {
+                self.bar_length = lbar_rbar_len + self.ncols;
             }
 
-            return bar;
+            lbar + &self
+                .animation
+                .fmt_progress(progress, self.ncols.clone(), &self.colour)
+                + &rbar
         }
-
-        let progress = self.bar_percentage() as f32;
-
-        if progress >= 1.0 {
-            self.total = self.n;
-
-            if !self.leave && self.position != 0 {
-                return format!(
-                    "{}\r",
-                    " ".repeat(crate::term::get_columns_or(self.bar_length as u16) as usize)
-                );
-            }
-        }
-
-        let lbar = desc + &self.bar_fmt_percentage(0);
-        let rbar = format!(
-            " {}/{} [{}<{}, {}{}]",
-            self.bar_fmt_count(),
-            self.bar_fmt_total(),
-            self.bar_fmt_elapsed_time(),
-            self.bar_fmt_remaining_time(),
-            self.bar_fmt_rate(),
-            self.postfix,
-        );
-
-        let lbar_rbar_len =
-            (lbar.chars().count() + rbar.chars().count() + self.animation.spaces() as usize) as i16;
-        self.set_ncols(lbar_rbar_len);
-
-        if self.ncols <= 0 {
-            return lbar + &rbar;
-        } else {
-            self.bar_length = lbar_rbar_len + self.ncols;
-        }
-
-        lbar + &self
-            .animation
-            .fmt_progress(progress, self.ncols.clone(), &self.colour)
-            + &rbar
     }
 
     fn reset(&mut self, total: Option<usize>) {
@@ -640,6 +717,24 @@ impl BarBuilder {
     /// (default: 0)
     pub fn initial(mut self, initial: usize) -> Self {
         self.pb.initial = initial;
+        self
+    }
+
+    /// Specify a custom bar string formatting. May impact performance.
+    /// [default: '{l_bar}{bar}{r_bar}'], where
+    /// l_bar='{desc}: {percentage:3.0f}%|' and
+    /// r_bar='| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, '
+    ///   '{rate_fmt}{postfix}]'
+    /// Possible vars: l_bar, bar, r_bar, n, n_fmt, total, total_fmt,
+    ///   percentage, elapsed, elapsed_s, ncols, nrows, desc, unit,
+    ///   rate, rate_fmt, rate_noinv, rate_noinv_fmt,
+    ///   rate_inv, rate_inv_fmt, postfix, unit_divisor,
+    ///   remaining, remaining_s, eta.
+    /// Note that a trailing ": " is automatically removed after {desc}
+    /// if the latter is empty.
+    /// (default: `None`)
+    pub fn bar_format(mut self, bar_format: Template) -> Self {
+        self.pb.bar_format = Some(bar_format);
         self
     }
 

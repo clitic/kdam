@@ -39,7 +39,6 @@ pub fn format_interval(seconds: usize) -> String {
 // Intelligent scientific notation (.3g).
 // pub fn format_num(n: usize) -> String {
 //     let f = format!("{:.3g}", n)
-//         .to_string()
 //         .replace("+0", "+")
 //         .replace("-0", "-");
 //     let n = format!("{}", n).to_string();
