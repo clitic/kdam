@@ -13,8 +13,8 @@
   <a href="https://docs.rs/kdam/latest/kdam">
     <img src="https://img.shields.io/docsrs/kdam?logo=docsdotrs&style=flat-square">
   </a>
-  <a href="https://github.com/clitic/kdam">
-    <img src="https://img.shields.io/github/license/clitic/kdam?style=flat-square">
+  <a href="https://github.com/clitic/kdam#license">
+    <img src="https://img.shields.io/crates/l/kdam?style=flat-square">
   </a>
   <a href="https://github.com/clitic/kdam">
     <img src="https://img.shields.io/github/repo-size/clitic/kdam?style=flat-square">
@@ -24,7 +24,7 @@
   </a>
 </p>
 
-kdam is port of [tqdm](https://github.com/tqdm/tqdm) library which is written in python. kdam has almost same features as tqdm except bar templating. kdam is also 4 times faster than tqdm. kdam has only one external dependency which is [terminal-size](https://github.com/eminence/terminal-size).
+kdam is port of [tqdm](https://github.com/tqdm/tqdm) library which is written in python. kdam is also 4 times faster than tqdm.
 
 Instantly make your loops show a smart progress meter. Just wrap any iterator with tqdm!(iterator) macro and you're done!
 
@@ -64,7 +64,7 @@ kdam also support [rich.progress](https://rich.readthedocs.io/en/latest/progress
 [examples/misc_fira_code.rs](https://github.com/clitic/kdam/blob/main/examples/misc_fira_code.rs)
 ![showcase_fira_code_animation](https://raw.githubusercontent.com/clitic/kdam/main/images/fira_code.gif)
 
-## Installations
+## Getting Started
 
 Add this to your Cargo.toml file.
 
@@ -82,9 +82,10 @@ Or add from command line.
 $ cargo add kdam@0.2
 ```
 
-## Usage
+See [docs](https://docs.rs/kdam/latest/kdam) and [examples](https://github.com/clitic/kdam/tree/main/examples) to 
+know how to use it.
 
-See docs.rs [DOCUMENTATION](https://docs.rs/kdam)
+## Usage
 
 ### Iterator Based
 
@@ -262,6 +263,7 @@ Break Loop [y/n]: y
 
 ## License
 
-&copy; 2022 clitic
+Dual Licensed
 
-This repository is licensed under the MIT license. See LICENSE for details.
+- [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0) ([LICENSE-APACHE](LICENSE-APACHE))
+- [MIT license](https://opensource.org/licenses/MIT) ([LICENSE-MIT](LICENSE-MIT))
