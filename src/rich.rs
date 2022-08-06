@@ -273,7 +273,7 @@ impl BarMethods for RichProgress {
 
     fn write<T: Into<String>>(&mut self, text: T) {
         self.pb.clear();
-        self.pb.writer.print(format_args!("{}\n", text.into()));
+        self.pb.writer.print(format_args!("\r{}\n", text.into()));
 
         if self.pb.leave {
             self.refresh();

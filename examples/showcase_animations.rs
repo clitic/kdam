@@ -39,11 +39,16 @@ fn main() {
     );
     let mut pb6 = tqdm!(
         total = render_length,
-        desc = "custom  ",
-        animation = "custom[\\|/-]", 
-        // For more complex charsets use.
-        // animation = kdam::Animation::custom(&["\\", "|", "/", "-"]),
+        desc = "custom1 ",
+        animation = kdam::Animation::custom(&["\\", "|", "/", "-"]),
         position = 10,
+        force_refresh = true
+    );
+    let mut pb7 = tqdm!(
+        total = render_length,
+        desc = "custom2 ",
+        animation = kdam::Animation::custom_with_fill(&["\\", "|", "/", "-"], '.'),
+        position = 12,
         force_refresh = true
     );
 
@@ -56,8 +61,9 @@ fn main() {
         pb4.update(1);
         pb5.update(1);
         pb6.update(1);
+        pb7.update(1);
         std::thread::sleep(std::time::Duration::from_secs_f32(0.02));
     }
 
-    eprint!("{}", "\n".repeat(11));
+    eprint!("{}", "\n".repeat(13));
 }

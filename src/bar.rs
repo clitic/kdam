@@ -3,6 +3,7 @@ use std::io::Write;
 use crate::format;
 use crate::term;
 
+use crate::term::Colorizer;
 use crate::term::Writer;
 use crate::Animation;
 
@@ -173,9 +174,9 @@ impl Bar {
     /// Format pogress percentage.
     pub fn bar_fmt_percentage(&self, precision: usize) -> String {
         format!(
-            "{:#1$.2$}%",
+            "{:1$.2$}%",
             self.bar_percentage() * 100.0,
-            precision + 3,
+            if precision == 0 { 3 } else { precision + 4 },
             precision
         )
     }
@@ -222,6 +223,11 @@ impl Bar {
     /// Returns counter value
     pub fn counter(&self) -> usize {
         self.n
+    }
+
+    /// Set/Modify bar_format of the progress bar.
+    pub fn set_bar_format(&mut self, bar_format: Template) {
+        self.bar_format = Some(bar_format);
     }
 
     /// Set/Modify colour of the progress bar.
@@ -435,66 +441,108 @@ impl BarMethods for Bar {
     }
 
     fn render(&mut self) -> String {
-        self.bar_elapsed_time();
+        let elapsed_time = self.bar_elapsed_time();
 
         if self.bar_format.is_some() {
             let mut bar_format = self.bar_format.as_ref().unwrap().clone();
 
-            if bar_format.contains("desc") {
-                bar_format.replace_from_callback("desc", |placeholder| {
-                    if self.desc != "" {
-                        return self.desc.clone()
-                            + &placeholder.attr("suffix").unwrap_or(":".to_owned());
-                    }
-
+            bar_format.replace_from_callback("desc", |placeholder| {
+                if self.desc != "" {
+                    self.desc.clone() + &placeholder.attr("suffix").unwrap_or(": ".to_owned())
+                } else {
                     self.desc.clone()
-                });
+                }
+            });
+
+            bar_format.replace_with_callback("@desc", &self.desc, |fmtval, placeholder| {
+                if self.desc != "" {
+                    fmtval + &placeholder.attr("suffix").unwrap_or(": ".to_owned())
+                } else {
+                    fmtval
+                }
+            });
+
+            bar_format.replace_from_callback("percentage", |placeholder| {
+                self.bar_fmt_percentage(
+                    placeholder
+                        .attr("precision")
+                        .unwrap_or("0".to_owned())
+                        .parse::<usize>()
+                        .unwrap(),
+                )
+            });
+
+            if bar_format.contains("@percentage") {
+                bar_format.replace("@percentage", self.bar_percentage() * 100.0);
             }
 
-            if bar_format.contains("percentage") {
-                bar_format.replace_from_callback("percentage", |placeholder| {
-                    self.bar_fmt_percentage(
-                        placeholder
-                            .attr("precision")
-                            .unwrap_or("0".to_owned())
-                            .parse::<usize>()
-                            .unwrap(),
-                    )
-                });
+            bar_format.replace_from_callback("count", |_| self.bar_fmt_count());
+            bar_format.replace("@count", &self.n);
+
+            bar_format.replace_from_callback("total", |_| self.bar_fmt_total());
+            bar_format.replace("@total", &self.total);
+
+            bar_format.replace_from_callback("elapsed", |_| self.bar_fmt_elapsed_time());
+
+            if bar_format.contains("@elapsed") {
+                bar_format.replace("@elapsed", self.bar_elapsed_time());
             }
 
+            bar_format.replace_from_callback("remaining", |_| self.bar_fmt_remaining_time());
 
+            if bar_format.contains("@remaining") {
+                bar_format.replace("@remaining", self.bar_remaining_time());
+            }
 
-            if bar_format.contains("count") {
-                bar_format.replace_from_callback("count", |_| self.bar_fmt_count());
-            }
-            if bar_format.contains("total") {
-                bar_format.replace_from_callback("total", |_| self.bar_fmt_total());
-            }
-            if bar_format.contains("elapsed") {
-                bar_format.replace_from_callback("elapsed", |_| self.bar_fmt_elapsed_time());
-            }
-            if bar_format.contains("remaining") {
-                bar_format.replace_from_callback("remaining", |_| self.bar_fmt_remaining_time());
-            }
-            if bar_format.contains("rate") {
-                // prec
-                bar_format.replace_from_callback("rate", |_| self.bar_fmt_rate());
-            }
-            // @ colour
+            bar_format.replace_from_callback("rate", |_| self.bar_fmt_rate());
 
-            if bar_format.contains("animation") {
-                self.set_ncols(crate::term::string_length(bar_format.unchecked_text()) as i16 - 9);
-
-                bar_format.replace(
-                    "animation",
-                    self.animation.fmt_progress(
-                        self.bar_percentage() as f32,
-                        self.ncols.clone(),
-                        &self.colour,
-                    ),
-                );
+            if bar_format.contains("@rate") {
+                bar_format.replace("@rate", self.bar_rate());
             }
+
+            bar_format.replace("postfix", &self.postfix);
+            bar_format.replace("unit", &self.unit);
+
+            bar_format.replace_from_callback("alive-spinner", |_| {
+                let frames = vec![
+                    "▁▂▃",
+                    "▂▃▄",
+                    "▃▄▅",
+                    "▄▅▆",
+                    "▅▆▇",
+                    "▆▇█",
+                    "▇█▇",
+                    "█▇▆",
+                    "▇▆▅",
+                    "▆▅▄",
+                    "▅▄▃",
+                    "▄▃▂",
+                    "▃▂▁",
+                ];
+                let interval = 30.0;
+                let speed = 1.0;
+
+                let frame_no = (elapsed_time * speed) / (interval / 1000.0);
+                let frame = frames.get(frame_no as usize % frames.len()).unwrap();
+
+                frame.to_string()
+            });
+
+            let length = crate::term::string_display_length(bar_format.unchecked_text()) as i16;
+            // self.set_ncols(length - placeholder.replacer.chars().count() as i16);
+            self.set_ncols(length - 11);
+
+            bar_format.replace_from_callback("animation", |_| {
+                let fmtval = self
+                    .animation
+                    .progress(self.bar_percentage() as f32, self.ncols.clone());
+
+                if self.colour != "default" {
+                    return fmtval.colorize(&self.colour);
+                }
+
+                fmtval
+            });
 
             bar_format.text().unwrap()
         } else {
@@ -551,8 +599,7 @@ impl BarMethods for Bar {
                 self.postfix,
             );
 
-            let lbar_rbar_len = (lbar.chars().count()
-                + rbar.chars().count()
+            let lbar_rbar_len = (crate::term::string_display_length(format!("{}{}", lbar, rbar))
                 + self.animation.spaces() as usize) as i16;
             self.set_ncols(lbar_rbar_len);
 
@@ -594,7 +641,7 @@ impl BarMethods for Bar {
 
     fn write<T: Into<String>>(&mut self, text: T) {
         self.clear();
-        self.writer.print(format_args!("{}\n", text.into()));
+        self.writer.print(format_args!("\r{}\n", text.into()));
 
         if self.leave {
             self.refresh();
@@ -732,6 +779,10 @@ impl BarBuilder {
     ///   remaining, remaining_s, eta.
     /// Note that a trailing ": " is automatically removed after {desc}
     /// if the latter is empty.
+    ///
+    /// ```text
+    /// {desc} {percentage} {animation} {count}/{total} [{elapsed}<{remaining}, {rate}{postfix}]
+    /// ```
     /// (default: `None`)
     pub fn bar_format(mut self, bar_format: Template) -> Self {
         self.pb.bar_format = Some(bar_format);

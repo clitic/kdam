@@ -6,6 +6,7 @@ pub enum Animation {
     Arrow,
     Classic,
     Custom(Vec<String>),
+    CustomWithFill(Vec<String>, char),
     FillUp,
     FiraCode,
     Tqdm,
@@ -20,31 +21,19 @@ impl From<&str> for Animation {
             "fillup" => Self::FillUp,
             "firacode" => Self::FiraCode,
             "ascii" => Self::TqdmAscii,
-            x => {
-                if x.starts_with("custom[") || x.ends_with("]") {
-                    Self::Custom(
-                        x.trim_start_matches("custom[")
-                            .trim_end_matches("]")
-                            .chars()
-                            .map(|i| i.to_string())
-                            .collect::<Vec<String>>(),
-                    )
-                } else {
-                    Self::Tqdm
-                }
-            }
+            _ => Self::Tqdm,
         }
     }
 }
 
 impl Animation {
     /// Construct [Animation::Custom](crate::Animation) enum variant.
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// ```rust
     /// use kdam::Animation;
-    /// 
+    ///
     /// let anim = Animation::custom(&["\\", "|", "/", "-"]);
     /// ```
     pub fn custom(charset: &[&str]) -> Self {
@@ -53,6 +42,25 @@ impl Animation {
                 .iter()
                 .map(|x| x.to_string())
                 .collect::<Vec<String>>(),
+        )
+    }
+
+    /// Construct [Animation::CustomWithFill](crate::Animation) enum variant.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use kdam::Animation;
+    ///
+    /// let anim = Animation::custom_with_fill(&["\\", "|", "/", "-"], '.');
+    /// ```
+    pub fn custom_with_fill(charset: &[&str], fill: char) -> Self {
+        Self::CustomWithFill(
+            charset
+                .iter()
+                .map(|x| x.to_string())
+                .collect::<Vec<String>>(),
+            fill,
         )
     }
 
@@ -105,6 +113,8 @@ impl Animation {
             }
 
             _ => {
+                let mut fill = None;
+
                 let charset = match self {
                     Self::TqdmAscii => vec!["1", "2", "3", "4", "5", "6", "7", "8", "9", "#"],
                     Self::FillUp => vec![
@@ -112,6 +122,10 @@ impl Animation {
                         "\u{2587}", "\u{2588}",
                     ],
                     Self::Custom(custom_charset) => {
+                        custom_charset.iter().map(|x| x.as_str()).collect::<_>()
+                    }
+                    Self::CustomWithFill(custom_charset, filling) => {
+                        fill = Some(filling.to_owned());
                         custom_charset.iter().map(|x| x.as_str()).collect::<_>()
                     }
                     _ => vec![
@@ -127,7 +141,14 @@ impl Animation {
 
                 if bar_length < ncols as usize {
                     bar_animation += charset[frac_bar_length + 1];
-                    bar_animation += &" ".repeat((ncols - (bar_length as i16) - 1) as usize);
+
+                    if let Some(filling) = fill {
+                        bar_animation += &filling
+                            .to_string()
+                            .repeat((ncols - (bar_length as i16) - 1) as usize);
+                    } else {
+                        bar_animation += &" ".repeat((ncols - (bar_length as i16) - 1) as usize);
+                    }
                 }
 
                 bar_animation
@@ -139,7 +160,11 @@ impl Animation {
     pub fn fmt_progress(&self, progress: f32, ncols: i16, colour: &str) -> String {
         let (bar_open, bar_close) = match self {
             Self::Arrow | Self::Classic => ("[", "]"),
-            Self::Custom(_) | Self::FillUp | Self::Tqdm | Self::TqdmAscii => ("|", "|"),
+            Self::Custom(_)
+            | Self::CustomWithFill(_, _)
+            | Self::FillUp
+            | Self::Tqdm
+            | Self::TqdmAscii => ("|", "|"),
             Self::FiraCode => (" ", ""),
         };
 

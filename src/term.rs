@@ -3,6 +3,8 @@
 use std::io::Write;
 use std::sync::atomic::{AtomicBool, Ordering};
 
+use unicode_segmentation::UnicodeSegmentation;
+
 static COLOURS_ENABLED: AtomicBool = AtomicBool::new(false);
 
 /// Stderr and Stdout writer for [Bar](crate::Bar).
@@ -121,13 +123,18 @@ pub fn get_columns_or(width: u16) -> u16 {
          .0
 }
 
-/// Get length of string.
-pub fn string_length(mut text: String) -> usize {
+/// Get display length of string.
+pub fn string_display_length(mut text: String) -> usize {
+    text = text.replace("\x1b[0m", "");
+
     while let Some(start) = text.find("\x1b[") {
-        text = text.replace(&text[start..(start + text[start..].find("m").unwrap() + 1)], "");
+        text = text.replace(
+            &text[start..(start + text[start..].find("m").unwrap() + 1)],
+            "",
+        );
     }
 
-    text.chars().count()
+    text.graphemes(true).count()
 }
 
 /// Create colour escape code from primary colours or hex colour code.
@@ -142,14 +149,13 @@ pub fn string_length(mut text: String) -> usize {
 /// ```
 pub fn colour(colour_code: &str) -> String {
     if !COLOURS_ENABLED.load(Ordering::Acquire) {
-        if cfg!(target_os = "windows") {
-            std::process::Command::new("cmd")
-                .args(["/c", "color"])
-                .spawn()
-                .unwrap()
-                .wait()
-                .unwrap();
-        }
+        #[cfg(target_os = "windows")]
+        std::process::Command::new("cmd")
+            .args(["/c", "color"])
+            .spawn()
+            .unwrap()
+            .wait()
+            .unwrap();
 
         COLOURS_ENABLED.store(true, Ordering::SeqCst);
     }
