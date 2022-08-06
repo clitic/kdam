@@ -8,6 +8,9 @@ Features:
 - New `kdam::RowManager` for managing many progress bars. [ISSUE #3](https://github.com/clitic/kdam/issues/3)
 - New `kdam::Bar.bar_format` field.
 - New `kdam::Animation::CustomWithFill` variant.
+- Now supports spinners.
+    - `kdam::Spinner`
+    - `tqdm!(spinner=..)`
 
 Changes:
 

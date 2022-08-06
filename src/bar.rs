@@ -5,7 +5,7 @@ use crate::term;
 
 use crate::term::Colorizer;
 use crate::term::Writer;
-use crate::Animation;
+use crate::{Animation, Spinner};
 
 use formatx::Template;
 
@@ -51,6 +51,7 @@ pub struct Bar {
     colour: String,
     delay: f32,
     animation: Animation,
+    spinner: Option<Spinner>,
     pub(crate) writer: Writer,
     pub(crate) force_refresh: bool,
     wrap: bool,
@@ -86,6 +87,7 @@ impl Default for Bar {
             colour: "default".to_owned(),
             delay: 0.0,
             animation: Animation::Tqdm,
+            spinner: None,
             writer: Writer::Stderr,
             force_refresh: false,
             wrap: false,
@@ -144,10 +146,10 @@ impl Bar {
 
     /// Returns remaining time / ETA of progress completion.
     pub fn bar_remaining_time(&self) -> f32 {
-        if self.total != 0 {
-            (self.total - self.n) as f32 / self.bar_rate()
-        } else {
+        if self.total == 0 {
             f32::INFINITY
+        } else {
+            (self.total - self.n) as f32 / self.bar_rate()
         }
     }
 
@@ -198,7 +200,7 @@ impl Bar {
 
     /// Format remaining time / ETA of progress completion.
     pub fn bar_fmt_remaining_time(&self) -> String {
-        if self.n == 0 {
+        if self.total == 0 {
             "inf".to_owned()
         } else {
             format::format_interval(self.bar_remaining_time() as usize)
@@ -441,7 +443,7 @@ impl BarMethods for Bar {
     }
 
     fn render(&mut self) -> String {
-        let elapsed_time = self.bar_elapsed_time();
+        self.bar_elapsed_time();
 
         if self.bar_format.is_some() {
             let mut bar_format = self.bar_format.as_ref().unwrap().clone();
@@ -482,17 +484,25 @@ impl BarMethods for Bar {
             bar_format.replace_from_callback("total", |_| self.bar_fmt_total());
             bar_format.replace("@total", &self.total);
 
-            bar_format.replace_from_callback("elapsed", |_| self.bar_fmt_elapsed_time());
+            bar_format.replace_from_callback("elapsed", |placeholder| {
+                if placeholder.attr("human").unwrap_or("false".to_owned()) == "false" {
+                    self.bar_fmt_elapsed_time()
+                } else {
+                    crate::format::format_interval_human(self.elapsed_time as usize)
+                }
+            });
 
-            if bar_format.contains("@elapsed") {
-                bar_format.replace("@elapsed", self.bar_elapsed_time());
-            }
-
-            bar_format.replace_from_callback("remaining", |_| self.bar_fmt_remaining_time());
-
-            if bar_format.contains("@remaining") {
-                bar_format.replace("@remaining", self.bar_remaining_time());
-            }
+            bar_format.replace_from_callback("remaining", |placeholder| {
+                if placeholder.attr("human").unwrap_or("false".to_owned()) == "false" {
+                    self.bar_fmt_remaining_time()
+                } else {
+                    if self.total == 0 {
+                        "0s".to_owned()
+                    } else {
+                        crate::format::format_interval_human(self.bar_remaining_time() as usize)
+                    }
+                }
+            });
 
             bar_format.replace_from_callback("rate", |_| self.bar_fmt_rate());
 
@@ -503,33 +513,15 @@ impl BarMethods for Bar {
             bar_format.replace("postfix", &self.postfix);
             bar_format.replace("unit", &self.unit);
 
-            bar_format.replace_from_callback("alive-spinner", |_| {
-                let frames = vec![
-                    "▁▂▃",
-                    "▂▃▄",
-                    "▃▄▅",
-                    "▄▅▆",
-                    "▅▆▇",
-                    "▆▇█",
-                    "▇█▇",
-                    "█▇▆",
-                    "▇▆▅",
-                    "▆▅▄",
-                    "▅▄▃",
-                    "▄▃▂",
-                    "▃▂▁",
-                ];
-                let interval = 30.0;
-                let speed = 1.0;
-
-                let frame_no = (elapsed_time * speed) / (interval / 1000.0);
-                let frame = frames.get(frame_no as usize % frames.len()).unwrap();
-
-                frame.to_string()
+            bar_format.replace_from_callback("spinner", |_| {
+                if let Some(spinner) = &self.spinner {
+                    spinner.render_frame(self.elapsed_time)
+                } else {
+                    "".to_owned()
+                }
             });
 
             let length = crate::term::string_display_length(bar_format.unchecked_text()) as i16;
-            // self.set_ncols(length - placeholder.replacer.chars().count() as i16);
             self.set_ncols(length - 11);
 
             bar_format.replace_from_callback("animation", |_| {
@@ -562,8 +554,6 @@ impl BarMethods for Bar {
                     self.bar_fmt_rate(),
                     self.postfix
                 );
-
-                self.bar_length = bar.chars().count() as i16;
 
                 if !self.leave && self.position != 0 {
                     return format!(
@@ -599,14 +589,13 @@ impl BarMethods for Bar {
                 self.postfix,
             );
 
-            let lbar_rbar_len = (crate::term::string_display_length(format!("{}{}", lbar, rbar))
-                + self.animation.spaces() as usize) as i16;
-            self.set_ncols(lbar_rbar_len);
+            self.set_ncols(
+                (crate::term::string_display_length(format!("{}{}", lbar, rbar))
+                    + self.animation.spaces() as usize) as i16,
+            );
 
             if self.ncols <= 0 {
                 return lbar + &rbar;
-            } else {
-                self.bar_length = lbar_rbar_len + self.ncols;
             }
 
             lbar + &self
@@ -630,6 +619,13 @@ impl BarMethods for Bar {
 
         if self.trigger(n) {
             let text = self.render();
+            let length = crate::term::string_display_length(text.clone()) as i16;
+
+            if length != self.bar_length {
+                self.clear();
+            }
+
+            self.bar_length = length;
             self.write_at(text);
         }
     }
@@ -829,6 +825,13 @@ impl BarBuilder {
     /// (default: `kdam::Animation::Tqdm`)
     pub fn animation<T: Into<Animation>>(mut self, animation: T) -> Self {
         self.pb.animation = animation.into();
+        self
+    }
+
+    /// Defines the spinner to use with progress bar.
+    /// (default: `None`)
+    pub fn spinner(mut self, spinner: Spinner) -> Self {
+        self.pb.spinner = Some(spinner);
         self
     }
 

@@ -1,12 +1,20 @@
 use kdam::formatx::Template;
 use kdam::prelude::*;
+use kdam::Spinner;
 
+// https://github.com/rsalmei/alive-progress
 // Template::new("{desc}{percentage precision=2} |{animation}| {count}/{total} [{elapsed}<{remaining}, {rate}{postfix}]").unwrap()
 fn main() {
     let mut pb = tqdm!(
         total = 300,
-        bar_format = Template::new("{@desc suffix=' '}|{animation}| {alive-spinner} {@count}/{@total} [{@percentage:.0}%] in {@elapsed:.0}s ({@rate:.1}/s, eta: {@remaining:.0}s)").unwrap(),
-        force_refresh = true
+		ncols = 40 as i16,
+        force_refresh = true,
+        bar_format = Template::new("{desc suffix=' '}|{animation}| {spinner} {@count}/{@total} [{@percentage:.0}%] in {elapsed human=true} ({@rate:.1}/s, eta: {remaining human=true})").unwrap(),
+        spinner = Spinner::new(
+            &["▁▂▃", "▂▃▄", "▃▄▅", "▄▅▆", "▅▆▇", "▆▇█", "▇█▇", "█▇▆", "▇▆▅", "▆▅▄", "▅▄▃", "▄▃▂", "▃▂▁"],
+            30.0,
+            1.0,
+        )
     );
 
     for _ in 0..300 {
@@ -14,7 +22,8 @@ fn main() {
         pb.update(1);
     }
 
-    pb.set_bar_format(Template::new("{@desc suffix=' '}|{animation}| {@count}/{@total} [{@percentage:.0}%] in {@elapsed:.0}s ({@rate:.1}/s)").unwrap());
+    pb.set_bar_format(Template::new("{desc suffix=' '}|{animation}| {@count}/{@total} [{@percentage:.0}%] in {elapsed human=true} ({@rate:.1}/s)").unwrap());
+    pb.clear();
     pb.refresh();
 
     eprint!("\n");

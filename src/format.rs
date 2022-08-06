@@ -30,9 +30,25 @@ pub fn format_interval(seconds: usize) -> String {
     let (hours, minutes) = divmod(minutes, 60);
 
     if hours == 0 {
-        return format!("{:#02}:{:#02}", minutes, seconds);
+        return format!("{:02}:{:02}", minutes, seconds);
     } else {
-        return format!("{:#02}:{:#02}:{:#02}", hours, minutes, seconds);
+        return format!("{:02}:{:02}:{:02}", hours, minutes, seconds);
+    }
+}
+
+/// Formats a number of seconds as a clock time, \[H:\]MM:SS and SSs.
+pub fn format_interval_human(seconds: usize) -> String {
+    if seconds < 60 {
+        return seconds.to_string() + "s";
+    }
+
+    let (minutes, seconds) = divmod(seconds, 60);
+    let (hours, minutes) = divmod(minutes, 60);
+
+    if hours == 0 {
+        format!("{:02}:{:02}", minutes, seconds)
+    } else {
+        format!("{:02}:{:02}:{:02}", hours, minutes, seconds)
     }
 }
 

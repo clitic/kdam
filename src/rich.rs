@@ -262,6 +262,13 @@ impl BarMethods for RichProgress {
 
         if self.pb.trigger(n) {
             let text = self.render();
+            let length = crate::term::string_display_length(text.clone()) as i16;
+
+            if length != self.pb.bar_length {
+                self.pb.clear();
+            }
+
+            self.pb.bar_length = length;
             self.pb.write_at(text);
         }
     }
