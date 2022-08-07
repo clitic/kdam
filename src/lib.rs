@@ -27,24 +27,19 @@
 //! }
 //! ```
 
-mod bar;
-mod iterator;
-mod lock;
-mod macros;
-mod manager;
-mod rich;
+mod progress;
 mod styles;
+mod thread;
 
-pub mod format;
-pub mod monitor;
 pub mod prelude;
 pub mod term;
 
-pub use bar::{Bar, BarBuilder};
-pub use iterator::BarIterator;
-pub use manager::RowManager;
-pub use rich::{Column, RichProgress};
+pub use progress::*;
 pub use styles::{Animation, Spinner};
+pub use thread::RowManager;
+
+pub use styles::format;
+pub use thread::monitor;
 
 // External Re-exports
 pub use formatx;

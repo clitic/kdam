@@ -11,6 +11,7 @@ Features:
 - Now supports spinners.
     - `kdam::Spinner`
     - `tqdm!(spinner=..)`
+- Better terminal colorization and `rgb(255,255,255)` sytax support.
 
 Changes:
 

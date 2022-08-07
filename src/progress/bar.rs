@@ -1,11 +1,12 @@
 use std::io::Write;
 
 use crate::format;
-use crate::term;
 
+use crate::thread::lock;
+use crate::progress::BarMethods;
+use crate::styles::{Animation, Spinner};
 use crate::term::Colorizer;
 use crate::term::Writer;
-use crate::{Animation, Spinner};
 
 use formatx::Template;
 
@@ -331,7 +332,7 @@ impl Bar {
             if let Some(ncols) = self.user_ncols {
                 self.ncols = ncols;
             } else {
-                let columns = term::get_columns_or(0);
+                let columns = crate::term::get_columns_or(0);
 
                 if columns != 0 {
                     let new_ncols = columns as i16 - lbar_rbar_len;
@@ -357,12 +358,12 @@ impl Bar {
             }
         }
 
-        crate::lock::acquire();
-
         if self.file.is_some() {
+            lock::acquire();
             let mut file = self.file.as_ref().unwrap();
             file.write_fmt(format_args!("{}\n", text.as_str())).unwrap();
             file.flush().unwrap();
+            lock::release();
         } else {
             if self.position == 0 {
                 self.writer.print(format_args!("\r{}", text));
@@ -375,37 +376,7 @@ impl Bar {
                 ));
             }
         }
-
-        crate::lock::release();
     }
-}
-
-pub trait BarMethods {
-    /// Clear current bar display.
-    fn clear(&mut self);
-
-    /// Take input via bar (without overlap with bars).
-    fn input<T: Into<String>>(&mut self, text: T) -> Result<String, std::io::Error>;
-
-    /// Force refresh the display of this bar.
-    fn refresh(&mut self);
-
-    /// Render progress bar.
-    fn render(&mut self) -> String;
-
-    /// Resets to intial iterations for repeated use.
-    /// Consider combining with `leave=true`.
-    fn reset(&mut self, total: Option<usize>);
-
-    /// Manually update the progress bar, useful for streams such as reading files.
-    fn update(&mut self, n: usize);
-
-    /// Set counter position instead of incrementing progress bar through `self.update`.
-    /// Alternative way to update bar.
-    fn update_to(&mut self, update_to_n: usize);
-
-    /// Print a message via bar (without overlap with bars).
-    fn write<T: Into<String>>(&mut self, text: T);
 }
 
 impl BarMethods for Bar {
@@ -413,7 +384,7 @@ impl BarMethods for Bar {
         if self.file.is_none() {
             self.write_at(format!(
                 "\r{}",
-                " ".repeat(term::get_columns_or(self.bar_length as u16) as usize)
+                " ".repeat(crate::term::get_columns_or(self.bar_length as u16) as usize)
             ));
         }
     }
@@ -445,7 +416,72 @@ impl BarMethods for Bar {
     fn render(&mut self) -> String {
         self.bar_elapsed_time();
 
-        if self.bar_format.is_some() {
+        if self.bar_format.is_none() {
+            let desc = if self.desc == "" {
+                "".to_owned()
+            } else {
+                format!("{}: ", self.desc)
+            };
+
+            if self.total == 0 {
+                let bar = format!(
+                    "{}{}{} [{}, {}{}]",
+                    desc,
+                    self.bar_fmt_count(),
+                    self.unit,
+                    self.bar_fmt_elapsed_time(),
+                    self.bar_fmt_rate(),
+                    self.postfix
+                );
+
+                if !self.leave && self.position != 0 {
+                    return format!(
+                        "{}\r",
+                        " ".repeat(crate::term::get_columns_or(self.bar_length as u16) as usize)
+                    );
+                }
+
+                return bar;
+            }
+
+            let progress = self.bar_percentage() as f32;
+
+            if progress >= 1.0 {
+                self.total = self.n;
+
+                if !self.leave && self.position != 0 {
+                    return format!(
+                        "{}\r",
+                        " ".repeat(crate::term::get_columns_or(self.bar_length as u16) as usize)
+                    );
+                }
+            }
+
+            let lbar = desc + &self.bar_fmt_percentage(0);
+            let rbar = format!(
+                " {}/{} [{}<{}, {}{}]",
+                self.bar_fmt_count(),
+                self.bar_fmt_total(),
+                self.bar_fmt_elapsed_time(),
+                self.bar_fmt_remaining_time(),
+                self.bar_fmt_rate(),
+                self.postfix,
+            );
+
+            self.set_ncols(
+                (crate::term::strdisplen(format!("{}{}", lbar, rbar))
+                    + self.animation.spaces() as usize) as i16,
+            );
+
+            if self.ncols <= 0 {
+                return lbar + &rbar;
+            }
+
+            lbar + &self
+                .animation
+                .fmt_progress(progress, self.ncols.clone(), &self.colour)
+                + &rbar
+        } else {
             let mut bar_format = self.bar_format.as_ref().unwrap().clone();
 
             bar_format.replace_from_callback("desc", |placeholder| {
@@ -521,7 +557,7 @@ impl BarMethods for Bar {
                 }
             });
 
-            let length = crate::term::string_display_length(bar_format.unchecked_text()) as i16;
+            let length = crate::term::strdisplen(bar_format.unchecked_text()) as i16;
             self.set_ncols(length - 11);
 
             bar_format.replace_from_callback("animation", |_| {
@@ -537,71 +573,6 @@ impl BarMethods for Bar {
             });
 
             bar_format.text().unwrap()
-        } else {
-            let desc = if self.desc == "" {
-                "".to_owned()
-            } else {
-                format!("{}: ", self.desc)
-            };
-
-            if self.total == 0 {
-                let bar = format!(
-                    "{}{}{} [{}, {}{}]",
-                    desc,
-                    self.bar_fmt_count(),
-                    self.unit,
-                    self.bar_fmt_elapsed_time(),
-                    self.bar_fmt_rate(),
-                    self.postfix
-                );
-
-                if !self.leave && self.position != 0 {
-                    return format!(
-                        "{}\r",
-                        " ".repeat(crate::term::get_columns_or(self.bar_length as u16) as usize)
-                    );
-                }
-
-                return bar;
-            }
-
-            let progress = self.bar_percentage() as f32;
-
-            if progress >= 1.0 {
-                self.total = self.n;
-
-                if !self.leave && self.position != 0 {
-                    return format!(
-                        "{}\r",
-                        " ".repeat(crate::term::get_columns_or(self.bar_length as u16) as usize)
-                    );
-                }
-            }
-
-            let lbar = desc + &self.bar_fmt_percentage(0);
-            let rbar = format!(
-                " {}/{} [{}<{}, {}{}]",
-                self.bar_fmt_count(),
-                self.bar_fmt_total(),
-                self.bar_fmt_elapsed_time(),
-                self.bar_fmt_remaining_time(),
-                self.bar_fmt_rate(),
-                self.postfix,
-            );
-
-            self.set_ncols(
-                (crate::term::string_display_length(format!("{}{}", lbar, rbar))
-                    + self.animation.spaces() as usize) as i16,
-            );
-
-            if self.ncols <= 0 {
-                return lbar + &rbar;
-            }
-
-            lbar + &self
-                .animation
-                .fmt_progress(progress, self.ncols.clone(), &self.colour)
-                + &rbar
         }
     }
 
@@ -619,7 +590,7 @@ impl BarMethods for Bar {
 
         if self.trigger(n) {
             let text = self.render();
-            let length = crate::term::string_display_length(text.clone()) as i16;
+            let length = crate::term::strdisplen(text.clone()) as i16;
 
             if length != self.bar_length {
                 self.clear();

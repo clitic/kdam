@@ -240,10 +240,10 @@ impl BarMethods for RichProgress {
             let pb;
 
             if self.pb.total == 0 || self.pb.counter() == 0 {
-                pb = crate::styles::rich_pulse(self.pb.ncols.clone(), self.pb.elapsed_time);
+                pb = crate::styles::rich::pulse(self.pb.ncols.clone(), self.pb.elapsed_time);
             } else {
                 pb =
-                    crate::styles::rich_bar(self.pb.bar_percentage() as f32, self.pb.ncols.clone());
+                    crate::styles::rich::bar(self.pb.bar_percentage() as f32, self.pb.ncols.clone());
             }
 
             let _ = std::mem::replace(&mut bar_text[progress_bar_index.unwrap()], pb);
@@ -262,7 +262,7 @@ impl BarMethods for RichProgress {
 
         if self.pb.trigger(n) {
             let text = self.render();
-            let length = crate::term::string_display_length(text.clone()) as i16;
+            let length = crate::term::strdisplen(text.clone()) as i16;
 
             if length != self.pb.bar_length {
                 self.pb.clear();
