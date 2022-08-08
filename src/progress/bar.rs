@@ -1,14 +1,10 @@
-use std::io::Write;
-
 use crate::format;
-
-use crate::thread::lock;
 use crate::progress::BarMethods;
 use crate::styles::{Animation, Spinner};
-use crate::term::Colorizer;
-use crate::term::Writer;
-
+use crate::term::{Colorizer, Writer};
+use crate::thread::lock;
 use formatx::Template;
+use std::io::Write;
 
 /// Core implemention of console progress bar.
 ///
@@ -469,8 +465,7 @@ impl BarMethods for Bar {
             );
 
             self.set_ncols(
-                (crate::term::strdisplen(format!("{}{}", lbar, rbar))
-                    + self.animation.spaces() as usize) as i16,
+                (format!("{}{}", lbar, rbar).len_ansi() + self.animation.spaces() as usize) as i16,
             );
 
             if self.ncols <= 0 {
@@ -557,13 +552,31 @@ impl BarMethods for Bar {
                 }
             });
 
-            let length = crate::term::strdisplen(bar_format.unchecked_text()) as i16;
+            let length = bar_format.unchecked_text().len_ansi() as i16;
             self.set_ncols(length - 11);
 
             bar_format.replace_from_callback("animation", |_| {
                 let fmtval = self
                     .animation
                     .progress(self.bar_percentage() as f32, self.ncols.clone());
+
+                if self.colour.to_uppercase().starts_with("GRADIENT(") {
+                    if !cfg!(feature = "gradient") {
+                        panic!("Enable cargo feature `gradient` to use gradient colours.");
+                    }
+
+                    #[cfg(feature = "gradient")]
+                    return fmtval.gradient(
+                        &self
+                            .colour
+                            .to_uppercase()
+                            .trim_start_matches("GRADIENT(")
+                            .trim_end_matches(')')
+                            .split(",")
+                            .collect::<Vec<&str>>(),
+                        self.ncols as usize,
+                    );
+                }
 
                 if self.colour != "default" {
                     return fmtval.colorize(&self.colour);
@@ -590,7 +603,7 @@ impl BarMethods for Bar {
 
         if self.trigger(n) {
             let text = self.render();
-            let length = crate::term::strdisplen(text.clone()) as i16;
+            let length = text.len_ansi() as i16;
 
             if length != self.bar_length {
                 self.clear();
@@ -830,4 +843,36 @@ impl BarBuilder {
     pub fn build(self) -> Bar {
         self.pb
     }
+}
+
+/// [tqdm](https://github.com/tqdm/tqdm) like macro for constructing [BarIterator](crate::BarIterator) if iterable is given else [Bar](crate::Bar).
+///
+/// This macro use [BarBuilder](crate::BarBuilder) for creating [Bar](crate::Bar).
+/// See all available [methods](https://docs.rs/kdam/latest/kdam/struct.BarBuilder.html).
+///
+/// # Examples
+///
+/// ```rust
+/// use kdam::prelude::*;
+///
+/// tqdm!();
+/// tqdm!(total = 100);
+/// tqdm!(total = 100, mininterval = 0.0, colour = "green");
+/// tqdm!(0..100);
+/// tqdm!(0..100, desc = "0 to 99");
+/// tqdm!(["a", "b", "c", "d"].iter());
+/// ```
+#[macro_export]
+macro_rules! tqdm {
+    ($($setter_method: ident = $value: expr),*) => {
+        $crate::BarBuilder::default()$(.$setter_method($value))*.build()
+    };
+
+    ($iterable: expr) => {
+        $crate::BarIterator::new_with_bar($iterable, kdam::Bar::default())
+    };
+
+    ($iterable: expr, $($setter_method: ident = $value: expr),*) => {
+        $crate::BarIterator::new_with_bar($iterable, kdam::BarBuilder::default()$(.$setter_method($value))*.build())
+    };
 }

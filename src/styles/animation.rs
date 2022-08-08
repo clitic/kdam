@@ -135,8 +135,10 @@ impl Animation {
                 };
 
                 let nsyms = charset.len() - 1;
-                let (bar_length, frac_bar_length) =
-                    crate::styles::format::divmod((progress * ncols as f32 * nsyms as f32) as usize, nsyms);
+                let (bar_length, frac_bar_length) = crate::styles::format::divmod(
+                    (progress * ncols as f32 * nsyms as f32) as usize,
+                    nsyms,
+                );
                 let mut bar_animation = charset.last().unwrap().repeat(bar_length);
 
                 if bar_length < ncols as usize {
@@ -167,6 +169,28 @@ impl Animation {
             | Self::TqdmAscii => ("|", "|"),
             Self::FiraCode => (" ", ""),
         };
+
+        if colour.to_uppercase().starts_with("GRADIENT(") {
+            if !cfg!(feature = "gradient") {
+                panic!("Enable cargo feature `gradient` to use gradient colours.");
+            }
+
+            #[cfg(feature = "gradient")]
+            return format!(
+                "{}{}{}",
+                bar_open,
+                self.progress(progress, ncols).gradient(
+                    &colour
+                        .to_uppercase()
+                        .trim_start_matches("GRADIENT(")
+                        .trim_end_matches(')')
+                        .split(",")
+                        .collect::<Vec<&str>>(),
+                    ncols as usize,
+                ),
+                bar_close
+            );
+        }
 
         if colour == "default" {
             format!(

@@ -78,5 +78,5 @@ fn main() {
         thread.join().unwrap();
     }
 
-    println!("completed!");
+    println!("\rcompleted!");
 }

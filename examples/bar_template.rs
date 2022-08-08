@@ -9,7 +9,7 @@ fn main() {
         total = 300,
 		ncols = 40 as i16,
         force_refresh = true,
-        bar_format = Template::new("{desc suffix=' '}|{animation}| {spinner} {@count}/{@total} [{@percentage:.0}%] in {elapsed human=true} ({@rate:.1}/s, eta: {remaining human=true})").unwrap(),
+        bar_format = "{desc suffix=' '}|{animation}| {spinner} {@count}/{@total} [{@percentage:.0}%] in {elapsed human=true} ({@rate:.1}/s, eta: {remaining human=true})".parse::<Template>().unwrap(),
         spinner = Spinner::new(
             &["▁▂▃", "▂▃▄", "▃▄▅", "▄▅▆", "▅▆▇", "▆▇█", "▇█▇", "█▇▆", "▇▆▅", "▆▅▄", "▅▄▃", "▄▃▂", "▃▂▁"],
             30.0,
@@ -22,7 +22,7 @@ fn main() {
         pb.update(1);
     }
 
-    pb.set_bar_format(Template::new("{desc suffix=' '}|{animation}| {@count}/{@total} [{@percentage:.0}%] in {elapsed human=true} ({@rate:.1}/s)").unwrap());
+    pb.set_bar_format("{desc suffix=' '}|{animation}| {@count}/{@total} [{@percentage:.0}%] in {elapsed human=true} ({@rate:.1}/s)".parse::<Template>().unwrap());
     pb.clear();
     pb.refresh();
 

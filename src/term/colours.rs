@@ -1,3 +1,5 @@
+use unicode_segmentation::UnicodeSegmentation;
+
 #[cfg(target_os = "windows")]
 static COLOURS_ENABLED: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 
@@ -201,6 +203,37 @@ pub trait Colorizer {
     /// );
     /// ```
     fn colorize<'a>(&'a self, code: &str) -> String;
+
+    /// Apply linear gradient ansi escape codes from html colours to the given text with specific length.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use kdam::pelude::*;
+    ///
+    /// println!("{}", "text".gradient(&["#5A56E0", "#EE6FF8"], 4);
+    /// ```
+    #[cfg(feature = "gradient")]
+    fn gradient<'a>(&'a self, codes: &[&str], len: usize) -> String;
+
+    /// Apply linear gradient ansi escape codes from html colours to the given text.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use kdam::pelude::*;
+    ///
+    /// println!("{}", "text".gradient_text(&["#5A56E0", "#EE6FF8"]);
+    /// ```
+    #[cfg(feature = "gradient")]
+    fn gradient_text<'a>(&'a self, codes: &[&str]) -> String;
+
+    /// Inverse of colorize method.
+    /// This method trims all ANSI escape codes from given string.
+    fn trim_ansi<'a>(&'a self) -> String;
+
+    /// Returns terminal display length of string using graphemes.
+    fn len_ansi<'a>(&'a self) -> usize;
 }
 
 impl Colorizer for str {
@@ -212,5 +245,49 @@ impl Colorizer for str {
         } else {
             esc_code + self + "\x1b[0m"
         }
+    }
+
+    #[cfg(feature = "gradient")]
+    fn gradient(&self, codes: &[&str], len: usize) -> String {
+        let gradient = colorgrad::CustomGradient::new()
+            .html_colors(codes)
+            .build()
+            .unwrap()
+            .colors(len);
+
+        let mut gradient_text = String::new();
+        let mut gradient = gradient.iter().map(|x| x.to_hex_string());
+
+        for character in self.graphemes(true) {
+            if let Some(colour) = gradient.next() {
+                gradient_text += &character.colorize(&colour);
+            } else {
+                gradient_text += character;
+            }
+        }
+
+        gradient_text
+    }
+
+    #[cfg(feature = "gradient")]
+    fn gradient_text(&self, codes: &[&str]) -> String {
+        self.gradient(codes, self.graphemes(true).count())
+    }
+
+    fn trim_ansi(&self) -> String {
+        let mut text = self.replace("\x1b[0m", "");
+
+        while let Some(start) = text.find("\x1b[") {
+            text = text.replace(
+                &text[start..(start + text[start..].find("m").unwrap() + 1)],
+                "",
+            );
+        }
+
+        text
+    }
+
+    fn len_ansi(&self) -> usize {
+        self.trim_ansi().graphemes(true).count()
     }
 }

@@ -1,5 +1,5 @@
-use crate::prelude::*;
-use crate::Bar;
+use crate::progress::Bar;
+use crate::term::Colorizer;
 
 /// Renderable columns for [RichProgress](crate::RichProgress).
 ///
@@ -7,12 +7,12 @@ use crate::Bar;
 #[derive(Debug, Clone)]
 pub enum Column {
     /// Progress bar column.
-    /// If self.pb.n || self.pb.total == 0, then an pulsating animation
+    /// If progress.pb.n || progress.pb.total == 0, then an pulsating animation
     /// else rich style animation.
     Bar,
     /// Progress counter i.e. `sel.pb.n`.
     Count,
-    /// Formatted counter i.e. `self.pb.n / self.pb.total`
+    /// Formatted counter i.e. `progress.pb.n / progress.pb.total`
     CountTotal,
     /// Progress elapsed time
     ElapsedTime,
@@ -53,7 +53,7 @@ pub enum Column {
     /// Column::Text("[bold red]Downloading".to_owned());
     /// ```
     Text(String),
-    /// Progress total i.e. `self.pb.total`.
+    /// Progress total i.e. `progress.pb.total`.
     Total,
 }
 
@@ -117,173 +117,116 @@ impl RichProgress {
     }
 }
 
-impl BarMethods for RichProgress {
-    fn clear(&mut self) {
-        self.pb.clear();
-    }
+crate::_impl_bar_methods!(RichProgress, render);
 
-    fn input<T: Into<String>>(&mut self, text: T) -> Result<String, std::io::Error> {
-        self.clear();
-        self.pb.writer.print_str(&text.into());
+fn render(progress: &mut RichProgress) -> String {
+    let mut bar_text = vec![];
+    let mut bar_length = 0;
+    let mut progress_bar_index = None;
+    progress.pb.bar_elapsed_time();
 
-        let mut input_string = String::new();
-        std::io::stdin().read_line(&mut input_string)?;
+    for col in progress.columns.clone() {
+        match col {
+            Column::Bar => {
+                progress_bar_index = Some(bar_text.len());
+                bar_text.push("".to_owned());
+            }
 
-        if self.pb.leave {
-            self.refresh();
-        }
+            Column::Count => {
+                let fmt_progress = progress.pb.bar_fmt_count();
+                bar_length += fmt_progress.chars().count();
+                bar_text.push(fmt_progress.colorize("green"));
+            }
 
-        Ok(input_string)
-    }
+            Column::CountTotal => {
+                let fmt_progress = format!(
+                    "{}/{}",
+                    progress.pb.bar_fmt_count(),
+                    progress.pb.bar_fmt_total()
+                );
+                bar_length += fmt_progress.chars().count();
+                bar_text.push(fmt_progress.colorize("green"));
+            }
 
-    fn refresh(&mut self) {
-        if !self.pb.force_refresh {
-            self.pb.force_refresh = true;
-            self.update(0);
-            self.pb.force_refresh = false;
-        } else {
-            self.update(0);
-        }
-    }
+            Column::ElapsedTime => {
+                let elapsed_time = progress.pb.bar_fmt_elapsed_time();
+                bar_length += elapsed_time.chars().count();
+                bar_text.push(elapsed_time.colorize("cyan"));
+            }
 
-    fn render(&mut self) -> String {
-        let mut bar_text = vec![];
-        let mut bar_length = 0;
-        let mut progress_bar_index = None;
-        self.pb.bar_elapsed_time();
+            Column::Percentage(precision) => {
+                let percentage = format!("{:.1$}%", progress.pb.bar_percentage() * 100., precision);
+                bar_length += percentage.chars().count();
+                bar_text.push(percentage.colorize("magenta"));
+            }
 
-        for col in self.columns.clone() {
-            match col {
-                Column::Bar => {
-                    progress_bar_index = Some(bar_text.len());
-                    bar_text.push("".to_owned());
-                }
+            Column::Rate => {
+                let speed = progress.pb.bar_fmt_rate();
+                bar_length += speed.chars().count();
+                bar_text.push(speed.colorize("red"));
+            }
 
-                Column::Count => {
-                    let fmt_progress = self.pb.bar_fmt_count();
-                    bar_length += fmt_progress.chars().count();
-                    bar_text.push(fmt_progress.colorize("green"));
-                }
+            Column::RemainingTime => {
+                let remaining_time = progress.pb.bar_fmt_remaining_time();
+                bar_length += remaining_time.chars().count();
+                bar_text.push(remaining_time.colorize("cyan"));
+            }
 
-                Column::CountTotal => {
-                    let fmt_progress =
-                        format!("{}/{}", self.pb.bar_fmt_count(), self.pb.bar_fmt_total());
-                    bar_length += fmt_progress.chars().count();
-                    bar_text.push(fmt_progress.colorize("green"));
-                }
+            Column::Spinner(frames, interval, speed) => {
+                let frame_no = (progress.pb.bar_elapsed_time() * speed) / (interval / 1000.0);
+                let frame = frames.get(frame_no as usize % frames.len()).unwrap();
+                bar_length += frame.chars().count();
+                bar_text.push(frame.colorize("green"));
+            }
 
-                Column::ElapsedTime => {
-                    let elapsed_time = self.pb.bar_fmt_elapsed_time();
-                    bar_length += elapsed_time.chars().count();
-                    bar_text.push(elapsed_time.colorize("cyan"));
-                }
-
-                Column::Percentage(precision) => {
-                    let percentage = format!("{:.1$}%", self.pb.bar_percentage() * 100., precision);
-                    bar_length += percentage.chars().count();
-                    bar_text.push(percentage.colorize("magenta"));
-                }
-
-                Column::Rate => {
-                    let speed = self.pb.bar_fmt_rate();
-                    bar_length += speed.chars().count();
-                    bar_text.push(speed.colorize("red"));
-                }
-
-                Column::RemainingTime => {
-                    let remaining_time = self.pb.bar_fmt_remaining_time();
-                    bar_length += remaining_time.chars().count();
-                    bar_text.push(remaining_time.colorize("cyan"));
-                }
-
-                Column::Spinner(frames, interval, speed) => {
-                    let frame_no = (self.pb.bar_elapsed_time() * speed) / (interval / 1000.0);
-                    let frame = frames.get(frame_no as usize % frames.len()).unwrap();
-                    bar_length += frame.chars().count();
-                    bar_text.push(frame.colorize("green"));
-                }
-
-                Column::Text(text) => {
-                    let color = match (text.find("["), text.find("]")) {
-                        (Some(start), Some(end)) => {
-                            if start == 0 {
-                                Some(&text[(start + 1)..(end)])
-                            } else {
-                                None
-                            }
+            Column::Text(text) => {
+                let color = match (text.find("["), text.find("]")) {
+                    (Some(start), Some(end)) => {
+                        if start == 0 {
+                            Some(&text[(start + 1)..(end)])
+                        } else {
+                            None
                         }
-                        _ => None,
-                    };
-
-                    if let Some(code) = color {
-                        let text = text.replace(&format!("[{}]", code), "");
-                        bar_length += text.chars().count();
-                        bar_text.push(text.colorize(code));
-                    } else {
-                        bar_length += text.chars().count();
-                        bar_text.push(text);
                     }
+                    _ => None,
+                };
+
+                if let Some(code) = color {
+                    let text = text.replace(&format!("[{}]", code), "");
+                    bar_length += text.chars().count();
+                    bar_text.push(text.colorize(code));
+                } else {
+                    bar_length += text.chars().count();
+                    bar_text.push(text);
                 }
-
-                Column::Total => {
-                    let fmt_progress = self.pb.bar_fmt_total();
-                    bar_length += fmt_progress.chars().count();
-                    bar_text.push(fmt_progress.colorize("green"));
-                }
-            }
-        }
-
-        bar_length += bar_text.len() - 1;
-
-        if progress_bar_index.is_some() {
-            self.pb.set_ncols(bar_length as i16);
-            let pb;
-
-            if self.pb.total == 0 || self.pb.counter() == 0 {
-                pb = crate::styles::rich::pulse(self.pb.ncols.clone(), self.pb.elapsed_time);
-            } else {
-                pb =
-                    crate::styles::rich::bar(self.pb.bar_percentage() as f32, self.pb.ncols.clone());
             }
 
-            let _ = std::mem::replace(&mut bar_text[progress_bar_index.unwrap()], pb);
-        }
-
-        self.pb.bar_length = bar_length as i16 + self.pb.ncols;
-        bar_text.join(" ")
-    }
-
-    fn reset(&mut self, total: Option<usize>) {
-        self.pb.reset(total);
-    }
-
-    fn update(&mut self, n: usize) {
-        self.pb.init();
-
-        if self.pb.trigger(n) {
-            let text = self.render();
-            let length = crate::term::strdisplen(text.clone()) as i16;
-
-            if length != self.pb.bar_length {
-                self.pb.clear();
+            Column::Total => {
+                let fmt_progress = progress.pb.bar_fmt_total();
+                bar_length += fmt_progress.chars().count();
+                bar_text.push(fmt_progress.colorize("green"));
             }
-
-            self.pb.bar_length = length;
-            self.pb.write_at(text);
         }
     }
 
-    fn update_to(&mut self, update_to_n: usize) {
-        self.pb.n = update_to_n;
-        self.update(0);
-    }
+    bar_length += bar_text.len() - 1;
 
-    fn write<T: Into<String>>(&mut self, text: T) {
-        self.pb.clear();
-        self.pb.writer.print(format_args!("\r{}\n", text.into()));
+    if progress_bar_index.is_some() {
+        progress.pb.set_ncols(bar_length as i16);
+        let pb;
 
-        if self.pb.leave {
-            self.refresh();
+        if progress.pb.total == 0 || progress.pb.counter() == 0 {
+            pb = crate::styles::rich::pulse(progress.pb.ncols.clone(), progress.pb.elapsed_time);
+        } else {
+            pb = crate::styles::rich::bar(
+                progress.pb.bar_percentage() as f32,
+                progress.pb.ncols.clone(),
+            );
         }
+
+        let _ = std::mem::replace(&mut bar_text[progress_bar_index.unwrap()], pb);
     }
+
+    progress.pb.bar_length = bar_length as i16 + progress.pb.ncols;
+    bar_text.join(" ")
 }

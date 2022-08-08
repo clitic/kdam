@@ -9,7 +9,7 @@ license = "MIT OR Apache-2.0"
 readme = "README.md"
 keywords = ["cli", "progress", "progressbar", "pb"]
 categories = ["command-line-interface"]
-exclude = ["images", ".gitbub"]
+exclude = ["images", ".github"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -18,7 +18,16 @@ edition = "2021"
 terminal_size = "0.2"
 unicode-segmentation = "1.9"
 formatx = "0.1.3"
+colorgrad = { version = "0.6", optional = true }
+
+[features]
+gradient = ["dep:colorgrad"]
 
 [workspace]
 
 members = ["examples/file_download"]
+
+[[example]]
+name = "bar_gradient"
+path = "examples/bar_gradient.rs"
+required-features = ["gradient"]
