@@ -24,10 +24,73 @@ colorgrad = { version = "0.6", optional = true }
 gradient = ["dep:colorgrad"]
 
 [workspace]
-
-members = ["examples/file_download"]
+members = ["examples/miscellaneous/file_download"]
 
 [[example]]
-name = "bar_gradient"
-path = "examples/bar_gradient.rs"
+name = "coloured_gradient"
+path = "examples/coloured/gradient.rs"
 required-features = ["gradient"]
+
+[[example]]
+name = "coloured_solid"
+path = "examples/coloured/solid.rs"
+
+[[example]]
+name = "msg_between"
+path = "examples/messages/between.rs"
+
+[[example]]
+name = "msg_input"
+path = "examples/messages/input.rs"
+
+[[example]]
+name = "msg_simple"
+path = "examples/messages/simple.rs"
+
+[[example]]
+name = "msg_write"
+path = "examples/messages/write.rs"
+
+[[example]]
+name = "misc_file_copy"
+path = "examples/miscellaneous/file_copy.rs"
+
+[[example]]
+name = "misc_max_fps"
+path = "examples/miscellaneous/max_fps.rs"
+
+[[example]]
+name = "misc_monitor_mode"
+path = "examples/miscellaneous/monitor_mode.rs"
+
+[[example]]
+name = "misc_redirect_output"
+path = "examples/miscellaneous/redirect_output.rs"
+
+[[example]]
+name = "multi_nested"
+path = "examples/multiple/nested.rs"
+
+[[example]]
+name = "multi_row_manager_clean"
+path = "examples/multiple/row_manager_clean.rs"
+
+[[example]]
+name = "multi_row_manager_keep"
+path = "examples/multiple/row_manager_keep.rs"
+
+[[example]]
+name = "multi_thread"
+path = "examples/multiple/thread.rs"
+
+[[example]]
+name = "showcase_animations"
+path = "examples/showcase/animations.rs"
+
+[[example]]
+name = "showcase_fira_code"
+path = "examples/showcase/fira_code.rs"
+
+[[example]]
+name = "showcase_spinner"
+path = "examples/showcase/spinner.rs"
