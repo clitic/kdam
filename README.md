@@ -24,7 +24,7 @@
   </a>
 </p>
 
-kdam is port of [tqdm](https://github.com/tqdm/tqdm) library which is written in python. kdam is also 4 times faster than tqdm.
+kdam is a console progress bar library for rust. It is port of [tqdm](https://github.com/tqdm/tqdm) library which is written in python. kdam supports all features of tqdm except few. Some features of tqdm can't be ported directly so they are implemented in different way like `RowManager` which manages multiple progress bars but in tqdm progress bars are automatically managed using `nrows`. In addition to tqdm existing features kdam also provides extra features such as spinners, charset with fill, gradient colours etc. Since kdam is written in rust its upto 4 times faster than tqdm.
 
 Instantly make your loops show a smart progress meter. Just wrap any iterator with tqdm!(iterator) macro and you're done!
 
@@ -40,6 +40,16 @@ fn main() {
 100%|█████████████████████████████| 100/100 [00:00<00:00, 25854.49it/s]
 ```
 
+kdam also supports different animation styles. All available animations styles are:
+
+[examples/showcase_animations.rs](https://github.com/clitic/kdam/blob/main/examples/showcase/animations.rs)
+![showcase_animations](https://raw.githubusercontent.com/clitic/kdam/main/images/animations.gif)
+
+kdam also support [rich.progress](https://rich.readthedocs.io/en/latest/progress.html) style bars with customizable columns.
+
+[examples/bar_rich.rs](https://github.com/clitic/kdam/blob/main/examples/rich.rs)
+![showcase_rich_progress_animation](https://raw.githubusercontent.com/clitic/kdam/main/images/rich_progress.gif)
+
 kdam also provides a text colorization trait for printing colored text in terminal. It can be used as an alternative for existing [colored](https://github.com/mackwic/colored) library.
 
 ```rust
@@ -48,21 +58,6 @@ use kdam::prelude::*;
 println!("{}", "hello world!".colorize("bold red"));
 println!("{}", "hello world!".colorize("bright white on blue"));
 ```
-
-kdam also supports different animation styles. All available animations styles are:
-
-[examples/showcase_animations.rs](https://github.com/clitic/kdam/blob/main/examples/showcase_animations.rs)
-![showcase_animations](https://raw.githubusercontent.com/clitic/kdam/main/images/animations.gif)
-
-kdam also support [rich.progress](https://rich.readthedocs.io/en/latest/progress.html) style bars with customizable columns.
-
-[examples/bar_rich.rs](https://github.com/clitic/kdam/blob/main/examples/bar_rich.rs)
-![showcase_rich_progress_animation](https://raw.githubusercontent.com/clitic/kdam/main/images/rich_progress.gif)
-
-[Fira Code](https://github.com/tonsky/FiraCode) is the first programming font to offer dedicated glyphs to render progress bars. kdam has an animation style to support it.
-
-[examples/misc_fira_code.rs](https://github.com/clitic/kdam/blob/main/examples/misc_fira_code.rs)
-![showcase_fira_code_animation](https://raw.githubusercontent.com/clitic/kdam/main/images/fira_code.gif)
 
 ## Getting Started
 
