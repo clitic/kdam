@@ -88,10 +88,6 @@ name = "showcase_animations"
 path = "examples/showcase/animations.rs"
 
 [[example]]
-name = "showcase_cargo"
-path = "examples/showcase/cargo.rs"
-
-[[example]]
 name = "showcase_fira_code"
 path = "examples/showcase/fira_code.rs"
 
