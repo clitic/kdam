@@ -52,7 +52,7 @@ impl Animation {
     /// ```rust
     /// use kdam::Animation;
     ///
-    /// let anim = Animation::custom_with_fill(&["\\", "|", "/", "-"], '.');
+    /// let anim = Animation::custom_with_fill(&["\\", "|", "/", "-"], ".");
     /// ```
     pub fn custom_with_fill(charset: &[&str], fill: &str) -> Self {
         Self::CustomWithFill(
