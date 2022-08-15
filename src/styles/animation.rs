@@ -6,7 +6,7 @@ pub enum Animation {
     Arrow,
     Classic,
     Custom(Vec<String>),
-    CustomWithFill(Vec<String>, char),
+    CustomWithFill(Vec<String>, String),
     FillUp,
     FiraCode,
     Tqdm,
@@ -54,13 +54,13 @@ impl Animation {
     ///
     /// let anim = Animation::custom_with_fill(&["\\", "|", "/", "-"], '.');
     /// ```
-    pub fn custom_with_fill(charset: &[&str], fill: char) -> Self {
+    pub fn custom_with_fill(charset: &[&str], fill: &str) -> Self {
         Self::CustomWithFill(
             charset
                 .iter()
                 .map(|x| x.to_string())
                 .collect::<Vec<String>>(),
-            fill,
+            fill.to_owned(),
         )
     }
 

@@ -42,12 +42,12 @@ fn main() {
 
 kdam also supports different animation styles. All available animations styles are:
 
-[examples/showcase_animations.rs](https://github.com/clitic/kdam/blob/main/examples/showcase/animations.rs)
+[examples/showcase/animations.rs](https://github.com/clitic/kdam/blob/main/examples/showcase/animations.rs)
 ![showcase_animations](https://raw.githubusercontent.com/clitic/kdam/main/images/animations.gif)
 
 kdam also support [rich.progress](https://rich.readthedocs.io/en/latest/progress.html) style bars with customizable columns.
 
-[examples/bar_rich.rs](https://github.com/clitic/kdam/blob/main/examples/rich.rs)
+[examples/rich.rs](https://github.com/clitic/kdam/blob/main/examples/rich.rs)
 ![showcase_rich_progress_animation](https://raw.githubusercontent.com/clitic/kdam/main/images/rich_progress.gif)
 
 kdam also provides a text colorization trait for printing colored text in terminal. It can be used as an alternative for existing [colored](https://github.com/mackwic/colored) library.

@@ -47,7 +47,7 @@ fn main() {
     let mut pb7 = tqdm!(
         total = render_length,
         desc = "custom2 ",
-        animation = kdam::Animation::custom_with_fill(&["\\", "|", "/", "-"], '.'),
+        animation = kdam::Animation::custom_with_fill(&["\\", "|", "/", "-"], "."),
         position = 12,
         force_refresh = true
     );
