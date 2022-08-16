@@ -16,6 +16,7 @@ Features:
 Changes:
 
 -  `eprint_at!` replaced with `Writer::Stderr.print_at`.
+- `kdam::BarMethods` renamed to `kdam::BarExt`.
 
 Bug Fixes:
 

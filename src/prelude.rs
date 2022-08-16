@@ -5,7 +5,7 @@
 //! ```
 
 // Traits
-pub use crate::progress::{BarMethods, TqdmIterator};
+pub use crate::progress::{BarExt, TqdmIterator};
 pub use crate::term::Colorizer;
 
 // Macros

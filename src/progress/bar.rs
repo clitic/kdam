@@ -1,5 +1,5 @@
 use crate::format;
-use crate::progress::BarMethods;
+use crate::progress::BarExt;
 use crate::styles::{Animation, Spinner};
 use crate::term::{Colorizer, Writer};
 use crate::thread::lock;
@@ -375,7 +375,7 @@ impl Bar {
     }
 }
 
-impl BarMethods for Bar {
+impl BarExt for Bar {
     fn clear(&mut self) {
         if self.file.is_none() {
             self.write_at(format!(

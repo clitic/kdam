@@ -1,4 +1,4 @@
-use crate::{prelude::BarMethods, Bar};
+use crate::{prelude::BarExt, Bar};
 use std::collections::HashSet;
 
 /// RowManager allows to store and update many progress bars.
