@@ -63,10 +63,10 @@ impl<S, T: Iterator<Item = S>> Iterator for BarIterator<T> {
     type Item = S;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.pb.started() {
-            self.pb.update(1);
-        } else {
+        if self.pb.counter() == 0 {
             self.pb.refresh();
+        } else {
+            self.pb.update(1);
         }
 
         self.iterable.next()
@@ -75,10 +75,10 @@ impl<S, T: Iterator<Item = S>> Iterator for BarIterator<T> {
 
 impl<T: DoubleEndedIterator> DoubleEndedIterator for BarIterator<T> {
     fn next_back(&mut self) -> Option<Self::Item> {
-        if self.pb.started() {
-            self.pb.update(1);
-        } else {
+        if self.pb.counter() == 0 {
             self.pb.refresh();
+        } else {
+            self.pb.update(1);
         }
 
         self.iterable.next_back()

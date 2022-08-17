@@ -69,8 +69,6 @@ macro_rules! _impl_bar_methods {
             }
 
             fn update(&mut self, n: usize) {
-                self.pb.init();
-
                 if self.pb.trigger(n) {
                     let text = self.render();
                     let length = $crate::term::Colorizer::len_ansi(text.as_str()) as i16;

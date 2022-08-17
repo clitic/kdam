@@ -123,7 +123,7 @@ fn render(progress: &mut RichProgress) -> String {
     let mut bar_text = vec![];
     let mut bar_length = 0;
     let mut progress_bar_index = None;
-    progress.pb.bar_elapsed_time();
+    progress.pb.elapsed_time();
 
     for col in progress.columns.clone() {
         match col {
@@ -133,7 +133,7 @@ fn render(progress: &mut RichProgress) -> String {
             }
 
             Column::Count => {
-                let fmt_progress = progress.pb.bar_fmt_count();
+                let fmt_progress = progress.pb.fmt_counter();
                 bar_length += fmt_progress.chars().count();
                 bar_text.push(fmt_progress.colorize("green"));
             }
@@ -141,39 +141,39 @@ fn render(progress: &mut RichProgress) -> String {
             Column::CountTotal => {
                 let fmt_progress = format!(
                     "{}/{}",
-                    progress.pb.bar_fmt_count(),
-                    progress.pb.bar_fmt_total()
+                    progress.pb.fmt_counter(),
+                    progress.pb.fmt_total()
                 );
                 bar_length += fmt_progress.chars().count();
                 bar_text.push(fmt_progress.colorize("green"));
             }
 
             Column::ElapsedTime => {
-                let elapsed_time = progress.pb.bar_fmt_elapsed_time();
+                let elapsed_time = progress.pb.fmt_elapsed_time();
                 bar_length += elapsed_time.chars().count();
                 bar_text.push(elapsed_time.colorize("cyan"));
             }
 
             Column::Percentage(precision) => {
-                let percentage = format!("{:.1$}%", progress.pb.bar_percentage() * 100., precision);
+                let percentage = format!("{:.1$}%", progress.pb.percentage() * 100., precision);
                 bar_length += percentage.chars().count();
                 bar_text.push(percentage.colorize("magenta"));
             }
 
             Column::Rate => {
-                let speed = progress.pb.bar_fmt_rate();
+                let speed = progress.pb.fmt_rate();
                 bar_length += speed.chars().count();
                 bar_text.push(speed.colorize("red"));
             }
 
             Column::RemainingTime => {
-                let remaining_time = progress.pb.bar_fmt_remaining_time();
+                let remaining_time = progress.pb.fmt_remaining_time();
                 bar_length += remaining_time.chars().count();
                 bar_text.push(remaining_time.colorize("cyan"));
             }
 
             Column::Spinner(frames, interval, speed) => {
-                let frame_no = (progress.pb.bar_elapsed_time() * speed) / (interval / 1000.0);
+                let frame_no = (progress.pb.elapsed_time() * speed) / (interval / 1000.0);
                 let frame = frames.get(frame_no as usize % frames.len()).unwrap();
                 bar_length += frame.chars().count();
                 bar_text.push(frame.colorize("green"));
@@ -202,7 +202,7 @@ fn render(progress: &mut RichProgress) -> String {
             }
 
             Column::Total => {
-                let fmt_progress = progress.pb.bar_fmt_total();
+                let fmt_progress = progress.pb.fmt_total();
                 bar_length += fmt_progress.chars().count();
                 bar_text.push(fmt_progress.colorize("green"));
             }
@@ -212,14 +212,14 @@ fn render(progress: &mut RichProgress) -> String {
     bar_length += bar_text.len() - 1;
 
     if progress_bar_index.is_some() {
-        progress.pb.set_ncols(bar_length as i16);
+        progress.pb.adjust_ncols(bar_length as i16);
         let pb;
 
         if progress.pb.total == 0 || progress.pb.counter() == 0 {
             pb = crate::styles::rich::pulse(progress.pb.ncols.clone(), progress.pb.elapsed_time);
         } else {
             pb = crate::styles::rich::bar(
-                progress.pb.bar_percentage() as f32,
+                progress.pb.percentage() as f32,
                 progress.pb.ncols.clone(),
             );
         }

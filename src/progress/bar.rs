@@ -54,7 +54,6 @@ pub struct Bar {
     wrap: bool,
     // Internal
     pub(crate) n: usize,
-    started: bool,
     timer: std::time::Instant,
     pub(crate) elapsed_time: f32,
     user_ncols: Option<i16>,
@@ -89,16 +88,20 @@ impl Default for Bar {
             force_refresh: false,
             wrap: false,
             n: 0,
-            started: false,
             timer: std::time::Instant::now(),
             elapsed_time: 0.0,
             user_ncols: None,
             bar_length: 0,
         }
+        .init()
     }
 }
 
 impl Bar {
+    // -----------------------------------------------------------------------------------------
+    // CONSTRUCTORS
+    // -----------------------------------------------------------------------------------------
+
     /// Create a new instance of [Bar](crate::Bar) with a total value.
     /// You can also set `total=0` if total is unknown.
     ///
@@ -112,6 +115,7 @@ impl Bar {
             total: total,
             ..Default::default()
         }
+        .init()
     }
 
     /// Create a instance of [BarBuilder](crate::BarBuilder).
@@ -125,14 +129,68 @@ impl Bar {
         BarBuilder::default()
     }
 
-    /// Set and returns elapsed time of progress bar.
-    pub fn bar_elapsed_time(&mut self) -> f32 {
-        self.elapsed_time = self.timer.elapsed().as_secs_f32();
-        self.elapsed_time
+    fn init(mut self) -> Self {
+        if self.user_ncols.is_none() {
+            if let Ok(ncols) = std::env::var("KDAM_NCOLS") {
+                self.ncols = ncols
+                    .parse::<i16>()
+                    .expect("KDAM_NCOLS is not an valid integer (i16).");
+                self.user_ncols = Some(self.ncols);
+            }
+        }
+
+        self.n = self.initial;
+        self.timer = std::time::Instant::now();
+        self
     }
 
-    /// Returns progress percentage, like 0.62, 0.262
-    pub fn bar_percentage(&self) -> f64 {
+    // -----------------------------------------------------------------------------------------
+    // SETTERS
+    // -----------------------------------------------------------------------------------------
+
+    /// Set/Modify bar_format property.
+    pub fn set_bar_format<T: Into<String>>(&mut self, bar_format: T) -> Result<(), formatx::Error> {
+        self.bar_format = Some(bar_format.into().parse::<formatx::Template>()?);
+        Ok(())
+    }
+
+    /// Set/Modify colour property.
+    pub fn set_colour<T: Into<String>>(&mut self, colour: T) {
+        self.colour = colour.into();
+    }
+
+    /// Set/Modify description property.
+    pub fn set_description<T: Into<String>>(&mut self, desc: T) {
+        self.desc = desc.into();
+    }
+
+    /// Set/Modify disable property.
+    pub fn set_disable(&mut self, disable: bool) {
+        self.disable = disable;
+    }
+
+    /// Set/Modify leave property.
+    pub fn set_leave(&mut self, leave: bool) {
+        self.leave = leave;
+    }
+
+    /// Set/Modify position property.
+    pub fn set_position(&mut self, position: u16) {
+        self.position = position;
+    }
+
+    /// Set/Modify postfix property.
+    pub fn set_postfix<T: Into<String>>(&mut self, postfix: T) {
+        self.postfix = ", ".to_owned() + &postfix.into();
+    }
+
+    // -----------------------------------------------------------------------------------------
+    // BASIC INFORMATION
+    // -----------------------------------------------------------------------------------------
+
+    /// Returns progress percentage, like 0.62, 0.262, 1.0.
+    /// If total is 0, it returns 1.0.
+    pub fn percentage(&self) -> f64 {
         if self.total == 0 {
             1.0
         } else {
@@ -140,84 +198,38 @@ impl Bar {
         }
     }
 
-    /// Returns rate / iterations of update method calls.
-    pub fn bar_rate(&self) -> f32 {
-        self.n as f32 / self.elapsed_time
+    /// Set/Returns progress elapsed time.
+    pub fn elapsed_time(&mut self) -> f32 {
+        self.elapsed_time = self.timer.elapsed().as_secs_f32();
+        self.elapsed_time
     }
 
-    /// Returns remaining time / ETA of progress completion.
-    pub fn bar_remaining_time(&self) -> f32 {
+    /// Returns remaining time (ETA) for progress completion.
+    pub fn remaining_time(&self) -> f32 {
         if self.total == 0 {
             f32::INFINITY
         } else {
-            (self.total - self.n) as f32 / self.bar_rate()
+            (self.total - self.n) as f32 / self.rate()
         }
     }
 
-    /// Format self.n
-    pub fn bar_fmt_count(&self) -> String {
-        if self.unit_scale {
-            format::format_sizeof(self.n as f64, self.unit_divisor as f64)
-        } else {
-            format!("{}", self.n)
-        }
+    /// Returns progress rate.
+    pub fn rate(&self) -> f32 {
+        self.n as f32 / self.elapsed_time
     }
 
-    /// Format elapsed time of progress bar.
-    pub fn bar_fmt_elapsed_time(&self) -> String {
-        format::format_interval(self.elapsed_time as usize, false)
-    }
+    // -----------------------------------------------------------------------------------------
+    // EXTRA FUNCTIONALITIES
+    // -----------------------------------------------------------------------------------------
 
-    /// Format pogress percentage.
-    pub fn bar_fmt_percentage(&self, precision: usize) -> String {
-        format!(
-            "{:1$.2$}%",
-            self.bar_percentage() * 100.0,
-            if precision == 0 { 3 } else { precision + 4 },
-            precision
-        )
-    }
-
-    /// Format rate / iterations of update method calls.
-    pub fn bar_fmt_rate(&self) -> String {
-        let rate = if self.unit_scale {
-            format::format_sizeof(self.bar_rate() as f64, self.unit_divisor as f64)
-        } else {
-            format!("{:.2}", self.bar_rate())
-        };
-
-        if self.n == 0 {
-            format!("?{}/s", self.unit)
-        } else {
-            format!("{}{}/s", rate, self.unit)
-        }
-    }
-
-    /// Format remaining time / ETA of progress completion.
-    pub fn bar_fmt_remaining_time(&self) -> String {
-        if self.total == 0 {
-            "inf".to_owned()
-        } else {
-            format::format_interval(self.bar_remaining_time() as usize, false)
-        }
-    }
-
-    /// Format self.total
-    pub fn bar_fmt_total(&self) -> String {
-        if self.unit_scale {
-            format::format_sizeof(self.total as f64, self.unit_divisor as f64)
-        } else {
-            format!("{}", self.total)
-        }
-    }
-
-    /// Returns counter value
+    /// Returns counter value.
     pub fn counter(&self) -> usize {
         self.n
     }
 
-    /// Returns wheter progress is finished or not.
-    pub fn finished(&self) -> bool {
+    /// Returns wheter progress is completed or not.
+    /// If `total` is `0`, then it always returns `false`.
+    pub fn completed(&self) -> bool {
         if self.total == 0 {
             false
         } else {
@@ -225,50 +237,13 @@ impl Bar {
         }
     }
 
-    /// Set/Modify bar_format of the progress bar.
-    pub fn set_bar_format<T: Into<String>>(&mut self, bar_format: T) -> Result<(), formatx::Error> {
-        self.bar_format = Some(bar_format.into().parse::<formatx::Template>()?);
-        Ok(())
-    }
-
-    /// Set/Modify colour of the progress bar.
-    pub fn set_colour<T: Into<String>>(&mut self, colour: T) {
-        self.colour = colour.into();
-    }
-
-    /// Set/Modify description of the progress bar.
-    pub fn set_description<T: Into<String>>(&mut self, desc: T) {
-        self.desc = desc.into();
-    }
-
-    /// Set/Modify visibility of the progress bar.
-    pub fn set_disable(&mut self, disable: bool) {
-        self.disable = disable;
-    }
-
-    /// Set/Modify leave property of the progress bar.
-    pub fn set_leave(&mut self, leave: bool) {
-        self.leave = leave;
-    }
-
-    /// Set/Modify position of the progress bar.
-    pub fn set_position(&mut self, position: u16) {
-        self.position = position;
-    }
-
-    /// Set/Modify postfix (additional stats) with automatic formatting based on datatype.
-    pub fn set_postfix<T: Into<String>>(&mut self, postfix: T) {
-        self.postfix = ", ".to_owned() + &postfix.into();
-    }
-
-    /// Returns wheter bar is started or not.
-    pub fn started(&self) -> bool {
-        self.started
-    }
+    // -----------------------------------------------------------------------------------------
+    // UPDATE AND PRINTING LOGIC (FOR INTERNAL USE ONLY)
+    // -----------------------------------------------------------------------------------------
 
     /// Checks wheter to trigger a display update or not.
-    /// This method will increment `self.n`.
-    pub fn trigger(&mut self, n: usize) -> bool {
+    /// This method will increment internal counter.
+    pub(crate) fn trigger(&mut self, n: usize) -> bool {
         self.n += n;
 
         if !self.disable {
@@ -306,26 +281,8 @@ impl Bar {
         false
     }
 
-    /// Intialize some values and starts the timer.
-    pub(crate) fn init(&mut self) {
-        if !self.started {
-            if self.user_ncols.is_none() {
-                if let Ok(kdam_ncols) = std::env::var("KDAM_NCOLS") {
-                    self.ncols = kdam_ncols
-                        .parse::<i16>()
-                        .expect("KDAM_NCOLS is not an valid integer (i16).");
-                    self.user_ncols = Some(self.ncols);
-                }
-            }
-
-            self.n = self.initial;
-            self.timer = std::time::Instant::now();
-            self.started = true;
-        }
-    }
-
     /// Adjust number of columns for bar animation using length of remanining bar.
-    pub(crate) fn set_ncols(&mut self, lbar_rbar_len: i16) {
+    pub(crate) fn adjust_ncols(&mut self, lbar_rbar_len: i16) {
         if self.dynamic_ncols || (lbar_rbar_len + self.ncols != self.bar_length) {
             if let Some(ncols) = self.user_ncols {
                 self.ncols = ncols;
@@ -375,6 +332,61 @@ impl Bar {
             }
         }
     }
+
+    // -----------------------------------------------------------------------------------------
+    // FORMATTING (FOR INTERNAL USE ONLY)
+    // -----------------------------------------------------------------------------------------
+
+    pub(crate) fn fmt_percentage(&self, precision: usize) -> String {
+        format!(
+            "{:1$.2$}%",
+            self.percentage() * 100.0,
+            if precision == 0 { 3 } else { precision + 4 },
+            precision
+        )
+    }
+
+    pub(crate) fn fmt_counter(&self) -> String {
+        if self.unit_scale {
+            format::format_sizeof(self.n as f64, self.unit_divisor as f64)
+        } else {
+            format!("{}", self.n)
+        }
+    }
+
+    pub(crate) fn fmt_total(&self) -> String {
+        if self.unit_scale {
+            format::format_sizeof(self.total as f64, self.unit_divisor as f64)
+        } else {
+            format!("{}", self.total)
+        }
+    }
+
+    pub(crate) fn fmt_elapsed_time(&self) -> String {
+        format::format_interval(self.elapsed_time as usize, false)
+    }
+
+    pub(crate) fn fmt_remaining_time(&self) -> String {
+        if self.n == 0 || self.total == 0 {
+            "inf".to_owned()
+        } else {
+            format::format_interval(self.remaining_time() as usize, false)
+        }
+    }
+
+    pub(crate) fn fmt_rate(&self) -> String {
+        format!(
+            "{}{}/s",
+            if self.n == 0 {
+                "?".to_owned()
+            } else if self.unit_scale {
+                format::format_sizeof(self.rate() as f64, self.unit_divisor as f64)
+            } else {
+                format!("{:.2}", self.rate())
+            },
+            self.unit
+        )
+    }
 }
 
 impl BarExt for Bar {
@@ -412,7 +424,7 @@ impl BarExt for Bar {
     }
 
     fn render(&mut self) -> String {
-        self.bar_elapsed_time();
+        self.elapsed_time();
 
         if self.bar_format.is_none() {
             let desc = if self.desc == "" {
@@ -425,10 +437,10 @@ impl BarExt for Bar {
                 let bar = format!(
                     "{}{}{} [{}, {}{}]",
                     desc,
-                    self.bar_fmt_count(),
+                    self.fmt_counter(),
                     self.unit,
-                    self.bar_fmt_elapsed_time(),
-                    self.bar_fmt_rate(),
+                    self.fmt_elapsed_time(),
+                    self.fmt_rate(),
                     self.postfix
                 );
 
@@ -442,7 +454,7 @@ impl BarExt for Bar {
                 return bar;
             }
 
-            let progress = self.bar_percentage() as f32;
+            let progress = self.percentage() as f32;
 
             if progress >= 1.0 {
                 self.total = self.n;
@@ -455,18 +467,18 @@ impl BarExt for Bar {
                 }
             }
 
-            let lbar = desc + &self.bar_fmt_percentage(0);
+            let lbar = desc + &self.fmt_percentage(0);
             let rbar = format!(
                 " {}/{} [{}<{}, {}{}]",
-                self.bar_fmt_count(),
-                self.bar_fmt_total(),
-                self.bar_fmt_elapsed_time(),
-                self.bar_fmt_remaining_time(),
-                self.bar_fmt_rate(),
+                self.fmt_counter(),
+                self.fmt_total(),
+                self.fmt_elapsed_time(),
+                self.fmt_remaining_time(),
+                self.fmt_rate(),
                 self.postfix,
             );
 
-            self.set_ncols(
+            self.adjust_ncols(
                 (format!("{}{}", lbar, rbar).len_ansi() + self.animation.spaces() as usize) as i16,
             );
 
@@ -490,9 +502,7 @@ impl BarExt for Bar {
             });
 
             bar_format.replace_from_callback("percentage", |placeholder| {
-                placeholder
-                    .format_spec
-                    .format(self.bar_percentage() * 100.0)
+                placeholder.format_spec.format(self.percentage() * 100.0)
             });
 
             bar_format.replace_from_callback("count", |placeholder| {
@@ -522,7 +532,7 @@ impl BarExt for Bar {
                     .attr("human")
                     .unwrap_or("false".to_owned())
                     .parse::<bool>()
-                    .unwrap();
+                    .unwrap_or(false);
                 placeholder
                     .format_spec
                     .format(crate::format::format_interval(
@@ -539,18 +549,18 @@ impl BarExt for Bar {
                         .attr("human")
                         .unwrap_or("false".to_owned())
                         .parse::<bool>()
-                        .unwrap();
+                        .unwrap_or(false);
                     placeholder
                         .format_spec
                         .format(crate::format::format_interval(
-                            self.bar_remaining_time() as usize,
+                            self.remaining_time() as usize,
                             human,
                         ))
                 }
             });
 
             bar_format.replace_from_callback("rate", |placeholder| {
-                placeholder.format_spec.format(self.bar_rate())
+                placeholder.format_spec.format(self.rate())
             });
 
             bar_format.replace("unit", &self.unit);
@@ -565,12 +575,12 @@ impl BarExt for Bar {
             });
 
             let length = bar_format.unchecked_text().len_ansi() as i16;
-            self.set_ncols(length - 11);
+            self.adjust_ncols(length - 11);
 
             bar_format.replace_from_callback("animation", |_| {
                 let fmtval = self
                     .animation
-                    .progress(self.bar_percentage() as f32, self.ncols.clone());
+                    .progress(self.percentage() as f32, self.ncols.clone());
 
                 if self.colour.to_uppercase().starts_with("GRADIENT(") {
                     if !cfg!(feature = "gradient") {
@@ -611,8 +621,6 @@ impl BarExt for Bar {
     }
 
     fn update(&mut self, n: usize) {
-        self.init();
-
         if self.trigger(n) {
             let text = self.render();
             let length = text.len_ansi() as i16;
@@ -761,23 +769,22 @@ impl BarBuilder {
     }
 
     /// Specify a custom bar string formatting. May impact performance.
-    /// [default: '{l_bar}{bar}{r_bar}'], where
-    /// l_bar='{desc}: {percentage:3.0f}%|' and
-    /// r_bar='| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, '
-    ///   '{rate_fmt}{postfix}]'
-    /// Possible vars: l_bar, bar, r_bar, n, n_fmt, total, total_fmt,
+    /// (default: `None`)
+    /// 
+    /// This is the default style.
+    /// 
+    /// ```text
+    /// {desc}{percentage:3.0}%|{animation}| {count}/{total} [{elapsed}<{remaining}, {rate:.2}{unit}/s{postfix}]
+    /// ```
+    /// 
+    /// Placeholders:
+    ///   desc, percentage, animation, n, n_fmt, total, total_fmt,
     ///   percentage, elapsed, elapsed_s, ncols, nrows, desc, unit,
     ///   rate, rate_fmt, rate_noinv, rate_noinv_fmt,
     ///   rate_inv, rate_inv_fmt, postfix, unit_divisor,
     ///   remaining, remaining_s, eta.
     /// Note that a trailing ": " is automatically removed after {desc}
     /// if the latter is empty.
-    ///
-    /// ```text
-    /// {desc}{percentage:3.0}%|{animation}| {count}/{total} [{elapsed}<{remaining}, {rate:.2}{unit}/s{postfix}]
-    /// ```
-    ///
-    /// (default: `None`)
     pub fn bar_format<T: Into<String>>(mut self, bar_format: T) -> Self {
         self.bar_format = Some(bar_format.into());
         self
@@ -853,13 +860,13 @@ impl BarBuilder {
         self
     }
 
-    /// Build `kdam::Bar`
+    /// Build [Bar](crate::Bar)
     pub fn build(mut self) -> Result<Bar, formatx::Error> {
         if let Some(bar_format) = self.bar_format {
             self.pb.set_bar_format(bar_format)?;
         }
 
-        Ok(self.pb)
+        Ok(self.pb.init())
     }
 }
 

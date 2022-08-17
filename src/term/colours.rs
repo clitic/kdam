@@ -206,24 +206,24 @@ pub trait Colorizer {
 
     /// Apply linear gradient ansi escape codes from html colours to the given text with specific length.
     ///
-    /// # Examples
+    /// # Example
     ///
-    /// ```
-    /// use kdam::pelude::*;
+    /// ```rust
+    /// use kdam::prelude::*;
     ///
-    /// println!("{}", "text".gradient(&["#5A56E0", "#EE6FF8"], 4);
+    /// println!("{}", "text".gradient(&["#5A56E0", "#EE6FF8"], 4));
     /// ```
     #[cfg(feature = "gradient")]
     fn gradient<'a>(&'a self, codes: &[&str], len: usize) -> String;
 
     /// Apply linear gradient ansi escape codes from html colours to the given text.
     ///
-    /// # Examples
+    /// # Example
     ///
-    /// ```
-    /// use kdam::pelude::*;
-    ///
-    /// println!("{}", "text".gradient_text(&["#5A56E0", "#EE6FF8"]);
+    /// ```rust
+    /// use kdam::prelude::*;
+    /// 
+    /// println!("{}", "text".gradient_text(&["#5A56E0", "#EE6FF8"]));
     /// ```
     #[cfg(feature = "gradient")]
     fn gradient_text<'a>(&'a self, codes: &[&str]) -> String;
