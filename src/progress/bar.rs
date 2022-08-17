@@ -133,7 +133,11 @@ impl Bar {
 
     /// Returns progress percentage, like 0.62, 0.262
     pub fn bar_percentage(&self) -> f64 {
-        self.n as f64 / self.total as f64
+        if self.total == 0 {
+            1.0
+        } else {
+            self.n as f64 / self.total as f64
+        }
     }
 
     /// Returns rate / iterations of update method calls.
@@ -152,22 +156,16 @@ impl Bar {
 
     /// Format self.n
     pub fn bar_fmt_count(&self) -> String {
-        let count = if self.unit_scale {
+        if self.unit_scale {
             format::format_sizeof(self.n as f64, self.unit_divisor as f64)
         } else {
             format!("{}", self.n)
-        };
-
-        if self.unit_divisor == 1024 {
-            format!("{}{}", count, self.unit)
-        } else {
-            count
         }
     }
 
     /// Format elapsed time of progress bar.
     pub fn bar_fmt_elapsed_time(&self) -> String {
-        format::format_interval(self.elapsed_time as usize)
+        format::format_interval(self.elapsed_time as usize, false)
     }
 
     /// Format pogress percentage.
@@ -200,22 +198,16 @@ impl Bar {
         if self.total == 0 {
             "inf".to_owned()
         } else {
-            format::format_interval(self.bar_remaining_time() as usize)
+            format::format_interval(self.bar_remaining_time() as usize, false)
         }
     }
 
     /// Format self.total
     pub fn bar_fmt_total(&self) -> String {
-        let total = if self.unit_scale {
+        if self.unit_scale {
             format::format_sizeof(self.total as f64, self.unit_divisor as f64)
         } else {
             format!("{}", self.total)
-        };
-
-        if self.unit_divisor == 1024 {
-            format!("{}{}", total, self.unit)
-        } else {
-            total
         }
     }
 
@@ -224,9 +216,19 @@ impl Bar {
         self.n
     }
 
+    /// Returns wheter progress is finished or not.
+    pub fn finished(&self) -> bool {
+        if self.total == 0 {
+            false
+        } else {
+            self.n >= self.total
+        }
+    }
+
     /// Set/Modify bar_format of the progress bar.
-    pub fn set_bar_format(&mut self, bar_format: Template) {
-        self.bar_format = Some(bar_format);
+    pub fn set_bar_format<T: Into<String>>(&mut self, bar_format: T) -> Result<(), formatx::Error> {
+        self.bar_format = Some(bar_format.into().parse::<formatx::Template>()?);
+        Ok(())
     }
 
     /// Set/Modify colour of the progress bar.
@@ -479,15 +481,7 @@ impl BarExt for Bar {
         } else {
             let mut bar_format = self.bar_format.as_ref().unwrap().clone();
 
-            bar_format.replace_from_callback("desc", |placeholder| {
-                if self.desc != "" {
-                    self.desc.clone() + &placeholder.attr("suffix").unwrap_or(": ".to_owned())
-                } else {
-                    self.desc.clone()
-                }
-            });
-
-            bar_format.replace_with_callback("@desc", &self.desc, |fmtval, placeholder| {
+            bar_format.replace_with_callback("desc", &self.desc, |fmtval, placeholder| {
                 if self.desc != "" {
                     fmtval + &placeholder.attr("suffix").unwrap_or(": ".to_owned())
                 } else {
@@ -496,53 +490,71 @@ impl BarExt for Bar {
             });
 
             bar_format.replace_from_callback("percentage", |placeholder| {
-                self.bar_fmt_percentage(
-                    placeholder
-                        .attr("precision")
-                        .unwrap_or("0".to_owned())
-                        .parse::<usize>()
-                        .unwrap(),
-                )
+                placeholder
+                    .format_spec
+                    .format(self.bar_percentage() * 100.0)
             });
 
-            if bar_format.contains("@percentage") {
-                bar_format.replace("@percentage", self.bar_percentage() * 100.0);
-            }
+            bar_format.replace_from_callback("count", |placeholder| {
+                if self.unit_scale {
+                    placeholder.format_spec.format(format::format_sizeof(
+                        self.n as f64,
+                        self.unit_divisor as f64,
+                    ))
+                } else {
+                    placeholder.format_spec.format(&self.n)
+                }
+            });
 
-            bar_format.replace_from_callback("count", |_| self.bar_fmt_count());
-            bar_format.replace("@count", &self.n);
-
-            bar_format.replace_from_callback("total", |_| self.bar_fmt_total());
-            bar_format.replace("@total", &self.total);
+            bar_format.replace_from_callback("total", |placeholder| {
+                if self.unit_scale {
+                    placeholder.format_spec.format(format::format_sizeof(
+                        self.total as f64,
+                        self.unit_divisor as f64,
+                    ))
+                } else {
+                    placeholder.format_spec.format(&self.total)
+                }
+            });
 
             bar_format.replace_from_callback("elapsed", |placeholder| {
-                if placeholder.attr("human").unwrap_or("false".to_owned()) == "false" {
-                    self.bar_fmt_elapsed_time()
-                } else {
-                    crate::format::format_interval_human(self.elapsed_time as usize)
-                }
+                let human = placeholder
+                    .attr("human")
+                    .unwrap_or("false".to_owned())
+                    .parse::<bool>()
+                    .unwrap();
+                placeholder
+                    .format_spec
+                    .format(crate::format::format_interval(
+                        self.elapsed_time as usize,
+                        human,
+                    ))
             });
 
             bar_format.replace_from_callback("remaining", |placeholder| {
-                if placeholder.attr("human").unwrap_or("false".to_owned()) == "false" {
-                    self.bar_fmt_remaining_time()
+                if self.total == 0 {
+                    placeholder.format_spec.format("inf")
                 } else {
-                    if self.total == 0 {
-                        "0s".to_owned()
-                    } else {
-                        crate::format::format_interval_human(self.bar_remaining_time() as usize)
-                    }
+                    let human = placeholder
+                        .attr("human")
+                        .unwrap_or("false".to_owned())
+                        .parse::<bool>()
+                        .unwrap();
+                    placeholder
+                        .format_spec
+                        .format(crate::format::format_interval(
+                            self.bar_remaining_time() as usize,
+                            human,
+                        ))
                 }
             });
 
-            bar_format.replace_from_callback("rate", |_| self.bar_fmt_rate());
+            bar_format.replace_from_callback("rate", |placeholder| {
+                placeholder.format_spec.format(self.bar_rate())
+            });
 
-            if bar_format.contains("@rate") {
-                bar_format.replace("@rate", self.bar_rate());
-            }
-
-            bar_format.replace("postfix", &self.postfix);
             bar_format.replace("unit", &self.unit);
+            bar_format.replace("postfix", &self.postfix);
 
             bar_format.replace_from_callback("spinner", |_| {
                 if let Some(spinner) = &self.spinner {
@@ -641,6 +653,7 @@ impl BarExt for Bar {
 #[derive(Default)]
 pub struct BarBuilder {
     pb: Bar,
+    bar_format: Option<String>,
 }
 
 impl BarBuilder {
@@ -761,11 +774,12 @@ impl BarBuilder {
     /// if the latter is empty.
     ///
     /// ```text
-    /// {desc} {percentage} {animation} {count}/{total} [{elapsed}<{remaining}, {rate}{postfix}]
+    /// {desc}{percentage:3.0}%|{animation}| {count}/{total} [{elapsed}<{remaining}, {rate:.2}{unit}/s{postfix}]
     /// ```
+    ///
     /// (default: `None`)
-    pub fn bar_format(mut self, bar_format: Template) -> Self {
-        self.pb.bar_format = Some(bar_format);
+    pub fn bar_format<T: Into<String>>(mut self, bar_format: T) -> Self {
+        self.bar_format = Some(bar_format.into());
         self
     }
 
@@ -840,8 +854,12 @@ impl BarBuilder {
     }
 
     /// Build `kdam::Bar`
-    pub fn build(self) -> Bar {
-        self.pb
+    pub fn build(mut self) -> Result<Bar, formatx::Error> {
+        if let Some(bar_format) = self.bar_format {
+            self.pb.set_bar_format(bar_format)?;
+        }
+
+        Ok(self.pb)
     }
 }
 
@@ -865,7 +883,7 @@ impl BarBuilder {
 #[macro_export]
 macro_rules! tqdm {
     ($($setter_method: ident = $value: expr),*) => {
-        $crate::BarBuilder::default()$(.$setter_method($value))*.build()
+        $crate::BarBuilder::default()$(.$setter_method($value))*.build().unwrap()
     };
 
     ($iterable: expr) => {
@@ -873,6 +891,6 @@ macro_rules! tqdm {
     };
 
     ($iterable: expr, $($setter_method: ident = $value: expr),*) => {
-        $crate::BarIterator::new_with_bar($iterable, kdam::BarBuilder::default()$(.$setter_method($value))*.build())
+        $crate::BarIterator::new_with_bar($iterable, kdam::BarBuilder::default()$(.$setter_method($value))*.build().unwrap())
     };
 }
