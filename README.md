@@ -40,24 +40,25 @@ fn main() {
 100%|█████████████████████████████| 100/100 [00:00<00:00, 25854.49it/s]
 ```
 
-kdam also supports different animation styles. All available animations styles are:
+kdam also supports different animation styles. All available animation styles are:
 
 [examples/showcase/animations.rs](https://github.com/clitic/kdam/blob/main/examples/showcase/animations.rs)
 ![showcase_animations](https://raw.githubusercontent.com/clitic/kdam/main/images/animations.gif)
 
-kdam also support [rich.progress](https://rich.readthedocs.io/en/latest/progress.html) style bars with customizable columns.
+kdam also supports [rich.progress](https://rich.readthedocs.io/en/latest/progress.html) style bars with customizable columns.
 
 [examples/rich.rs](https://github.com/clitic/kdam/blob/main/examples/rich.rs)
 ![showcase_rich_progress_animation](https://raw.githubusercontent.com/clitic/kdam/main/images/rich_progress.gif)
 
-kdam also provides a text colorization trait for printing colored text in terminal. It can be used as an alternative for existing [colored](https://github.com/mackwic/colored) library.
+kdam doesn't restrict you to use default progress bar styles. You can create your own progress bar template using bar_format. Here is clone of [alive-progress](https://github.com/rsalmei/alive-progress) using kdam.
 
-```rust
-use kdam::prelude::*;
+[examples/template.rs](https://github.com/clitic/kdam/blob/main/examples/template.rs)
+![showcase_alive_progress_template](https://raw.githubusercontent.com/clitic/kdam/main/images/template.gif)
 
-println!("{}", "hello world!".colorize("bold red"));
-println!("{}", "hello world!".colorize("bright white on blue"));
-```
+Using a gradient progress bar can be more appealing than using a plain b/w progress bar sometimes.
+
+[examples/coloured/gradinet.rs(https://github.com/clitic/kdam/blob/main/examples/coloured/gradinet.rs)
+![showcase_gradient](https://raw.githubusercontent.com/clitic/kdam/main/images/gradient.gif)
 
 ## Getting Started
 
@@ -254,6 +255,17 @@ fn main() {
 ```
 Break Loop [y/n]: y
  50%|███████████████▎              | 5/10 [00:01<00:01, 3.83it/s]
+```
+
+### Terminal Colorization
+
+kdam also provides a text colorization trait for printing colored text in terminal. It can be used as an alternative for existing [colored](https://github.com/mackwic/colored) library.
+
+```rust
+use kdam::prelude::*;
+
+println!("{}", "hello world!".colorize("bold red"));
+println!("{}", "hello world!".colorize("bright white on blue"));
 ```
 
 ## License

@@ -40,6 +40,3 @@ pub use thread::RowManager;
 
 pub use styles::format;
 pub use thread::monitor;
-
-// External Re-exports
-pub use formatx;

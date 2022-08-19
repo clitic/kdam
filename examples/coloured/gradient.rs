@@ -1,10 +1,9 @@
-use kdam::formatx::Template;
 use kdam::prelude::*;
 
 fn main() {
     let mut pb = tqdm!(
         total = 300,
-        bar_format = "{animation} {percentage}".parse::<Template>().unwrap(),
+        bar_format = "{animation} {percentage:3.0}%",
         colour = "gradient(#5A56E0,#EE6FF8)",
         force_refresh = true
     );

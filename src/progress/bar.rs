@@ -957,6 +957,10 @@ impl BarBuilder {
 /// This macro use [BarBuilder](crate::BarBuilder) for creating [Bar](crate::Bar).
 /// See all available [methods](https://docs.rs/kdam/latest/kdam/struct.BarBuilder.html).
 ///
+/// # Panics
+/// 
+/// This macro will panic if [BarBuilder::build](crate::BarBuilder::build) method returns error.
+/// 
 /// # Examples
 ///
 /// ```rust

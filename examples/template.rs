@@ -1,7 +1,6 @@
 use kdam::prelude::*;
 use kdam::Spinner;
 
-// https://github.com/rsalmei/alive-progress
 fn main() {
     let mut pb = tqdm!(
         total = 300,

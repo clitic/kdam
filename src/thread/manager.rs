@@ -1,10 +1,11 @@
-use crate::{prelude::BarExt, Bar};
+use crate::progress::{Bar, BarExt};
 use std::collections::HashSet;
 
 /// RowManager allows to store and update many progress bars.
 ///
 /// `nrows` is the number of progress bars to display at once.
 /// All other bars are hidden and visible once any active progress bar is completed.
+/// Traces of progress are left in terminal if `leave=true` else progress bar is cleared.
 /// Cursor position are not restored by RowManager.
 ///
 /// # Example
@@ -15,12 +16,14 @@ use std::collections::HashSet;
 ///
 /// fn main() {
 ///     let mut manager = RowManager::new(3);
-///     manager.append(tqdm!(total = 100));
+///     let pb_index = manager.append(tqdm!(total = 100));
 ///
 ///     for _ in 0..100 {
-///         manager.get_mut(0).unwrap().update(1);
-///         manager.notify(0);
+///         manager.get_mut(pb_index).unwrap().update(1);
+///         manager.notify(pb_index);
 ///     }
+///     
+///     manager.bars.remove(pb_index);
 /// }
 /// ```
 pub struct RowManager {
@@ -77,7 +80,7 @@ impl RowManager {
     }
 
     /// Returns the number of progress bars.
-    pub fn len(&mut self) -> usize {
+    pub fn len(&self) -> usize {
         self.bars.len()
     }
 
@@ -86,7 +89,7 @@ impl RowManager {
         self.bars.get_mut(index)
     }
 
-    /// Append a progress bar returning index.
+    /// Append a progress bar returning its index.
     pub fn append(&mut self, mut pb: Bar) -> usize {
         pb.set_position(self.acquired_pos.len() as u16);
         self.bars_true_disable.push(pb.get_disable());

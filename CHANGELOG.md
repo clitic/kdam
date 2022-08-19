@@ -1,6 +1,6 @@
 # kdam Changelog (DD/MM/YYYY)
 
-## 0.2.3 (dev)
+## 0.2.3 (08/19/2022)
 
 Features:
 
@@ -8,10 +8,10 @@ Features:
 - New `kdam::RowManager` for managing many progress bars. [ISSUE #3](https://github.com/clitic/kdam/issues/3)
 - New `kdam::Bar.bar_format` field.
 - New `kdam::Animation::CustomWithFill` variant.
+- Better terminal colorization through `rgb(255,255,255)` and `gradient(#5A56E0,#EE6FF8)` values support.
 - Now supports spinners.
     - `kdam::Spinner`
     - `tqdm!(spinner=..)`
-- Better terminal colorization through `rgb(255,255,255)` and `gradient(#5A56E0,#EE6FF8)` values support.
 
 Changes:
 
@@ -21,7 +21,7 @@ Changes:
 
 Bug Fixes:
 
-- Fixed `BarMethods.clear` method for bar position above 0.
+- Fixed `BarMethods::clear` method for bar position above 0.
   
 ## 0.2.2 (24/07/2022)
 
