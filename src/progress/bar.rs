@@ -28,36 +28,36 @@ use std::io::Write;
 /// ```
 #[derive(Debug)]
 pub struct Bar {
-    desc: String,
-    pub(crate) total: usize,
-    pub(crate) leave: bool,
-    file: Option<std::fs::File>,
-    pub(crate) ncols: i16,
-    mininterval: f32,
-    miniters: usize,
-    dynamic_miniters: bool,
-    pub(crate) disable: bool,
-    unit: String,
-    unit_scale: bool,
-    dynamic_ncols: bool,
-    initial: usize,
+    // CUSTOMIZABLE FIELDS
+    animation: Animation,
     bar_format: Option<Template>,
-    pub(crate) position: u16,
-    postfix: String,
-    unit_divisor: usize,
     colour: String,
     delay: f32,
-    animation: Animation,
+    desc: String,
+    disable: bool,
+    dynamic_miniters: bool,
+    dynamic_ncols: bool,
+    file: Option<std::fs::File>,
+    force_refresh: bool,
+    initial: usize,
+    leave: bool,
+    mininterval: f32,
+    miniters: usize,
+    ncols: i16,
+    position: u16,
+    postfix: String,
+    total: usize,
     spinner: Option<Spinner>,
-    pub(crate) writer: Writer,
-    pub(crate) force_refresh: bool,
-    wrap: bool,
-    // Internal
-    pub(crate) n: usize,
+    unit: String,
+    unit_divisor: usize,
+    unit_scale: bool,
+    writer: Writer,
+    // NON CUSTOMIZABLE FIELDS
+    bar_length: i16,
+    counter: usize,
     timer: std::time::Instant,
-    pub(crate) elapsed_time: f32,
+    elapsed_time: f32,
     user_ncols: Option<i16>,
-    pub(crate) bar_length: i16,
 }
 
 impl Default for Bar {
@@ -86,8 +86,7 @@ impl Default for Bar {
             spinner: None,
             writer: Writer::Stderr,
             force_refresh: false,
-            wrap: false,
-            n: 0,
+            counter: 0,
             timer: std::time::Instant::now(),
             elapsed_time: 0.0,
             user_ncols: None,
@@ -139,14 +138,68 @@ impl Bar {
             }
         }
 
-        self.n = self.initial;
+        self.counter = self.initial;
         self.timer = std::time::Instant::now();
         self
     }
 
     // -----------------------------------------------------------------------------------------
+    // GETTERS
+    // -----------------------------------------------------------------------------------------
+
+    /// Get bar length value.
+    pub(crate) fn get_bar_length(&self) -> i16 {
+        self.bar_length
+    }
+
+    /// Get counter value.
+    pub fn get_counter(&self) -> usize {
+        self.counter
+    }
+
+    /// Get disable value.
+    pub fn get_disable(&self) -> bool {
+        self.disable
+    }
+
+    /// Get force refresh value.
+    pub(crate) fn get_force_refresh(&self) -> bool {
+        self.force_refresh
+    }
+
+    /// Get leave value.
+    pub fn get_leave(&self) -> bool {
+        self.leave
+    }
+
+    /// Get ncols value.
+    pub(crate) fn get_ncols(&self) -> i16 {
+        self.ncols
+    }
+
+    /// Get position value.
+    pub fn get_position(&self) -> u16 {
+        self.position
+    }
+
+    /// Get total value.
+    pub fn get_total(&self) -> usize {
+        self.total
+    }
+
+    /// Get writer cloned value.
+    pub(crate) fn get_writer(&self) -> Writer {
+        self.writer.clone()
+    }
+
+    // -----------------------------------------------------------------------------------------
     // SETTERS
     // -----------------------------------------------------------------------------------------
+
+    /// Set/Modify bar length property.
+    pub(crate) fn set_bar_length(&mut self, bar_length: i16) {
+        self.bar_length = bar_length;
+    }
 
     /// Set/Modify bar_format property.
     pub fn set_bar_format<T: Into<String>>(&mut self, bar_format: T) -> Result<(), formatx::Error> {
@@ -159,6 +212,11 @@ impl Bar {
         self.colour = colour.into();
     }
 
+    /// Set/Modify counter property.
+    pub fn set_counter(&mut self, counter: usize) {
+        self.counter = counter;
+    }
+
     /// Set/Modify description property.
     pub fn set_description<T: Into<String>>(&mut self, desc: T) {
         self.desc = desc.into();
@@ -167,6 +225,11 @@ impl Bar {
     /// Set/Modify disable property.
     pub fn set_disable(&mut self, disable: bool) {
         self.disable = disable;
+    }
+
+    /// Set/Modify force refresh property.
+    pub(crate) fn set_force_refresh(&mut self, force_refresh: bool) {
+        self.force_refresh = force_refresh;
     }
 
     /// Set/Modify leave property.
@@ -184,6 +247,11 @@ impl Bar {
         self.postfix = ", ".to_owned() + &postfix.into();
     }
 
+    /// Set/Modify total property.
+    pub fn set_total(&mut self, total: usize) {
+        self.total = total;
+    }
+
     // -----------------------------------------------------------------------------------------
     // BASIC INFORMATION
     // -----------------------------------------------------------------------------------------
@@ -191,10 +259,10 @@ impl Bar {
     /// Returns progress percentage, like 0.62, 0.262, 1.0.
     /// If total is 0, it returns 1.0.
     pub fn percentage(&self) -> f64 {
-        if self.total == 0 {
+        if self.indefinite() {
             1.0
         } else {
-            self.n as f64 / self.total as f64
+            self.counter as f64 / self.total as f64
         }
     }
 
@@ -206,34 +274,47 @@ impl Bar {
 
     /// Returns remaining time (ETA) for progress completion.
     pub fn remaining_time(&self) -> f32 {
-        if self.total == 0 {
+        if self.indefinite() {
             f32::INFINITY
         } else {
-            (self.total - self.n) as f32 / self.rate()
+            (self.total - self.counter) as f32 / self.rate()
         }
     }
 
     /// Returns progress rate.
     pub fn rate(&self) -> f32 {
-        self.n as f32 / self.elapsed_time
+        self.counter as f32 / self.elapsed_time
     }
 
     // -----------------------------------------------------------------------------------------
     // EXTRA FUNCTIONALITIES
     // -----------------------------------------------------------------------------------------
 
-    /// Returns counter value.
-    pub fn counter(&self) -> usize {
-        self.n
-    }
-
     /// Returns wheter progress is completed or not.
     /// If `total` is `0`, then it always returns `false`.
     pub fn completed(&self) -> bool {
-        if self.total == 0 {
+        if self.indefinite() {
             false
         } else {
-            self.n >= self.total
+            self.counter >= self.total
+        }
+    }
+
+    /// Returns wheter progress is indefinite (total=0) or not.
+    pub fn indefinite(&self) -> bool {
+        if self.total == 0 {
+            true
+        } else {
+            false
+        }
+    }
+
+    /// Returns wheter progress is started (counter=0) or not.
+    pub fn started(&self) -> bool {
+        if self.counter == 0 {
+            false
+        } else {
+            true
         }
     }
 
@@ -244,27 +325,27 @@ impl Bar {
     /// Checks wheter to trigger a display update or not.
     /// This method will increment internal counter.
     pub(crate) fn trigger(&mut self, n: usize) -> bool {
-        self.n += n;
+        self.counter += n;
 
         if !self.disable {
             if self.force_refresh {
                 return true;
             }
 
-            let completion_constraint = self.n == self.total;
+            let completion_constraint = self.counter == self.total;
 
             let elapsed_time_now = self.timer.elapsed().as_secs_f32();
             let delay_constraint = self.delay <= elapsed_time_now;
             let mininterval_constraint = self.mininterval <= (elapsed_time_now - self.elapsed_time);
 
             if self.dynamic_miniters && !mininterval_constraint {
-                self.miniters += self.n;
+                self.miniters += self.counter;
             }
 
             let miniters_constraint = if self.miniters <= 1 {
                 true
             } else {
-                self.n % self.miniters == 0
+                self.counter % self.miniters == 0
             };
 
             if (mininterval_constraint && miniters_constraint && delay_constraint)
@@ -304,15 +385,7 @@ impl Bar {
     }
 
     /// Print a string in position of bar.
-    pub(crate) fn write_at(&self, mut text: String) {
-        if self.wrap {
-            let columns = crate::term::get_columns_or(0) as usize;
-
-            if self.bar_length as usize > columns {
-                text = text[..columns].to_owned();
-            }
-        }
-
+    pub(crate) fn write_at(&self, text: String) {
         if self.file.is_some() {
             lock::acquire();
             let mut file = self.file.as_ref().unwrap();
@@ -348,9 +421,9 @@ impl Bar {
 
     pub(crate) fn fmt_counter(&self) -> String {
         if self.unit_scale {
-            format::format_sizeof(self.n as f64, self.unit_divisor as f64)
+            format::format_sizeof(self.counter as f64, self.unit_divisor as f64)
         } else {
-            format!("{}", self.n)
+            format!("{}", self.counter)
         }
     }
 
@@ -367,7 +440,7 @@ impl Bar {
     }
 
     pub(crate) fn fmt_remaining_time(&self) -> String {
-        if self.n == 0 || self.total == 0 {
+        if self.counter == 0 || self.indefinite() {
             "inf".to_owned()
         } else {
             format::format_interval(self.remaining_time() as usize, false)
@@ -377,7 +450,7 @@ impl Bar {
     pub(crate) fn fmt_rate(&self) -> String {
         format!(
             "{}{}/s",
-            if self.n == 0 {
+            if self.counter == 0 {
                 "?".to_owned()
             } else if self.unit_scale {
                 format::format_sizeof(self.rate() as f64, self.unit_divisor as f64)
@@ -433,7 +506,7 @@ impl BarExt for Bar {
                 format!("{}: ", self.desc)
             };
 
-            if self.total == 0 {
+            if self.indefinite() {
                 let bar = format!(
                     "{}{}{} [{}, {}{}]",
                     desc,
@@ -457,7 +530,7 @@ impl BarExt for Bar {
             let progress = self.percentage() as f32;
 
             if progress >= 1.0 {
-                self.total = self.n;
+                self.total = self.counter;
 
                 if !self.leave && self.position != 0 {
                     return format!(
@@ -508,11 +581,11 @@ impl BarExt for Bar {
             bar_format.replace_from_callback("count", |placeholder| {
                 if self.unit_scale {
                     placeholder.format_spec.format(format::format_sizeof(
-                        self.n as f64,
+                        self.counter as f64,
                         self.unit_divisor as f64,
                     ))
                 } else {
-                    placeholder.format_spec.format(&self.n)
+                    placeholder.format_spec.format(&self.counter)
                 }
             });
 
@@ -542,7 +615,7 @@ impl BarExt for Bar {
             });
 
             bar_format.replace_from_callback("remaining", |placeholder| {
-                if self.total == 0 {
+                if self.indefinite() {
                     placeholder.format_spec.format("inf")
                 } else {
                     let human = placeholder
@@ -616,7 +689,7 @@ impl BarExt for Bar {
             self.total = x;
         }
 
-        self.n = self.initial;
+        self.counter = self.initial;
         self.timer = std::time::Instant::now();
     }
 
@@ -635,7 +708,7 @@ impl BarExt for Bar {
     }
 
     fn update_to(&mut self, update_to_n: usize) {
-        self.n = update_to_n;
+        self.counter = update_to_n;
         self.update(0);
     }
 
@@ -770,21 +843,37 @@ impl BarBuilder {
 
     /// Specify a custom bar string formatting. May impact performance.
     /// (default: `None`)
-    /// 
-    /// This is the default style.
-    /// 
+    ///
+    /// # Default Style
+    ///
     /// ```text
     /// {desc}{percentage:3.0}%|{animation}| {count}/{total} [{elapsed}<{remaining}, {rate:.2}{unit}/s{postfix}]
     /// ```
-    /// 
-    /// Placeholders:
-    ///   desc, percentage, animation, n, n_fmt, total, total_fmt,
-    ///   percentage, elapsed, elapsed_s, ncols, nrows, desc, unit,
-    ///   rate, rate_fmt, rate_noinv, rate_noinv_fmt,
-    ///   rate_inv, rate_inv_fmt, postfix, unit_divisor,
-    ///   remaining, remaining_s, eta.
-    /// Note that a trailing ": " is automatically removed after {desc}
-    /// if the latter is empty.
+    ///
+    /// # Placeholders
+    ///
+    /// | Placeholder | Attributes                                              | Formatting      |
+    /// |-------------|---------------------------------------------------------|-----------------|
+    /// | desc        | name: **suffix** <br>                                   | &#10004;        |
+    /// |             | description: attaches suffix to desc if desc == "" <br> |                 |
+    /// |             | type: string <br>                                       |                 |
+    /// |             | default: ": " <br>                                      |                 |
+    /// | percentage  |                                                         | &#10004; (true) |
+    /// | count       |                                                         | &#10004;        |
+    /// | total       |                                                         | &#10004;        |
+    /// | elapsed     | name: **human** <br>                                    | &#10004;        |
+    /// |             | description: alternative way to display time. <br>      |                 |
+    /// |             | type: bool <br>                                         |                 |
+    /// |             | default: false <br>                                     |                 |
+    /// | remaining   | name: **human** <br>                                    | &#10004;        |
+    /// |             | description: alternative way to display time. <br>      |                 |
+    /// |             | type: bool <br>                                         |                 |
+    /// |             | default: false <br>                                     |                 |
+    /// | rate        |                                                         | &#10004; (true) |
+    /// | unit        |                                                         | &#10004; (true) |
+    /// | postfix     |                                                         | &#10004; (true) |
+    /// | spinner     |                                                         | &#10060;        |
+    /// | animation   |                                                         | &#10060;        |
     pub fn bar_format<T: Into<String>>(mut self, bar_format: T) -> Self {
         self.bar_format = Some(bar_format.into());
         self
@@ -850,13 +939,6 @@ impl BarBuilder {
     /// (default: `false`)
     pub fn force_refresh(mut self, force_refresh: bool) -> Self {
         self.pb.force_refresh = force_refresh;
-        self
-    }
-
-    /// If true, progress bar of more length than terminal will be trimmed at end.
-    /// (default: `false`)
-    pub fn wrap(mut self, wrap: bool) -> Self {
-        self.pb.wrap = wrap;
         self
     }
 

@@ -14,7 +14,7 @@ impl<T: Iterator> BarIterator<T> {
     /// Create a new instance of [BarIterator](crate::BarIterator) from iterable.
     pub fn new(iterable: T) -> BarIterator<T> {
         let mut pb = Bar::default();
-        pb.total = iterable.size_hint().0;
+        pb.set_total(iterable.size_hint().0);
 
         BarIterator {
             iterable: iterable,
@@ -31,8 +31,8 @@ impl<T: Iterator> BarIterator<T> {
             pb: pb,
         };
 
-        if pb_iter.pb.total == 0 {
-            pb_iter.pb.total = total;
+        if pb_iter.pb.indefinite() {
+            pb_iter.pb.set_total(total);
         }
 
         pb_iter
@@ -63,10 +63,10 @@ impl<S, T: Iterator<Item = S>> Iterator for BarIterator<T> {
     type Item = S;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.pb.counter() == 0 {
-            self.pb.refresh();
-        } else {
+        if self.pb.started() {
             self.pb.update(1);
+        } else {
+            self.pb.refresh();
         }
 
         self.iterable.next()
@@ -75,10 +75,10 @@ impl<S, T: Iterator<Item = S>> Iterator for BarIterator<T> {
 
 impl<T: DoubleEndedIterator> DoubleEndedIterator for BarIterator<T> {
     fn next_back(&mut self) -> Option<Self::Item> {
-        if self.pb.counter() == 0 {
-            self.pb.refresh();
-        } else {
+        if self.pb.started() {
             self.pb.update(1);
+        } else {
+            self.pb.refresh();
         }
 
         self.iterable.next_back()

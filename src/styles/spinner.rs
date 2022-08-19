@@ -1,6 +1,6 @@
 /// Generic spinner for rendering spinner animations.
 /// See styles at [rich repository](https://github.com/Textualize/rich/blob/master/rich/_spinners.py).
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Spinner {
     frames: Vec<String>,
     interval: f32,

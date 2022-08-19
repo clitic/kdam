@@ -38,12 +38,12 @@ macro_rules! _impl_bar_methods {
 
             fn input<T: Into<String>>(&mut self, text: T) -> Result<String, std::io::Error> {
                 self.clear();
-                self.pb.writer.print_str(&text.into());
+                self.pb.get_writer().print_str(&text.into());
 
                 let mut input_string = String::new();
                 std::io::stdin().read_line(&mut input_string)?;
 
-                if self.pb.leave {
+                if self.pb.get_leave() {
                     self.refresh();
                 }
 
@@ -51,10 +51,10 @@ macro_rules! _impl_bar_methods {
             }
 
             fn refresh(&mut self) {
-                if !self.pb.force_refresh {
-                    self.pb.force_refresh = true;
+                if !self.pb.get_force_refresh() {
+                    self.pb.set_force_refresh(true);
                     self.update(0);
-                    self.pb.force_refresh = false;
+                    self.pb.set_force_refresh(false);
                 } else {
                     self.update(0);
                 }
@@ -73,25 +73,25 @@ macro_rules! _impl_bar_methods {
                     let text = self.render();
                     let length = $crate::term::Colorizer::len_ansi(text.as_str()) as i16;
 
-                    if length != self.pb.bar_length {
+                    if length != self.pb.get_bar_length() {
                         self.pb.clear();
                     }
 
-                    self.pb.bar_length = length;
+                    self.pb.set_bar_length(length);
                     self.pb.write_at(text);
                 }
             }
 
             fn update_to(&mut self, update_to_n: usize) {
-                self.pb.n = update_to_n;
+                self.pb.set_counter(update_to_n);
                 self.update(0);
             }
 
             fn write<T: Into<String>>(&mut self, text: T) {
                 self.pb.clear();
-                self.pb.writer.print(format_args!("\r{}\n", text.into()));
+                self.pb.get_writer().print(format_args!("\r{}\n", text.into()));
 
-                if self.pb.leave {
+                if self.pb.get_leave() {
                     self.refresh();
                 }
             }

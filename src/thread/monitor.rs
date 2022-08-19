@@ -34,7 +34,7 @@ pub fn bar(pb: Bar, maxinterval: f32) -> (Arc<Mutex<Bar>>, thread::JoinHandle<()
         thread::sleep(std::time::Duration::from_secs_f32(maxinterval));
         let mut pb_monitor = pb_arc_clone.lock().unwrap();
 
-        if pb_monitor.counter() >= pb_monitor.total {
+        if pb_monitor.completed() {
             break;
         }
 
@@ -56,7 +56,7 @@ pub fn rich(
         thread::sleep(std::time::Duration::from_secs_f32(maxinterval));
         let mut pb_monitor = pb_arc_clone.lock().unwrap();
 
-        if pb_monitor.pb.counter() >= pb_monitor.pb.total {
+        if pb_monitor.pb.completed() {
             break;
         }
 

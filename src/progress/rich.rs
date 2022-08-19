@@ -123,7 +123,7 @@ fn render(progress: &mut RichProgress) -> String {
     let mut bar_text = vec![];
     let mut bar_length = 0;
     let mut progress_bar_index = None;
-    progress.pb.elapsed_time();
+    let et = progress.pb.elapsed_time();
 
     for col in progress.columns.clone() {
         match col {
@@ -215,18 +215,18 @@ fn render(progress: &mut RichProgress) -> String {
         progress.pb.adjust_ncols(bar_length as i16);
         let pb;
 
-        if progress.pb.total == 0 || progress.pb.counter() == 0 {
-            pb = crate::styles::rich::pulse(progress.pb.ncols.clone(), progress.pb.elapsed_time);
+        if progress.pb.indefinite() || !progress.pb.started() {
+            pb = crate::styles::rich::pulse(progress.pb.get_ncols(), et);
         } else {
             pb = crate::styles::rich::bar(
                 progress.pb.percentage() as f32,
-                progress.pb.ncols.clone(),
+                progress.pb.get_ncols(),
             );
         }
 
         let _ = std::mem::replace(&mut bar_text[progress_bar_index.unwrap()], pb);
     }
 
-    progress.pb.bar_length = bar_length as i16 + progress.pb.ncols;
+    progress.pb.set_bar_length(bar_length as i16 + progress.pb.get_ncols());
     bar_text.join(" ")
 }
