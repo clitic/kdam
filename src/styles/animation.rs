@@ -146,7 +146,7 @@ impl Animation {
 
                     if let Some(filling) = fill {
                         bar_animation += &filling
-                            .to_string()
+                            
                             .repeat((ncols - (bar_length as i16) - 1) as usize);
                     } else {
                         bar_animation += &" ".repeat((ncols - (bar_length as i16) - 1) as usize);
@@ -170,26 +170,8 @@ impl Animation {
             Self::FiraCode => (" ", ""),
         };
 
-        if colour.to_uppercase().starts_with("GRADIENT(") {
-            if !cfg!(feature = "gradient") {
-                panic!("Enable cargo feature `gradient` to use gradient colours.");
-            }
-
-            #[cfg(feature = "gradient")]
-            return format!(
-                "{}{}{}",
-                bar_open,
-                self.progress(progress, ncols).gradient(
-                    &colour
-                        .to_uppercase()
-                        .trim_start_matches("GRADIENT(")
-                        .trim_end_matches(')')
-                        .split(",")
-                        .collect::<Vec<&str>>(),
-                    ncols as usize,
-                ),
-                bar_close
-            );
+        if colour.to_uppercase().starts_with("GRADIENT(") && !cfg!(feature = "gradient") {
+            panic!("Enable cargo feature `gradient` to use gradient colours.");
         }
 
         if colour == "default" {

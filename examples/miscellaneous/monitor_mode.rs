@@ -10,5 +10,5 @@ fn main() {
     }
 
     monitor_thread.join().unwrap();
-    eprint!("\n");
+    eprintln!();
 }

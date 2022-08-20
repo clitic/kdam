@@ -50,5 +50,5 @@ fn main() {
     }
 
     pb.write("downloaded docker.exe".colorize("bold green"));
-    eprint!("\n");
+    eprintln!();
 }

@@ -51,7 +51,7 @@ impl RowManager {
             avaliable_pos: HashSet::new(),
             bars: vec![],
             bars_true_disable: vec![],
-            nrows: nrows,
+            nrows,
         }
     }
 

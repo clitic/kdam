@@ -111,7 +111,7 @@ impl Bar {
     /// ```
     pub fn new(total: usize) -> Self {
         Self {
-            total: total,
+            total,
             ..Default::default()
         }
         .init()
@@ -302,20 +302,12 @@ impl Bar {
 
     /// Returns wheter progress is indefinite (total=0) or not.
     pub fn indefinite(&self) -> bool {
-        if self.total == 0 {
-            true
-        } else {
-            false
-        }
+        self.total == 0
     }
 
     /// Returns wheter progress is started (counter=0) or not.
     pub fn started(&self) -> bool {
-        if self.counter == 0 {
-            false
-        } else {
-            true
-        }
+        self.counter != 0
     }
 
     // -----------------------------------------------------------------------------------------
@@ -392,17 +384,15 @@ impl Bar {
             file.write_fmt(format_args!("{}\n", text.as_str())).unwrap();
             file.flush().unwrap();
             lock::release();
+        } else if self.position == 0 {
+            self.writer.print(format_args!("\r{}", text));
         } else {
-            if self.position == 0 {
-                self.writer.print(format_args!("\r{}", text));
-            } else {
-                self.writer.print(format_args!(
-                    "{}{}{}",
-                    "\n".repeat(self.position as usize),
-                    text,
-                    format!("\x1b[{}A", self.position)
-                ));
-            }
+            self.writer.print(format_args!(
+                "{}{}{}",
+                "\n".repeat(self.position as usize),
+                text,
+                format!("\x1b[{}A", self.position)
+            ));
         }
     }
 
@@ -500,7 +490,7 @@ impl BarExt for Bar {
         self.elapsed_time();
 
         if self.bar_format.is_none() {
-            let desc = if self.desc == "" {
+            let desc = if self.desc.is_empty() {
                 "".to_owned()
             } else {
                 format!("{}: ", self.desc)
@@ -561,13 +551,13 @@ impl BarExt for Bar {
 
             lbar + &self
                 .animation
-                .fmt_progress(progress, self.ncols.clone(), &self.colour)
+                .fmt_progress(progress, self.ncols, &self.colour)
                 + &rbar
         } else {
             let mut bar_format = self.bar_format.as_ref().unwrap().clone();
 
             bar_format.replace_with_callback("desc", &self.desc, |fmtval, placeholder| {
-                if self.desc != "" {
+                if !self.desc.is_empty() {
                     fmtval + &placeholder.attr("suffix").unwrap_or(": ".to_owned())
                 } else {
                     fmtval
@@ -653,24 +643,10 @@ impl BarExt for Bar {
             bar_format.replace_from_callback("animation", |_| {
                 let fmtval = self
                     .animation
-                    .progress(self.percentage() as f32, self.ncols.clone());
+                    .progress(self.percentage() as f32, self.ncols);
 
-                if self.colour.to_uppercase().starts_with("GRADIENT(") {
-                    if !cfg!(feature = "gradient") {
-                        panic!("Enable cargo feature `gradient` to use gradient colours.");
-                    }
-
-                    #[cfg(feature = "gradient")]
-                    return fmtval.gradient(
-                        &self
-                            .colour
-                            .to_uppercase()
-                            .trim_start_matches("GRADIENT(")
-                            .trim_end_matches(')')
-                            .split(",")
-                            .collect::<Vec<&str>>(),
-                        self.ncols as usize,
-                    );
+                if self.colour.to_uppercase().starts_with("GRADIENT(") && !cfg!(feature = "gradient") {
+                    panic!("Enable cargo feature `gradient` to use gradient colours.");
                 }
 
                 if self.colour != "default" {
@@ -766,7 +742,7 @@ impl BarBuilder {
     /// Uses file.write_fmt and file.flush methods.
     /// (default: `None`)
     pub fn file(mut self, file: Option<std::fs::File>) -> Self {
-        self.pb.file = file.into();
+        self.pb.file = file;
         self
     }
 
@@ -808,7 +784,7 @@ impl BarBuilder {
     /// Whether to disable the entire progress bar wrapper.
     /// (default: `false`)
     pub fn disable(mut self, disable: bool) -> Self {
-        self.pb.disable = disable.into();
+        self.pb.disable = disable;
         self
     }
 

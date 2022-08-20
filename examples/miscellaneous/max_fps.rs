@@ -8,5 +8,5 @@ fn main() {
         pb.update(1);
     }
 
-    eprint!("\n");
+    eprintln!();
 }

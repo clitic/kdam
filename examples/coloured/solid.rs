@@ -11,5 +11,5 @@ fn main() {
     pb.set_colour("#da70d6");
     pb.refresh();
 
-    eprint!("\n");
+    eprintln!();
 }

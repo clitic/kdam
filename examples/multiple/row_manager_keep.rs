@@ -64,7 +64,7 @@ fn main() {
         }
     });
 
-    let manager6 = manager.clone();
+    let manager6 = manager;
     let thread6 = thread::spawn(move || {
         for _ in 0..600 {
             thread::sleep(Duration::from_secs_f32(0.02));

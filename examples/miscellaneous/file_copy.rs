@@ -34,5 +34,5 @@ fn main() {
         }
     }
 
-    eprint!("\n");
+    eprintln!();
 }

@@ -180,7 +180,7 @@ fn render(progress: &mut RichProgress) -> String {
             }
 
             Column::Text(text) => {
-                let color = match (text.find("["), text.find("]")) {
+                let color = match (text.find('['), text.find(']')) {
                     (Some(start), Some(end)) => {
                         if start == 0 {
                             Some(&text[(start + 1)..(end)])

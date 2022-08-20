@@ -17,8 +17,8 @@ impl<T: Iterator> BarIterator<T> {
         pb.set_total(iterable.size_hint().0);
 
         BarIterator {
-            iterable: iterable,
-            pb: pb,
+            iterable,
+            pb,
         }
     }
 
@@ -27,8 +27,8 @@ impl<T: Iterator> BarIterator<T> {
         let total = iterable.size_hint().0;
 
         let mut pb_iter = BarIterator {
-            iterable: iterable,
-            pb: pb,
+            iterable,
+            pb,
         };
 
         if pb_iter.pb.indefinite() {

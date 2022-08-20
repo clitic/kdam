@@ -39,13 +39,13 @@ pub fn colour(colour_code: &str) -> String {
         color.replace_range(hex_index..(hex_index + 10), "");
         ansi_256
     } else if let Some(rgb_index) = color.find("ON RGB(") {
-        let rgb = &color[(rgb_index + 7)..(rgb_index + color[rgb_index..].find(")").unwrap())]
-            .split(",")
+        let rgb = &color[(rgb_index + 7)..(rgb_index + color[rgb_index..].find(')').unwrap())]
+            .split(',')
             .map(|x| x.trim().parse::<usize>().unwrap())
             .collect::<Vec<usize>>();
 
         color.replace_range(
-            rgb_index..(rgb_index + color[rgb_index..].find(")").unwrap() + 1),
+            rgb_index..(rgb_index + color[rgb_index..].find(')').unwrap() + 1),
             "",
         );
         format!(";48;2;{};{};{}", rgb[0], rgb[1], rgb[2])
@@ -77,7 +77,7 @@ pub fn colour(colour_code: &str) -> String {
         "".to_owned()
     };
 
-    if let Some(hex_index) = color.find("#") {
+    if let Some(hex_index) = color.find('#') {
         code += &format!(
             "38;2;{};{};{}",
             i16::from_str_radix(&color[(hex_index + 1)..(hex_index + 3)], 16).unwrap(),
@@ -85,54 +85,50 @@ pub fn colour(colour_code: &str) -> String {
             i16::from_str_radix(&color[(hex_index + 5)..(hex_index + 7)], 16).unwrap()
         );
     } else if let Some(rgb_index) = color.find("RGB(") {
-        let rgb = &color[(rgb_index + 4)..(rgb_index + color[rgb_index..].find(")").unwrap())]
-            .split(",")
+        let rgb = &color[(rgb_index + 4)..(rgb_index + color[rgb_index..].find(')').unwrap())]
+            .split(',')
             .map(|x| x.trim().parse::<usize>().unwrap())
             .collect::<Vec<usize>>();
 
         code += &format!("38;2;{};{};{}", rgb[0], rgb[1], rgb[2]);
-    } else {
-        if color.contains("BRIGHT") {
-            if color.contains("BLACK") {
-                code += "90";
-            } else if color.contains("RED") {
-                code += "91";
-            } else if color.contains("GREEN") {
-                code += "92";
-            } else if color.contains("YELLOW") {
-                code += "93";
-            } else if color.contains("BLUE") {
-                code += "94";
-            } else if color.contains("MAGENTA") {
-                code += "95";
-            } else if color.contains("CYAN") {
-                code += "96";
-            } else if color.contains("WHITE") {
-                code += "97";
-            } else {
-                return "".to_owned();
-            }
+    } else if color.contains("BRIGHT") {
+        if color.contains("BLACK") {
+            code += "90";
+        } else if color.contains("RED") {
+            code += "91";
+        } else if color.contains("GREEN") {
+            code += "92";
+        } else if color.contains("YELLOW") {
+            code += "93";
+        } else if color.contains("BLUE") {
+            code += "94";
+        } else if color.contains("MAGENTA") {
+            code += "95";
+        } else if color.contains("CYAN") {
+            code += "96";
+        } else if color.contains("WHITE") {
+            code += "97";
         } else {
-            if color.contains("BLACK") {
-                code += "30";
-            } else if color.contains("RED") {
-                code += "31";
-            } else if color.contains("GREEN") {
-                code += "32";
-            } else if color.contains("YELLOW") {
-                code += "33";
-            } else if color.contains("BLUE") {
-                code += "34";
-            } else if color.contains("MAGENTA") {
-                code += "35";
-            } else if color.contains("CYAN") {
-                code += "36";
-            } else if color.contains("WHITE") {
-                code += "37";
-            } else {
-                return "".to_owned();
-            }
+            return "".to_owned();
         }
+    } else if color.contains("BLACK") {
+        code += "30";
+    } else if color.contains("RED") {
+        code += "31";
+    } else if color.contains("GREEN") {
+        code += "32";
+    } else if color.contains("YELLOW") {
+        code += "33";
+    } else if color.contains("BLUE") {
+        code += "34";
+    } else if color.contains("MAGENTA") {
+        code += "35";
+    } else if color.contains("CYAN") {
+        code += "36";
+    } else if color.contains("WHITE") {
+        code += "37";
+    } else {
+        return "".to_owned();
     }
 
     code += &bg;
@@ -240,7 +236,7 @@ impl Colorizer for str {
     fn colorize(&self, code: &str) -> String {
         let esc_code = colour(code);
 
-        if esc_code == "" {
+        if esc_code.is_empty() {
             self.to_owned()
         } else {
             esc_code + self + "\x1b[0m"
@@ -279,7 +275,7 @@ impl Colorizer for str {
 
         while let Some(start) = text.find("\x1b[") {
             text = text.replace(
-                &text[start..(start + text[start..].find("m").unwrap() + 1)],
+                &text[start..(start + text[start..].find('m').unwrap() + 1)],
                 "",
             );
         }

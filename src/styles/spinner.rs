@@ -33,8 +33,8 @@ impl Spinner {
                 .iter()
                 .map(|x| x.to_string())
                 .collect::<Vec<String>>(),
-            interval: interval,
-            speed: speed,
+            interval,
+            speed,
         }
     }
 
@@ -56,14 +56,14 @@ impl Spinner {
             .collect::<Vec<&str>>()
             .repeat((ncols as f32 / self.frames.len() as f32) as usize + 2);
         let pulse_len = pulse.len();
-        let offset = (elapsed_time * 15 as f32) as i16 % self.frames.len() as i16;
+        let offset = (elapsed_time * 15_f32) as i16 % self.frames.len() as i16;
         let mut pulse_string = String::new();
 
         for i in offset..(offset + ncols) {
             if 0 > i {
-                pulse_string += &pulse[pulse_len - (-i as usize)];
+                pulse_string += pulse[pulse_len - (-i as usize)];
             } else {
-                pulse_string += &pulse[i as usize];
+                pulse_string += pulse[i as usize];
             }
         }
 

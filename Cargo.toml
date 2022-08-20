@@ -26,6 +26,9 @@ gradient = ["dep:colorgrad"]
 [workspace]
 members = ["examples/miscellaneous/file_download"]
 
+[package.metadata.docs.rs]
+all-features = true
+
 [[example]]
 name = "coloured_gradient"
 path = "examples/coloured/gradient.rs"

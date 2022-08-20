@@ -10,5 +10,5 @@ fn main() {
         pb.write(format!("Done task {}", i));
     }
 
-    eprint!("\n");
+    eprintln!();
 }
