@@ -66,7 +66,7 @@ Add this to your Cargo.toml file.
 
 ```toml
 [dependencies]
-kdam = "0.2"
+kdam = "0.2.4"
 
 # Or add from github main branch.
 kdam = { git = "https://github.com/clitic/kdam.git", branch = "main" }
@@ -75,7 +75,7 @@ kdam = { git = "https://github.com/clitic/kdam.git", branch = "main" }
 Or add from command line.
 
 ```bash
-$ cargo add kdam@0.2
+$ cargo add kdam
 ```
 
 See [docs](https://docs.rs/kdam/latest/kdam) and [examples](https://github.com/clitic/kdam/tree/main/examples) to 

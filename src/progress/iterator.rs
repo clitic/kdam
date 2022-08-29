@@ -8,6 +8,7 @@ pub struct BarIterator<T> {
     pub iterable: T,
     /// Instance of [Bar](crate::Bar) to display progress updates for iterable.
     pub pb: Bar,
+    started: bool,
 }
 
 impl<T: Iterator> BarIterator<T> {
@@ -19,6 +20,7 @@ impl<T: Iterator> BarIterator<T> {
         BarIterator {
             iterable,
             pb,
+            started: false,
         }
     }
 
@@ -29,6 +31,7 @@ impl<T: Iterator> BarIterator<T> {
         let mut pb_iter = BarIterator {
             iterable,
             pb,
+            started: false,
         };
 
         if pb_iter.pb.indefinite() {
@@ -63,10 +66,11 @@ impl<S, T: Iterator<Item = S>> Iterator for BarIterator<T> {
     type Item = S;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.pb.started() {
+        if self.started {
             self.pb.update(1);
         } else {
             self.pb.refresh();
+            self.started = true;
         }
 
         self.iterable.next()
@@ -75,10 +79,11 @@ impl<S, T: Iterator<Item = S>> Iterator for BarIterator<T> {
 
 impl<T: DoubleEndedIterator> DoubleEndedIterator for BarIterator<T> {
     fn next_back(&mut self) -> Option<Self::Item> {
-        if self.pb.started() {
+        if self.started {
             self.pb.update(1);
         } else {
             self.pb.refresh();
+            self.started = true;
         }
 
         self.iterable.next_back()

@@ -1,6 +1,12 @@
 # kdam Changelog (DD/MM/YYYY)
 
-## 0.2.3 (08/19/2022)
+## 0.2.3 (29/08/2022)
+
+Bug Fixes:
+
+- Fixed `tqdm!(iter)` pattern according to [ISSUE #4](https://github.com/clitic/kdam/issues/4).
+
+## 0.2.3 (19/08/2022)
 
 Features:
 
