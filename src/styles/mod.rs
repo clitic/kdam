@@ -1,8 +1,8 @@
 mod animation;
 mod spinner;
 
-pub mod rich;
 pub mod format;
+pub mod rich;
 
 pub use animation::*;
 pub use spinner::*;

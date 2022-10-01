@@ -89,7 +89,9 @@ macro_rules! _impl_bar_methods {
 
             fn write<T: Into<String>>(&mut self, text: T) {
                 self.pb.clear();
-                self.pb.get_writer().print(format_args!("\r{}\n", text.into()));
+                self.pb
+                    .get_writer()
+                    .print(format_args!("\r{}\n", text.into()));
 
                 if self.pb.get_leave() {
                     self.refresh();

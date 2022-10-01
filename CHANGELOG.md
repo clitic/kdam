@@ -1,14 +1,21 @@
-# kdam Changelog (DD/MM/YYYY)
+# Changelog
 
-## 0.2.3 (29/08/2022)
+All notable changes to this project will be documented in this file.
 
-Bug Fixes:
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+## [0.2.3] - 2022-08-29
+
+### Fixed
 
 - Fixed `tqdm!(iter)` pattern according to [ISSUE #4](https://github.com/clitic/kdam/issues/4).
 
-## 0.2.3 (19/08/2022)
+## [0.2.3] - 2022-08-19
 
-Features:
+### Added
 
 - Number of columns of progress bar can now be adjusted by KDAM_NCOLS envoirnment variable.
 - New `kdam::RowManager` for managing many progress bars. [ISSUE #3](https://github.com/clitic/kdam/issues/3)
@@ -19,68 +26,68 @@ Features:
     - `kdam::Spinner`
     - `tqdm!(spinner=..)`
 
-Changes:
+### Changed
 
 -  `eprint_at!` replaced with `Writer::Stderr.print_at`.
 - `kdam::BarMethods` renamed to `kdam::BarExt`.
 - `wrap` field removed from `kdam::Bar`.
 
-Bug Fixes:
+### Fixed
 
 - Fixed `BarMethods::clear` method for bar position above 0.
   
-## 0.2.2 (24/07/2022)
+## [0.2.2] - 2022-07-24
 
-Features:
+### Added
 
 - New `kdam::BarBuilder` struct.
 - Implemented `From<&str>` for `kdam::Animation` and `kdam::term::Writer`.
 
-Changes:
+### Changed
 
 - All fields in `kdam::Bar` are private.
 - `tqdm` macro now uses `kdam::BarBuilder` for setting values instead of setting values in `kdam::Bar` directly.
 - `&str` consuming methods are switched with generic `Into<String>` trait.
 - `kdam::term::get_columns` is now renamed to `kdam::term::get_columns_or`.
 
-## 0.2.1 (21/07/2022)
+## [0.2.1] - 2022-07-21
 
-Features:
+### Added
 
 - Added `reset` method `BarMethods` trait.
 - New `initial` field for `kdam::Bar`.
 
-## 0.2.0 (21/07/2022)
+## [0.2.0] - 2022-07-21
 
-Features:
+### Added
 
 - Optimizations for printing mechanism.
 - Optimized rich pulsating bars.
 
-Changes:
+### Changed
 
 - There are many changes in API please read [documentation](https://docs.rs/kdam/0.2.0/kdam/index.html).
 
-Bug Fixes:
+### Fixed
 
 - Fixed `Animation::Classic` animation lags.
 
-## 0.1.7 (18/05/2022)
+## [0.1.7] - 2022-05-18
 
-Bug Fixes:
+### Fixed
 
 - Fixed displaying counter instead of total value.
 
-## 0.1.6 (11/05/2022)
+## [0.1.6] - 2022-05-11
 
-Features:
+### Added
 
 - Several optimizations (reduced memory consumption by 30%).
 - [rich.progress](https://rich.readthedocs.io/en/latest/progress.html) style progress bar support with custom builder.
 - Monitor mode is now supported. Use `kdam::monitor`.
 - New `wrap` field for `kdam::Bar`.
 
-Changes:
+### Changed
 
 - `lock` module has now `AtomicBool` lock.
 - `ascii` and few more fields are removed from `kdam::Bar`.
@@ -88,27 +95,33 @@ Changes:
 - All `u64` data types are changed to `usize`.
 - Spinner removed from unbounded progress bar
 
-Bug Fixes:
+### Fixed
 
 - Unexcepted default print with fira code animation.
 - `refresh` method fixed when using `max_fps = true`.
 - Fixed `set_ncols` method to use full terminal length.
 
-## 0.1.2 (28/04/2022)
+## [0.1.2] - 2022-04-28
 
-Features:
+### Added
 
 - [Fira Code](https://github.com/tonsky/FiraCode) animation style i.e. `kdam::Animation::FiraCode`.
 - Spinner for unknown length progress bar.
 - A method to `set_position` is added to `kdam::Bar` by referring issue [#1](https://github.com/clitic/kdam/issues/1)
 - Support to take input into a `String` by method `input`.
 
-Bug Fixes:
+### Fixed
 
 - `set_colour` method of `kdam::Bar` is fixed.
 
-## 0.1.0 (20/03/2022)
+## [0.1.0] - 2022-03-20
 
-Features:
-
-- Initial release
+[Unreleased]: https://github.com/clitic/kdam/compare/fd14805...HEAD
+[0.2.4]: https://github.com/clitic/kdam/compare/970d9d9...fd14805
+[0.2.3]: https://github.com/clitic/kdam/compare/15a5398...970d9d9
+[0.2.2]: https://github.com/clitic/kdam/compare/8dee1ec...15a5398
+[0.2.1]: https://github.com/clitic/kdam/compare/80e2ea0...8dee1ec
+[0.2.0]: https://github.com/clitic/kdam/compare/212923c...80e2ea0
+[0.1.6]: https://github.com/clitic/kdam/compare/323c3fa...212923c
+[0.1.2]: https://github.com/clitic/kdam/compare/3f910c3...323c3fa
+[0.1.0]: https://github.com/clitic/kdam/compare/58b20a4...3f910c3

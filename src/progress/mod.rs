@@ -1,9 +1,9 @@
 mod bar;
-mod iterator;
 mod extensions;
+mod iterator;
 mod rich;
 
 pub use bar::*;
-pub use iterator::*;
 pub use extensions::*;
+pub use iterator::*;
 pub use rich::*;

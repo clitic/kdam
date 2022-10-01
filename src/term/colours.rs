@@ -218,7 +218,7 @@ pub trait Colorizer {
     ///
     /// ```rust
     /// use kdam::prelude::*;
-    /// 
+    ///
     /// println!("{}", "text".gradient_text(&["#5A56E0", "#EE6FF8"]));
     /// ```
     #[cfg(feature = "gradient")]

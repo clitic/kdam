@@ -9,12 +9,12 @@ pub struct Spinner {
 
 impl Spinner {
     /// Create a new instance of [Spinner](crate::Spinner).
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// ```
     /// use kdam::Spinner;
-    /// 
+    ///
     /// let spinner = Spinner::new(
     ///     &[
     ///         "▁▂▃", "▂▃▄", "▃▄▅", "▄▅▆", "▅▆▇",
@@ -24,7 +24,7 @@ impl Spinner {
     ///     30.0,
     ///     1.0
     /// );
-    /// 
+    ///
     /// println!("{}", spinner.render_frame(2.89));
     /// ```
     pub fn new(frames: &[&str], interval: f32, speed: f32) -> Self {

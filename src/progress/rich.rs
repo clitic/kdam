@@ -139,11 +139,8 @@ fn render(progress: &mut RichProgress) -> String {
             }
 
             Column::CountTotal => {
-                let fmt_progress = format!(
-                    "{}/{}",
-                    progress.pb.fmt_counter(),
-                    progress.pb.fmt_total()
-                );
+                let fmt_progress =
+                    format!("{}/{}", progress.pb.fmt_counter(), progress.pb.fmt_total());
                 bar_length += fmt_progress.chars().count();
                 bar_text.push(fmt_progress.colorize("green"));
             }
@@ -218,15 +215,14 @@ fn render(progress: &mut RichProgress) -> String {
         if progress.pb.indefinite() || !progress.pb.started() {
             pb = crate::styles::rich::pulse(progress.pb.get_ncols(), et);
         } else {
-            pb = crate::styles::rich::bar(
-                progress.pb.percentage() as f32,
-                progress.pb.get_ncols(),
-            );
+            pb = crate::styles::rich::bar(progress.pb.percentage() as f32, progress.pb.get_ncols());
         }
 
         let _ = std::mem::replace(&mut bar_text[progress_bar_index.unwrap()], pb);
     }
 
-    progress.pb.set_bar_length(bar_length as i16 + progress.pb.get_ncols());
+    progress
+        .pb
+        .set_bar_length(bar_length as i16 + progress.pb.get_ncols());
     bar_text.join(" ")
 }

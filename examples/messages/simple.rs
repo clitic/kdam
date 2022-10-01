@@ -10,6 +10,6 @@ fn main() {
         pb.set_description(format!("GEN {}", i));
         pb.update(1);
     }
-    
+
     eprintln!();
 }

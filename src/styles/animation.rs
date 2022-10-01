@@ -145,9 +145,8 @@ impl Animation {
                     bar_animation += charset[frac_bar_length + 1];
 
                     if let Some(filling) = fill {
-                        bar_animation += &filling
-                            
-                            .repeat((ncols - (bar_length as i16) - 1) as usize);
+                        bar_animation +=
+                            &filling.repeat((ncols - (bar_length as i16) - 1) as usize);
                     } else {
                         bar_animation += &" ".repeat((ncols - (bar_length as i16) - 1) as usize);
                     }

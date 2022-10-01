@@ -56,7 +56,7 @@ pub struct Bar {
     bar_length: i16,
     counter: usize,
     timer: std::time::Instant,
-    elapsed_time: f32,
+    pub elapsed_time: f32,
     user_ncols: Option<i16>,
 }
 
@@ -645,7 +645,9 @@ impl BarExt for Bar {
                     .animation
                     .progress(self.percentage() as f32, self.ncols);
 
-                if self.colour.to_uppercase().starts_with("GRADIENT(") && !cfg!(feature = "gradient") {
+                if self.colour.to_uppercase().starts_with("GRADIENT(")
+                    && !cfg!(feature = "gradient")
+                {
                     panic!("Enable cargo feature `gradient` to use gradient colours.");
                 }
 
@@ -934,9 +936,9 @@ impl BarBuilder {
 /// See all available [methods](https://docs.rs/kdam/latest/kdam/struct.BarBuilder.html).
 ///
 /// # Panics
-/// 
+///
 /// This macro will panic if [BarBuilder::build](crate::BarBuilder::build) method returns error.
-/// 
+///
 /// # Examples
 ///
 /// ```rust

@@ -9,7 +9,11 @@ fn main() {
     let mut manager = RowManager::new(3);
 
     for (i, total) in [150, 100, 200, 400, 500, 600].iter().enumerate() {
-        manager.append(tqdm!(total = *total, desc = format!("BAR {}", i), force_refresh = true));
+        manager.append(tqdm!(
+            total = *total,
+            desc = format!("BAR {}", i),
+            force_refresh = true
+        ));
     }
 
     let manager = Arc::new(Mutex::new(manager));
