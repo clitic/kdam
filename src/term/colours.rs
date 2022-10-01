@@ -210,6 +210,7 @@ pub trait Colorizer {
     /// println!("{}", "text".gradient(&["#5A56E0", "#EE6FF8"], 4));
     /// ```
     #[cfg(feature = "gradient")]
+	#[cfg_attr(docsrs, doc(cfg(feature = "gradient")))]
     fn gradient<'a>(&'a self, codes: &[&str], len: usize) -> String;
 
     /// Apply linear gradient ansi escape codes from html colours to the given text.
@@ -222,6 +223,7 @@ pub trait Colorizer {
     /// println!("{}", "text".gradient_text(&["#5A56E0", "#EE6FF8"]));
     /// ```
     #[cfg(feature = "gradient")]
+	#[cfg_attr(docsrs, doc(cfg(feature = "gradient")))]
     fn gradient_text<'a>(&'a self, codes: &[&str]) -> String;
 
     /// Inverse of colorize method.

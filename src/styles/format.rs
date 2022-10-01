@@ -21,7 +21,7 @@ pub fn format_sizeof(num: f64, divisor: f64) -> String {
         }
         value /= divisor;
     }
-    return format!("{:3.1}Y", value);
+    format!("{:3.1}Y", value)
 }
 
 /// Formats a number of seconds as a clock time, \[H:\]MM:SS and SSs.
@@ -34,9 +34,9 @@ pub fn format_interval(seconds: usize, human: bool) -> String {
     let (hours, minutes) = divmod(minutes, 60);
 
     if hours == 0 {
-        return format!("{:02}:{:02}", minutes, seconds);
+        format!("{:02}:{:02}", minutes, seconds)
     } else {
-        return format!("{:02}:{:02}:{:02}", hours, minutes, seconds);
+        format!("{:02}:{:02}:{:02}", hours, minutes, seconds)
     }
 }
 
