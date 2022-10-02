@@ -121,7 +121,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.2.3]: https://github.com/clitic/kdam/compare/15a5398...970d9d9
 [0.2.2]: https://github.com/clitic/kdam/compare/8dee1ec...15a5398
 [0.2.1]: https://github.com/clitic/kdam/compare/80e2ea0...8dee1ec
-[0.2.0]: https://github.com/clitic/kdam/compare/212923c...80e2ea0
+[0.2.0]: https://github.com/clitic/kdam/compare/2e500d0...80e2ea0
+[0.1.7]: https://github.com/clitic/kdam/compare/212923c...2e500d0
 [0.1.6]: https://github.com/clitic/kdam/compare/323c3fa...212923c
 [0.1.2]: https://github.com/clitic/kdam/compare/3f910c3...323c3fa
 [0.1.0]: https://github.com/clitic/kdam/compare/58b20a4...3f910c3
