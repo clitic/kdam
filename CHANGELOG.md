@@ -130,7 +130,7 @@ and this project do not adheres to [Semantic Versioning](https://semver.org/spec
 ## [0.1.0] - 2022-03-20
 
 [Unreleased]: https://github.com/clitic/kdam/compare/a206ef9...HEAD
-[0.2.5]: https://github.com/clitic/kdam/compare/7b6497d...a206ef9
+[0.2.6]: https://github.com/clitic/kdam/compare/7b6497d...a206ef9
 [0.2.5]: https://github.com/clitic/kdam/compare/fd14805...7b6497d
 [0.2.4]: https://github.com/clitic/kdam/compare/970d9d9...fd14805
 [0.2.3]: https://github.com/clitic/kdam/compare/15a5398...970d9d9
