@@ -1,5 +1,5 @@
 // [dependencies]
-// kdam = { version = "0.2.6", features = ["template", "gradient"] }
+// kdam = { version = "0.2.7", features = ["template", "gradient"] }
 
 use kdam::prelude::*;
 

@@ -1,6 +1,6 @@
 [package]
 name = "kdam"
-version = "0.2.6"
+version = "0.2.7"
 description = "Ultimate console progress bar"
 authors = ["clitic <clitic21@gmail.com>"]
 repository = "https://github.com/clitic/kdam"

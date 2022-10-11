@@ -1,4 +1,6 @@
+#![cfg_attr(docsrs, feature(doc_cfg))]
 // #![doc=include_str!("../README.md")]
+
 //! Ultimate console progress bar for Rust.
 //!
 //! Inspired by [tqdm](https://github.com/tqdm/tqdm) & [rich.progress](https://rich.readthedocs.io/en/latest/progress.html)
