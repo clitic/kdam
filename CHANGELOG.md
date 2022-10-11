@@ -7,6 +7,8 @@ and this project do not adheres to [Semantic Versioning](https://semver.org/spec
 
 ## [Unreleased]
 
+## [0.2.6] - 2022-10-11
+
 ## [0.2.5] - 2022-10-11
 
 ### Changed
@@ -127,7 +129,8 @@ and this project do not adheres to [Semantic Versioning](https://semver.org/spec
 
 ## [0.1.0] - 2022-03-20
 
-[Unreleased]: https://github.com/clitic/kdam/compare/7b6497d...HEAD
+[Unreleased]: https://github.com/clitic/kdam/compare/...HEAD
+[0.2.5]: https://github.com/clitic/kdam/compare/7b6497d...
 [0.2.5]: https://github.com/clitic/kdam/compare/fd14805...7b6497d
 [0.2.4]: https://github.com/clitic/kdam/compare/970d9d9...fd14805
 [0.2.3]: https://github.com/clitic/kdam/compare/15a5398...970d9d9

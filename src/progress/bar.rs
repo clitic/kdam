@@ -717,7 +717,7 @@ impl BarExt for Bar {
     }
 }
 
-/// Create `kdam::Bar` with custom configurations.
+/// Create [Bar](crate::Bar) with custom configurations.
 ///
 /// # Example
 ///
