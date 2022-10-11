@@ -1,5 +1,6 @@
 use crate::term::Colorizer;
 
+/// Panics ->  capacity overflow, if ncols == 0
 pub(crate) fn bar(progress: f32, ncols: i16) -> String {
     if progress >= 1.0 {
         "━".repeat(ncols as usize).colorize("#729c1f")

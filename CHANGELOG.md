@@ -3,9 +3,20 @@
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+and this project do not adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for now.
 
 ## [Unreleased]
+
+## [0.2.5] - 2022-10-11
+
+### Changed
+
+- Templating abilites are put under an feature named `template`.
+
+### Fixed
+
+- capacity overflow for `RichProgress` for very small window size.
+- Gradient progress bar
 
 ## [0.2.4] - 2022-08-29
 
@@ -116,7 +127,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.0] - 2022-03-20
 
-[Unreleased]: https://github.com/clitic/kdam/compare/fd14805...HEAD
+[Unreleased]: https://github.com/clitic/kdam/compare/...HEAD
+[0.2.5]: https://github.com/clitic/kdam/compare/fd14805...
 [0.2.4]: https://github.com/clitic/kdam/compare/970d9d9...fd14805
 [0.2.3]: https://github.com/clitic/kdam/compare/15a5398...970d9d9
 [0.2.2]: https://github.com/clitic/kdam/compare/8dee1ec...15a5398

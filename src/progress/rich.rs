@@ -84,18 +84,16 @@ impl Column {
 /// use kdam::prelude::*;
 /// use kdam::{Column, RichProgress};
 ///
-/// fn main() {
-///     let mut pb = RichProgress::new(
-///         tqdm!(total = 100),
-///         vec![Column::Bar, Column::Percentage(2)]
-///     );
+/// let mut pb = RichProgress::new(
+///     tqdm!(total = 100),
+///     vec![Column::Bar, Column::Percentage(2)]
+/// );
 ///
-///     for _ in 0..100 {
-///         pb.update(1);
-///     }
-///
-///     eprint!("\n");
+/// for _ in 0..100 {
+///     pb.update(1);
 /// }
+///
+/// eprint!("\n");
 /// ```
 #[derive(Debug)]
 pub struct RichProgress {
@@ -113,7 +111,8 @@ impl RichProgress {
 
     /// Replace a column value at specific index.
     pub fn replace(&mut self, index: usize, col: Column) {
-        let _ = std::mem::replace(&mut self.columns[index], col);
+        *self.columns.get_mut(index).unwrap() = col;
+        // let _ = std::mem::replace(&mut self.columns[index], col);
     }
 }
 
@@ -129,7 +128,7 @@ fn render(progress: &mut RichProgress) -> String {
         match col {
             Column::Bar => {
                 progress_bar_index = Some(bar_text.len());
-                bar_text.push("".to_owned());
+                bar_text.push(String::new());
             }
 
             Column::Count => {
@@ -180,7 +179,7 @@ fn render(progress: &mut RichProgress) -> String {
                 let color = match (text.find('['), text.find(']')) {
                     (Some(start), Some(end)) => {
                         if start == 0 {
-                            Some(&text[(start + 1)..(end)])
+                            text.get(1..end)
                         } else {
                             None
                         }
@@ -190,10 +189,10 @@ fn render(progress: &mut RichProgress) -> String {
 
                 if let Some(code) = color {
                     let text = text.replace(&format!("[{}]", code), "");
-                    bar_length += text.chars().count();
+                    bar_length += text.len_ansi();
                     bar_text.push(text.colorize(code));
                 } else {
-                    bar_length += text.chars().count();
+                    bar_length += text.len_ansi();
                     bar_text.push(text);
                 }
             }
@@ -207,22 +206,26 @@ fn render(progress: &mut RichProgress) -> String {
     }
 
     bar_length += bar_text.len() - 1;
+    let mut ncols = 0;
 
-    if progress_bar_index.is_some() {
+    if let Some(progress_bar_index) = progress_bar_index {
         progress.pb.adjust_ncols(bar_length as i16);
-        let pb;
+        ncols = progress.pb.get_ncols();
 
-        if progress.pb.indefinite() || !progress.pb.started() {
-            pb = crate::styles::rich::pulse(progress.pb.get_ncols(), et);
+        if ncols == 0 {
+            let _ = bar_text.remove(progress_bar_index);
         } else {
-            pb = crate::styles::rich::bar(progress.pb.percentage() as f32, progress.pb.get_ncols());
+            *bar_text.get_mut(progress_bar_index).unwrap() =
+                if progress.pb.indefinite() || !progress.pb.started() {
+                    crate::styles::rich::pulse(ncols, et)
+                } else {
+                    crate::styles::rich::bar(progress.pb.percentage() as f32, ncols)
+                };
         }
-
-        let _ = std::mem::replace(&mut bar_text[progress_bar_index.unwrap()], pb);
     }
 
     progress
         .pb
-        .set_bar_length(bar_length as i16 + progress.pb.get_ncols());
+        .set_bar_length(bar_length as i16 + ncols);
     bar_text.join(" ")
 }

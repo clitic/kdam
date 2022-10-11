@@ -14,17 +14,15 @@ use std::collections::HashSet;
 /// use kdam::prelude::*;
 /// use kdam::RowManager;
 ///
-/// fn main() {
-///     let mut manager = RowManager::new(3);
-///     let pb_index = manager.append(tqdm!(total = 100));
+/// let mut manager = RowManager::new(3);
+/// let pb_index = manager.append(tqdm!(total = 100));
 ///
-///     for _ in 0..100 {
-///         manager.get_mut(pb_index).unwrap().update(1);
-///         manager.notify(pb_index);
-///     }
-///     
-///     manager.bars.remove(pb_index);
+/// for _ in 0..100 {
+///     manager.get_mut(pb_index).unwrap().update(1);
+///     manager.notify(pb_index);
 /// }
+/// 
+/// manager.bars.remove(pb_index);
 /// ```
 pub struct RowManager {
     acquired_pos: HashSet<u16>,
@@ -80,6 +78,7 @@ impl RowManager {
     }
 
     /// Returns the number of progress bars.
+    #[allow(clippy::len_without_is_empty)]
     pub fn len(&self) -> usize {
         self.bars.len()
     }

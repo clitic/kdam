@@ -16,16 +16,22 @@
 //! ```rust
 //! use kdam::prelude::*;
 //!
-//! fn main() {
-//!     let mut pb = tqdm!(total = 100);
+//! let mut pb = tqdm!(total = 100);
 //!
-//!     for _ in 0..100 {
-//!         pb.update(1);
-//!     }
-//!
-//!     eprint!("\n");
+//! for _ in 0..100 {
+//!     pb.update(1);
 //! }
+//!
+//! eprint!("\n");
 //! ```
+//! 
+//! ## Optional Features
+//!
+//! The following are a list of [cargo features][cargo-features] that can be
+//! enabled.
+//!
+//! - **template**: Enables templating capabilities for [Bar](crate::Bar).
+//! - **gradient**: Enables gradient colours for progress bars and printing text.
 
 mod progress;
 mod styles;

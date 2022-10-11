@@ -3,8 +3,10 @@ use crate::progress::BarExt;
 use crate::styles::{Animation, Spinner};
 use crate::term::{Colorizer, Writer};
 use crate::thread::lock;
-use formatx::Template;
 use std::io::Write;
+
+#[cfg(feature = "template")]
+use formatx::Template;
 
 /// Core implemention of console progress bar.
 ///
@@ -16,20 +18,19 @@ use std::io::Write;
 /// use kdam::prelude::*;
 /// use kdam::Bar;
 ///
-/// fn main() {
-///     let mut pb = Bar::new(100);
-///     // let mut pb = tqdm!(total = 100);
-///     // let mut pb = Bar::builder().total(100).build();
+/// let mut pb = Bar::new(100);
+/// // let mut pb = tqdm!(total = 100);
+/// // let mut pb = Bar::builder().total(100).build();
 ///
-///     for _ in 0..100 {
-///         pb.update(1);
-///     }
+/// for _ in 0..100 {
+///     pb.update(1);
 /// }
 /// ```
 #[derive(Debug)]
 pub struct Bar {
     // CUSTOMIZABLE FIELDS
     animation: Animation,
+    #[cfg(feature = "template")]
     bar_format: Option<Template>,
     colour: String,
     delay: f32,
@@ -76,6 +77,7 @@ impl Default for Bar {
             unit_scale: false,
             dynamic_ncols: false,
             initial: 0,
+            #[cfg(feature = "template")]
             bar_format: None,
             position: 0,
             postfix: "".to_string(),
@@ -202,6 +204,8 @@ impl Bar {
     }
 
     /// Set/Modify bar_format property.
+    #[cfg(feature = "template")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "template")))]
     pub fn set_bar_format<T: Into<String>>(&mut self, bar_format: T) -> Result<(), formatx::Error> {
         self.bar_format = Some(bar_format.into().parse::<formatx::Template>()?);
         Ok(())
@@ -388,10 +392,10 @@ impl Bar {
             self.writer.print(format_args!("\r{}", text));
         } else {
             self.writer.print(format_args!(
-                "{}{}{}",
+                "{}{}\x1b[{}A",
                 "\n".repeat(self.position as usize),
                 text,
-                format!("\x1b[{}A", self.position)
+                self.position
             ));
         }
     }
@@ -489,76 +493,16 @@ impl BarExt for Bar {
     fn render(&mut self) -> String {
         self.elapsed_time();
 
-        if self.bar_format.is_none() {
-            let desc = if self.desc.is_empty() {
-                "".to_owned()
-            } else {
-                format!("{}: ", self.desc)
-            };
-
-            if self.indefinite() {
-                let bar = format!(
-                    "{}{}{} [{}, {}{}]",
-                    desc,
-                    self.fmt_counter(),
-                    self.unit,
-                    self.fmt_elapsed_time(),
-                    self.fmt_rate(),
-                    self.postfix
-                );
-
-                if !self.leave && self.position != 0 {
-                    return format!(
-                        "{}\r",
-                        " ".repeat(crate::term::get_columns_or(self.bar_length as u16) as usize)
-                    );
-                }
-
-                return bar;
-            }
-
-            let progress = self.percentage() as f32;
-
-            if progress >= 1.0 {
-                self.total = self.counter;
-
-                if !self.leave && self.position != 0 {
-                    return format!(
-                        "{}\r",
-                        " ".repeat(crate::term::get_columns_or(self.bar_length as u16) as usize)
-                    );
-                }
-            }
-
-            let lbar = desc + &self.fmt_percentage(0);
-            let rbar = format!(
-                " {}/{} [{}<{}, {}{}]",
-                self.fmt_counter(),
-                self.fmt_total(),
-                self.fmt_elapsed_time(),
-                self.fmt_remaining_time(),
-                self.fmt_rate(),
-                self.postfix,
-            );
-
-            self.adjust_ncols(
-                (format!("{}{}", lbar, rbar).len_ansi() + self.animation.spaces() as usize) as i16,
-            );
-
-            if self.ncols <= 0 {
-                return lbar + &rbar;
-            }
-
-            lbar + &self
-                .animation
-                .fmt_progress(progress, self.ncols, &self.colour)
-                + &rbar
-        } else {
+        #[cfg(feature = "template")]
+        if self.bar_format.is_some() {
             let mut bar_format = self.bar_format.as_ref().unwrap().clone();
 
             bar_format.replace_with_callback("desc", &self.desc, |fmtval, placeholder| {
                 if !self.desc.is_empty() {
-                    fmtval + &placeholder.attr("suffix").unwrap_or(": ".to_owned())
+                    fmtval
+                        + &placeholder
+                            .attr("suffix")
+                            .unwrap_or_else(|| ": ".to_owned())
                 } else {
                     fmtval
                 }
@@ -593,7 +537,7 @@ impl BarExt for Bar {
             bar_format.replace_from_callback("elapsed", |placeholder| {
                 let human = placeholder
                     .attr("human")
-                    .unwrap_or("false".to_owned())
+                    .unwrap_or_else(|| "false".to_owned())
                     .parse::<bool>()
                     .unwrap_or(false);
                 placeholder
@@ -610,7 +554,7 @@ impl BarExt for Bar {
                 } else {
                     let human = placeholder
                         .attr("human")
-                        .unwrap_or("false".to_owned())
+                        .unwrap_or_else(|| "false".to_owned())
                         .parse::<bool>()
                         .unwrap_or(false);
                     placeholder
@@ -645,21 +589,94 @@ impl BarExt for Bar {
                     .animation
                     .progress(self.percentage() as f32, self.ncols);
 
-                if self.colour.to_uppercase().starts_with("GRADIENT(")
-                    && !cfg!(feature = "gradient")
-                {
-                    panic!("Enable cargo feature `gradient` to use gradient colours.");
-                }
+                if self.colour.to_lowercase().starts_with("gradient(") {
+                    #[cfg(feature = "gradient")]
+                    return fmtval.gradient_text(
+                        &self
+                            .colour
+                            .to_lowercase()
+                            .trim_start_matches("gradient(")
+                            .trim_end_matches(')')
+                            .split(',')
+                            .map(|x| x.trim())
+                            .collect::<Vec<&str>>(),
+                    );
 
-                if self.colour != "default" {
+                    #[cfg(not(feature = "gradient"))]
+                    panic!("Enable cargo feature `gradient` to use gradient colours.");
+                } else if self.colour != "default" {
                     return fmtval.colorize(&self.colour);
                 }
 
                 fmtval
             });
 
-            bar_format.text().unwrap()
+            return bar_format.text().unwrap();
         }
+
+        let desc = if self.desc.is_empty() {
+            "".to_owned()
+        } else {
+            format!("{}: ", self.desc)
+        };
+
+        if self.indefinite() {
+            let bar = format!(
+                "{}{}{} [{}, {}{}]",
+                desc,
+                self.fmt_counter(),
+                self.unit,
+                self.fmt_elapsed_time(),
+                self.fmt_rate(),
+                self.postfix
+            );
+
+            if !self.leave && self.position != 0 {
+                return format!(
+                    "{}\r",
+                    " ".repeat(crate::term::get_columns_or(self.bar_length as u16) as usize)
+                );
+            }
+
+            return bar;
+        }
+
+        let progress = self.percentage() as f32;
+
+        if progress >= 1.0 {
+            self.total = self.counter;
+
+            if !self.leave && self.position != 0 {
+                return format!(
+                    "{}\r",
+                    " ".repeat(crate::term::get_columns_or(self.bar_length as u16) as usize)
+                );
+            }
+        }
+
+        let lbar = desc + &self.fmt_percentage(0);
+        let rbar = format!(
+            " {}/{} [{}<{}, {}{}]",
+            self.fmt_counter(),
+            self.fmt_total(),
+            self.fmt_elapsed_time(),
+            self.fmt_remaining_time(),
+            self.fmt_rate(),
+            self.postfix,
+        );
+
+        self.adjust_ncols(
+            (format!("{}{}", lbar, rbar).len_ansi() + self.animation.spaces() as usize) as i16,
+        );
+
+        if self.ncols <= 0 {
+            return lbar + &rbar;
+        }
+
+        lbar + &self
+            .animation
+            .fmt_progress(progress, self.ncols, &self.colour)
+            + &rbar
     }
 
     fn reset(&mut self, total: Option<usize>) {
@@ -712,6 +729,7 @@ impl BarExt for Bar {
 #[derive(Default)]
 pub struct BarBuilder {
     pb: Bar,
+    #[cfg(feature = "template")]
     bar_format: Option<String>,
 }
 
@@ -852,6 +870,8 @@ impl BarBuilder {
     /// | postfix     |                                                         | &#10004; (true) |
     /// | spinner     |                                                         | &#10060;        |
     /// | animation   |                                                         | &#10060;        |
+    #[cfg(feature = "template")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "template")))]
     pub fn bar_format<T: Into<String>>(mut self, bar_format: T) -> Self {
         self.bar_format = Some(bar_format.into());
         self
@@ -921,12 +941,19 @@ impl BarBuilder {
     }
 
     /// Build [Bar](crate::Bar)
-    pub fn build(mut self) -> Result<Bar, formatx::Error> {
+    ///
+    /// # Panics
+    ///
+    /// Only panics if bar_format syntax is incorrect.
+    ///
+    #[allow(unused_mut)]
+    pub fn build(mut self) -> Bar {
+        #[cfg(feature = "template")]
         if let Some(bar_format) = self.bar_format {
-            self.pb.set_bar_format(bar_format)?;
+            self.pb.set_bar_format(bar_format).unwrap();
         }
 
-        Ok(self.pb.init())
+        self.pb.init()
     }
 }
 
@@ -937,7 +964,7 @@ impl BarBuilder {
 ///
 /// # Panics
 ///
-/// This macro will panic if [BarBuilder::build](crate::BarBuilder::build) method returns error.
+/// This macro will panic if [BarBuilder::build](crate::BarBuilder::build) method panics.
 ///
 /// # Examples
 ///
@@ -954,7 +981,7 @@ impl BarBuilder {
 #[macro_export]
 macro_rules! tqdm {
     ($($setter_method: ident = $value: expr),*) => {
-        $crate::BarBuilder::default()$(.$setter_method($value))*.build().unwrap()
+        $crate::BarBuilder::default()$(.$setter_method($value))*.build()
     };
 
     ($iterable: expr) => {
@@ -962,6 +989,6 @@ macro_rules! tqdm {
     };
 
     ($iterable: expr, $($setter_method: ident = $value: expr),*) => {
-        $crate::BarIterator::new_with_bar($iterable, kdam::BarBuilder::default()$(.$setter_method($value))*.build().unwrap())
+        $crate::BarIterator::new_with_bar($iterable, kdam::BarBuilder::default()$(.$setter_method($value))*.build())
     };
 }

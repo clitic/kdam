@@ -38,12 +38,12 @@ impl Writer {
         match self {
             Self::Stderr => {
                 let mut writer = std::io::stderr();
-                writer.write(text.as_bytes()).unwrap();
+                writer.write_all(text.as_bytes()).unwrap();
                 writer.flush().unwrap();
             }
             Self::Stdout => {
                 let mut writer = std::io::stdout();
-                writer.write(text.as_bytes()).unwrap();
+                writer.write_all(text.as_bytes()).unwrap();
                 writer.flush().unwrap();
             }
         }

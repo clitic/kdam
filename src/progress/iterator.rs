@@ -102,17 +102,15 @@ where
     /// ```rust
     /// use kdam::prelude::*;
     ///
-    /// fn main() {
-    ///     let chars = ["a", "b", "c", "d"];
-    ///     let mut charset = String::new();
+    /// let chars = ["a", "b", "c", "d"];
+    /// let mut charset = String::new();
     ///
-    ///     for i in chars.iter().tqdm() {
-    ///         charset += i;
-    ///     }
-    ///
-    ///     eprint!("\n");
-    ///     assert_eq!(charset, "abcd");
+    /// for i in chars.iter().tqdm() {
+    ///     charset += i;
     /// }
+    ///
+    /// eprint!("\n");
+    /// assert_eq!(charset, "abcd");
     /// ```
     fn tqdm(self) -> BarIterator<Self>;
 

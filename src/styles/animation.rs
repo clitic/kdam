@@ -169,25 +169,34 @@ impl Animation {
             Self::FiraCode => (" ", ""),
         };
 
-        if colour.to_uppercase().starts_with("GRADIENT(") && !cfg!(feature = "gradient") {
-            panic!("Enable cargo feature `gradient` to use gradient colours.");
-        }
+        let progress = self.progress(progress, ncols);
 
-        if colour == "default" {
-            format!(
-                "{}{}{}",
-                bar_open,
-                self.progress(progress, ncols),
-                bar_close
-            )
-        } else {
-            format!(
-                "{}{}{}",
-                bar_open,
-                self.progress(progress, ncols).colorize(colour),
-                bar_close
-            )
-        }
+        format!(
+            "{}{}{}",
+            bar_open,
+            if colour.to_lowercase().starts_with("gradient(") {
+                #[cfg(feature = "gradient")]
+                {
+                    progress.gradient_text(
+                        &colour
+                            .to_lowercase()
+                            .trim_start_matches("gradient(")
+                            .trim_end_matches(')')
+                            .split(',')
+                            .map(|x| x.trim())
+                            .collect::<Vec<&str>>(),
+                    )
+                }
+
+                #[cfg(not(feature = "gradient"))]
+                panic!("Enable cargo feature `gradient` to use gradient colours.")
+            } else if colour != "default" {
+                progress.colorize(colour)
+            } else {
+                progress
+            },
+            bar_close
+        )
     }
 
     /// Returns extra spaces consumed by `self.fmt_progress`.

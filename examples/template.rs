@@ -1,3 +1,6 @@
+// [dependencies]
+// kdam = { version = "0.2.5", features = ["template"] }
+
 use kdam::prelude::*;
 use kdam::Spinner;
 

@@ -198,7 +198,7 @@ pub trait Colorizer {
     ///     " world!".colorize("rgb(255,255,255) on rgb(0,144,144)")
     /// );
     /// ```
-    fn colorize<'a>(&'a self, code: &str) -> String;
+    fn colorize(&self, code: &str) -> String;
 
     /// Apply linear gradient ansi escape codes from html colours to the given text with specific length.
     ///
@@ -210,8 +210,8 @@ pub trait Colorizer {
     /// println!("{}", "text".gradient(&["#5A56E0", "#EE6FF8"], 4));
     /// ```
     #[cfg(feature = "gradient")]
-	#[cfg_attr(docsrs, doc(cfg(feature = "gradient")))]
-    fn gradient<'a>(&'a self, codes: &[&str], len: usize) -> String;
+    #[cfg_attr(docsrs, doc(cfg(feature = "gradient")))]
+    fn gradient(&self, codes: &[&str], len: usize) -> String;
 
     /// Apply linear gradient ansi escape codes from html colours to the given text.
     ///
@@ -223,15 +223,15 @@ pub trait Colorizer {
     /// println!("{}", "text".gradient_text(&["#5A56E0", "#EE6FF8"]));
     /// ```
     #[cfg(feature = "gradient")]
-	#[cfg_attr(docsrs, doc(cfg(feature = "gradient")))]
-    fn gradient_text<'a>(&'a self, codes: &[&str]) -> String;
+    #[cfg_attr(docsrs, doc(cfg(feature = "gradient")))]
+    fn gradient_text(&self, codes: &[&str]) -> String;
 
     /// Inverse of colorize method.
     /// This method trims all ANSI escape codes from given string.
-    fn trim_ansi<'a>(&'a self) -> String;
+    fn trim_ansi(&self) -> String;
 
     /// Returns terminal display length of string using graphemes.
-    fn len_ansi<'a>(&'a self) -> usize;
+    fn len_ansi(&self) -> usize;
 }
 
 impl Colorizer for str {
