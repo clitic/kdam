@@ -1,4 +1,4 @@
-use kdam::prelude::*;
+use kdam::{tqdm, BarExt};
 
 fn main() {
     let render_length = 300;

@@ -1,17 +1,15 @@
 //! Monitor mode for progress bars.
 
+use crate::progress::{Bar, BarExt, RichProgress};
 use std::sync::{Arc, Mutex};
 use std::thread;
-
-use crate::prelude::*;
-use crate::{Bar, RichProgress};
 
 /// Monitor mode for [Bar](crate::Bar)
 ///
 /// # Example
 ///
 /// ```no_run
-/// use kdam::prelude::*;
+/// use kdam::{tqdm, BarExt};
 ///
 /// let pb = tqdm!(total = 100, force_refresh = true);
 /// let (pb_arc, monitor_thread) = kdam::monitor::bar(pb, 1.0);

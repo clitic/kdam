@@ -11,8 +11,7 @@ use std::collections::HashSet;
 /// # Example
 ///
 /// ```
-/// use kdam::prelude::*;
-/// use kdam::RowManager;
+/// use kdam::{tqdm, BarExt, RowManager};
 ///
 /// let mut manager = RowManager::new(3);
 /// let pb_index = manager.append(tqdm!(total = 100));

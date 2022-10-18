@@ -1,8 +1,13 @@
 mod animation;
+
+#[cfg(feature = "spinner")]
 mod spinner;
 
 pub mod format;
 pub mod rich;
 
 pub use animation::*;
-pub use spinner::*;
+
+#[cfg(feature = "spinner")]
+#[cfg_attr(docsrs, doc(cfg(feature = "spinner")))]
+pub use spinner::Spinner;

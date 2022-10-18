@@ -7,7 +7,7 @@ static COLOURS_ENABLED: std::sync::atomic::AtomicBool = std::sync::atomic::Atomi
 ///
 /// # Example
 ///
-/// ```rust
+/// ```
 /// use kdam::term::colour;
 ///
 /// assert_eq!(colour("bold red"), "\x1b[31;1m");
@@ -176,8 +176,8 @@ pub trait Colorizer {
     ///
     /// # Example
     ///
-    /// ```rust
-    /// use kdam::prelude::*;
+    /// ```
+    /// use kdam::term::Colorizer;
     ///
     /// // ANSI [8-16; 4bit]
     ///
@@ -204,8 +204,8 @@ pub trait Colorizer {
     ///
     /// # Example
     ///
-    /// ```rust
-    /// use kdam::prelude::*;
+    /// ```
+    /// use kdam::term::Colorizer;
     ///
     /// println!("{}", "text".gradient(&["#5A56E0", "#EE6FF8"], 4));
     /// ```
@@ -217,8 +217,8 @@ pub trait Colorizer {
     ///
     /// # Example
     ///
-    /// ```rust
-    /// use kdam::prelude::*;
+    /// ```
+    /// use kdam::term::Colorizer;
     ///
     /// println!("{}", "text".gradient_text(&["#5A56E0", "#EE6FF8"]));
     /// ```

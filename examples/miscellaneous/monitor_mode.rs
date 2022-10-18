@@ -1,4 +1,4 @@
-use kdam::prelude::*;
+use kdam::{tqdm, BarExt};
 
 fn main() {
     let pb = tqdm!(total = 100, force_refresh = true);

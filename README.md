@@ -8,7 +8,7 @@
     <img src="https://img.shields.io/crates/v/kdam?style=flat-square">
   </a>
   <a href="https://github.com/clitic/kdam">
-    <img src="https://img.shields.io/github/workflow/status/clitic/kdam/Rust?logo=github&style=flat-square">
+    <img src="https://img.shields.io/github/workflow/status/clitic/kdam/Tests?logo=github&style=flat-square">
   </a>
   <a href="https://docs.rs/kdam/latest/kdam">
     <img src="https://img.shields.io/docsrs/kdam?logo=docsdotrs&style=flat-square">
@@ -29,7 +29,7 @@ kdam is a console progress bar library for rust. It is port of [tqdm](https://gi
 Instantly make your loops show a smart progress meter. Just wrap any iterator with tqdm!(iterator) macro and you're done!
 
 ```rust
-use kdam::prelude::*;
+use kdam::tqdm;
 
 fn main() {
     for _ in tqdm!(0..100) {}
@@ -86,7 +86,7 @@ know how to use it.
 ### Iterator Based
 
 ```rust
-use kdam::prelude::*;
+use kdam::tqdm;
 
 fn main() {
     let chars = ["a", "b", "c", "d"];
@@ -104,7 +104,7 @@ fn main() {
 ### Manual
 
 ```rust
-use kdam::prelude::*;
+use kdam::{tqdm, BarExt};
 
 fn main() {
     let mut pb = tqdm!(total = 100);
@@ -120,7 +120,7 @@ fn main() {
 Another example without a total value. This only shows basic stats.
 
 ```rust
-use kdam::prelude::*;
+use kdam::{tqdm, BarExt};
 
 fn main() {
     let mut pb = tqdm!();
@@ -145,7 +145,7 @@ fn main() {
 Custom information can be displayed and updated dynamically on `kdam` bars with the `desc` and `postfix`.
 
 ```rust
-use kdam::prelude::*;
+use kdam::{tqdm, BarExt};
 
 fn main() {
     let mut pb = tqdm!(total = 10);
@@ -200,7 +200,7 @@ Since `kdam` uses a simple printing mechanism to display progress bars, you shou
 To write messages in the terminal without any collision with `kdam` bar display, a `.write()` method is provided. This message will print at bar output location, which is stderr by default.
 
 ```rust
-use kdam::prelude::*;
+use kdam::{tqdm, BarExt};
 
 fn main() {
     let mut pb = tqdm!(total = 10);
@@ -233,7 +233,7 @@ Done task 9
 Similarly `.input()` method can be called to store an user input.
 
 ```rust
-use kdam::prelude::*;
+use kdam::{tqdm, BarExt};
 
 fn main() {
     let mut pb = tqdm!(total = 10);
@@ -262,7 +262,7 @@ Break Loop [y/n]: y
 kdam also provides a text colorization trait for printing colored text in terminal. It can be used as an alternative for existing [colored](https://github.com/mackwic/colored) library. Note that tty detection is not implemented yet.
 
 ```rust
-use kdam::prelude::*;
+use kdam::{tqdm, BarExt};
 
 println!("{}", "hello world!".colorize("bold red"));
 println!("{}", "hello world!".colorize("bright white on blue"));

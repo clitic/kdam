@@ -3,9 +3,14 @@
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0),
-and this project do not adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for now.
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## Changed
+
+- Removed `prelude` module.
+- Spinner support is now optional and is kept under `spinner` feature.
 
 ## [0.2.7] - 2022-10-11
 
@@ -132,6 +137,7 @@ and this project do not adheres to [Semantic Versioning](https://semver.org/spec
 ## [0.1.0] - 2022-03-20
 
 [Unreleased]: https://github.com/clitic/kdam/compare/799b34c...HEAD
+[0.3.0]: https://github.com/clitic/kdam/compare/799b34c...
 [0.2.7]: https://github.com/clitic/kdam/compare/a206ef9...799b34c
 [0.2.6]: https://github.com/clitic/kdam/compare/7b6497d...a206ef9
 [0.2.5]: https://github.com/clitic/kdam/compare/fd14805...7b6497d

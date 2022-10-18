@@ -1,7 +1,7 @@
 // [dependencies]
-// kdam = { version = "0.2.7", features = ["template", "gradient"] }
+// kdam = { version = "0.2.7", features = ["gradient", "template"] }
 
-use kdam::prelude::*;
+use kdam::{tqdm, BarExt};
 
 fn main() {
     let mut pb = tqdm!(

@@ -1,9 +1,7 @@
+use kdam::{tqdm, BarExt, RowManager};
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
-
-use kdam::prelude::*;
-use kdam::RowManager;
 
 fn main() {
     let mut manager = RowManager::new(3);

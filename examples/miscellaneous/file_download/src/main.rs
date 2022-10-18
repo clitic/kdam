@@ -1,5 +1,5 @@
 use futures_util::StreamExt;
-use kdam::prelude::*;
+use kdam::{tqdm, BarExt};
 use std::io::Write;
 
 const URL: &str = "https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe";

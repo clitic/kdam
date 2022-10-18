@@ -15,8 +15,8 @@
 //! - [One Page Usage](https://github.com/clitic/kdam#usage)
 //! - [Project Examples](https://github.com/clitic/kdam/tree/main/examples)
 //!
-//! ```rust
-//! use kdam::prelude::*;
+//! ```
+//! use kdam::{tqdm, BarExt};
 //!
 //! let mut pb = tqdm!(total = 100);
 //!
@@ -26,25 +26,25 @@
 //!
 //! eprint!("\n");
 //! ```
+//!
+//! ## Cargo Features
 //! 
-//! ## Optional Features
-//!
-//! The following are a list of [cargo features][cargo-features] that can be
-//! enabled.
-//!
-//! - **template**: Enables templating capabilities for [Bar](crate::Bar).
 //! - **gradient**: Enables gradient colours for progress bars and printing text.
+//! - **spinner**: Enables support for using spinners. 
+//! - **template**: Enables templating capabilities for [Bar](crate::Bar).
 
 mod progress;
 mod styles;
 mod thread;
 
-pub mod prelude;
 pub mod term;
-
-pub use progress::*;
-pub use styles::{Animation, Spinner};
-pub use thread::RowManager;
 
 pub use styles::format;
 pub use thread::monitor;
+
+pub use progress::{Bar, BarBuilder, BarExt, BarIterator, Column, RichProgress, TqdmIterator};
+pub use styles::Animation;
+pub use thread::RowManager;
+
+#[cfg(feature = "spinner")]
+pub use styles::Spinner;

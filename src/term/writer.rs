@@ -55,7 +55,7 @@ impl Writer {
     ///
     /// # Example
     ///
-    /// ```rust
+    /// ```
     /// use kdam::term::Writer;
     ///
     /// Writer::Stderr.print_at(1, format!("1 + 1 = {}", 2));

@@ -31,7 +31,7 @@ impl Animation {
     ///
     /// # Example
     ///
-    /// ```rust
+    /// ```
     /// use kdam::Animation;
     ///
     /// let anim = Animation::custom(&["\\", "|", "/", "-"]);
@@ -49,7 +49,7 @@ impl Animation {
     ///
     /// # Example
     ///
-    /// ```rust
+    /// ```
     /// use kdam::Animation;
     ///
     /// let anim = Animation::custom_with_fill(&["\\", "|", "/", "-"], ".");

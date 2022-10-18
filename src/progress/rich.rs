@@ -29,7 +29,7 @@ pub enum Column {
     ///
     /// # Example
     ///
-    /// ```rust
+    /// ```
     /// use kdam::Column;
     ///
     /// Column::Spinner(
@@ -46,7 +46,7 @@ pub enum Column {
     ///
     /// # Example`
     ///
-    /// ```rust
+    /// ```
     /// use kdam::Column;
     ///
     /// Column::Text("•".to_owned());
@@ -62,7 +62,7 @@ impl Column {
     ///
     /// # Example`
     ///
-    /// ```rust
+    /// ```
     /// use kdam::Column;
     ///
     /// Column::text("•");
@@ -80,8 +80,8 @@ impl Column {
 ///
 /// # Example
 ///
-/// ```rust
-/// use kdam::prelude::*;
+/// ```
+/// use kdam::{tqdm, BarExt};
 /// use kdam::{Column, RichProgress};
 ///
 /// let mut pb = RichProgress::new(

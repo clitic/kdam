@@ -1,9 +1,12 @@
 use crate::format;
 use crate::progress::BarExt;
-use crate::styles::{Animation, Spinner};
+use crate::styles::Animation;
 use crate::term::{Colorizer, Writer};
 use crate::thread::lock;
 use std::io::Write;
+
+#[cfg(feature = "spinner")]
+use crate::styles::Spinner;
 
 #[cfg(feature = "template")]
 use formatx::Template;
@@ -14,8 +17,8 @@ use formatx::Template;
 ///
 /// A clean nice progress bar with a total value.
 ///
-/// ```rust
-/// use kdam::prelude::*;
+/// ```
+/// use kdam::{tqdm, BarExt};
 /// use kdam::Bar;
 ///
 /// let mut pb = Bar::new(100);
@@ -48,6 +51,7 @@ pub struct Bar {
     position: u16,
     postfix: String,
     total: usize,
+    #[cfg(feature = "spinner")]
     spinner: Option<Spinner>,
     unit: String,
     unit_divisor: usize,
@@ -85,6 +89,7 @@ impl Default for Bar {
             colour: "default".to_owned(),
             delay: 0.0,
             animation: Animation::Tqdm,
+            #[cfg(feature = "spinner")]
             spinner: None,
             writer: Writer::Stderr,
             force_refresh: false,
@@ -108,7 +113,7 @@ impl Bar {
     ///
     /// # Example
     ///
-    /// ```rust
+    /// ```
     /// let mut pb = kdam::Bar::new(100);
     /// ```
     pub fn new(total: usize) -> Self {
@@ -123,7 +128,7 @@ impl Bar {
     ///
     /// # Example
     ///
-    /// ```rust
+    /// ```
     /// let mut pb = kdam::Bar::builder().total(100).build();
     /// ```
     pub fn builder() -> BarBuilder {
@@ -721,7 +726,7 @@ impl BarExt for Bar {
 ///
 /// # Example
 ///
-/// ```rust
+/// ```
 /// use kdam::BarBuilder;
 ///
 /// let mut pb = BarBuilder::default().total(100).build();
@@ -922,6 +927,8 @@ impl BarBuilder {
 
     /// Defines the spinner to use with progress bar.
     /// (default: `None`)
+    #[cfg(feature = "spinner")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "spinner")))]
     pub fn spinner(mut self, spinner: Spinner) -> Self {
         self.pb.spinner = Some(spinner);
         self
@@ -968,8 +975,8 @@ impl BarBuilder {
 ///
 /// # Examples
 ///
-/// ```rust
-/// use kdam::prelude::*;
+/// ```
+/// use kdam::{tqdm, BarExt};
 ///
 /// tqdm!();
 /// tqdm!(total = 100);

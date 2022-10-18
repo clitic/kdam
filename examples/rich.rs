@@ -1,5 +1,5 @@
-use kdam::prelude::*;
-use kdam::{Column, RichProgress};
+use kdam::{tqdm, BarExt, Column, RichProgress};
+use kdam::term::Colorizer;
 
 fn main() {
     let mut pb = RichProgress::new(

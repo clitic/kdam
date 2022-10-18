@@ -1,5 +1,7 @@
-use std::io::Write;
+// [dependencies]
+// kdam = { version = "0.3.0", features = ["spinner"] }
 
+use std::io::Write;
 use kdam::term::get_columns_or;
 use kdam::Spinner;
 

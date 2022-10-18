@@ -1,4 +1,4 @@
-use kdam::prelude::*;
+use kdam::{tqdm, BarExt};
 
 fn main() {
     let mut pb = tqdm!(total = 10);

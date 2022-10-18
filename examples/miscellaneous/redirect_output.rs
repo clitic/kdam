@@ -1,6 +1,5 @@
-use std::fs::File;
-
 use kdam::tqdm;
+use std::fs::File;
 
 fn main() {
     let f = File::create("kdam-logs.txt").unwrap();

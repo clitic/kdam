@@ -3,7 +3,7 @@ mod extensions;
 mod iterator;
 mod rich;
 
-pub use bar::*;
-pub use extensions::*;
-pub use iterator::*;
-pub use rich::*;
+pub use bar::{Bar, BarBuilder};
+pub use extensions::BarExt;
+pub use iterator::{BarIterator, TqdmIterator};
+pub use rich::{Column, RichProgress};

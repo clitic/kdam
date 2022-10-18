@@ -1,5 +1,4 @@
-use crate::prelude::*;
-use crate::Bar;
+use super::{Bar, BarExt};
 
 /// Iterable version of [Bar](crate::Bar).
 #[derive(Debug)]
@@ -99,8 +98,8 @@ where
     ///
     /// # Example
     ///
-    /// ```rust
-    /// use kdam::prelude::*;
+    /// ```
+    /// use kdam::TqdmIterator;
     ///
     /// let chars = ["a", "b", "c", "d"];
     /// let mut charset = String::new();

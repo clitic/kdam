@@ -1,13 +1,13 @@
 // [dependencies]
-// kdam = { version = "0.2.7", features = ["template"] }
+// kdam = { version = "0.3.0", features = ["spinner", "template"] }
 
-use kdam::prelude::*;
+use kdam::{tqdm, BarExt};
 use kdam::Spinner;
 
 fn main() {
     let mut pb = tqdm!(
         total = 300,
-		ncols = 40_i16,
+        ncols = 40_i16,
         force_refresh = true,
         bar_format = "{desc suffix=' '}|{animation}| {spinner} {count}/{total} [{percentage:.0}%] in {elapsed human=true} ({rate:.1}/s, eta: {remaining human=true})",
         spinner = Spinner::new(

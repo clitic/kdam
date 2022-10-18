@@ -1,5 +1,5 @@
-use kdam::prelude::*;
 use kdam::term::Writer;
+use kdam::{tqdm, BarExt};
 
 fn main() {
     let mut pb1 = tqdm!(total = 100, position = 0);
