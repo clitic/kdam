@@ -578,6 +578,7 @@ impl BarExt for Bar {
             bar_format.replace("unit", &self.unit);
             bar_format.replace("postfix", &self.postfix);
 
+            #[cfg(feature = "spinner")]
             bar_format.replace_from_callback("spinner", |_| {
                 if let Some(spinner) = &self.spinner {
                     spinner.render_frame(self.elapsed_time)
