@@ -67,9 +67,6 @@ Add this to your Cargo.toml file.
 ```toml
 [dependencies]
 kdam = "0.2.7"
-
-# Or add from github main branch.
-kdam = { git = "https://github.com/clitic/kdam.git", branch = "main" }
 ```
 
 Or add from command line.
@@ -262,7 +259,7 @@ Break Loop [y/n]: y
 kdam also provides a text colorization trait for printing colored text in terminal. It can be used as an alternative for existing [colored](https://github.com/mackwic/colored) library. Note that tty detection is not implemented yet.
 
 ```rust
-use kdam::{tqdm, BarExt};
+use kdam::term::Colorizer;
 
 println!("{}", "hello world!".colorize("bold red"));
 println!("{}", "hello world!".colorize("bright white on blue"));
