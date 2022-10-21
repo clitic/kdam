@@ -19,13 +19,25 @@ pub trait BarExt {
     /// Manually update the progress bar, useful for streams such as reading files.
     fn update(&mut self, n: usize);
 
+    /// Manually update the progress bar to a writer, useful for streams such as reading files.
+    #[cfg(feature = "writer")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "writer")))]
+    fn update_writer<T: std::io::Write>(&mut self, n: usize, writer: &mut T);
+
     /// Set counter position instead of incrementing progress bar through `self.update`.
     /// Alternative way to update bar.
     fn update_to(&mut self, update_to_n: usize);
 
+    /// Set counter position instead of incrementing progress bar through `self.update_writer`.
+    /// Alternative way to update bar.
+    #[cfg(feature = "writer")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "writer")))]
+    fn update_to_writer<T: std::io::Write>(&mut self, update_to_n: usize, writer: &mut T);
+
     /// Print a message via bar (without overlap with bars).
     fn write<T: Into<String>>(&mut self, text: T);
 }
+
 
 #[macro_export]
 #[doc(hidden)]
@@ -82,9 +94,34 @@ macro_rules! _impl_bar_methods {
                 }
             }
 
+            #[cfg(feature = "writer")]
+            fn update_writer<T: std::io::Write>(&mut self, n: usize, writer: &mut T) {
+                if self.pb.trigger(n) {
+                    let text = self.render();
+                    let length = $crate::term::Colorizer::len_ansi(text.as_str()) as i16;
+
+                    if length != self.pb.get_bar_length() {
+                        self.pb.clear();
+                    }
+
+                    self.pb.set_bar_length(length);
+
+                    crate::thread::lock::acquire();
+                    writer.write_fmt(format_args!("{}\n", text.as_str())).unwrap();
+                    writer.flush().unwrap();
+                    crate::thread::lock::release();
+                }
+            }
+
             fn update_to(&mut self, update_to_n: usize) {
                 self.pb.set_counter(update_to_n);
                 self.update(0);
+            }
+
+            #[cfg(feature = "writer")]
+            fn update_to_writer<T: std::io::Write>(&mut self, update_to_n: usize, writer: &mut T) {
+                self.pb.set_counter(update_to_n);
+                self.update_writer(0, writer);
             }
 
             fn write<T: Into<String>>(&mut self, text: T) {

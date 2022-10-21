@@ -2,7 +2,8 @@ use crate::format;
 use crate::progress::BarExt;
 use crate::styles::Animation;
 use crate::term::{Colorizer, Writer};
-use crate::thread::lock;
+
+#[cfg(feature = "writer")]
 use std::io::Write;
 
 #[cfg(feature = "spinner")]
@@ -41,7 +42,6 @@ pub struct Bar {
     disable: bool,
     dynamic_miniters: bool,
     dynamic_ncols: bool,
-    file: Option<std::fs::File>,
     force_refresh: bool,
     initial: usize,
     leave: bool,
@@ -71,7 +71,6 @@ impl Default for Bar {
             desc: "".to_owned(),
             total: 0,
             leave: true,
-            file: None,
             ncols: 10,
             mininterval: 0.1,
             miniters: 1,
@@ -387,13 +386,7 @@ impl Bar {
 
     /// Print a string in position of bar.
     pub(crate) fn write_at(&self, text: String) {
-        if self.file.is_some() {
-            lock::acquire();
-            let mut file = self.file.as_ref().unwrap();
-            file.write_fmt(format_args!("{}\n", text.as_str())).unwrap();
-            file.flush().unwrap();
-            lock::release();
-        } else if self.position == 0 {
+        if self.position == 0 {
             self.writer.print(format_args!("\r{}", text));
         } else {
             self.writer.print(format_args!(
@@ -463,12 +456,10 @@ impl Bar {
 
 impl BarExt for Bar {
     fn clear(&mut self) {
-        if self.file.is_none() {
-            self.write_at(format!(
-                "\r{}",
-                " ".repeat(crate::term::get_columns_or(self.bar_length as u16) as usize)
-            ));
-        }
+        self.write_at(format!(
+            "\r{}",
+            " ".repeat(crate::term::get_columns_or(self.bar_length as u16) as usize)
+        ));
     }
 
     fn input<T: Into<String>>(&mut self, text: T) -> Result<String, std::io::Error> {
@@ -708,9 +699,34 @@ impl BarExt for Bar {
         }
     }
 
+    #[cfg(feature = "writer")]
+    fn update_writer<T: Write>(&mut self, n: usize, writer: &mut T) {
+        if self.trigger(n) {
+            let text = self.render();
+            let length = text.len_ansi() as i16;
+
+            if length != self.bar_length {
+                self.clear();
+            }
+
+            self.bar_length = length;
+
+            crate::thread::lock::acquire();
+            writer.write_fmt(format_args!("{}\n", text.as_str())).unwrap();
+            writer.flush().unwrap();
+            crate::thread::lock::release();
+        }
+    }
+
     fn update_to(&mut self, update_to_n: usize) {
         self.counter = update_to_n;
         self.update(0);
+    }
+
+    #[cfg(feature = "writer")]
+    fn update_to_writer<T: Write>(&mut self, update_to_n: usize, writer: &mut T) {
+        self.counter = update_to_n;
+        self.update_writer(0, writer);
     }
 
     fn write<T: Into<String>>(&mut self, text: T) {
@@ -761,14 +777,6 @@ impl BarBuilder {
     /// (default: `true`)
     pub fn leave(mut self, leave: bool) -> Self {
         self.pb.leave = leave;
-        self
-    }
-
-    /// Specifies where to output the progress messages (default: stderr).
-    /// Uses file.write_fmt and file.flush methods.
-    /// (default: `None`)
-    pub fn file(mut self, file: Option<std::fs::File>) -> Self {
-        self.pb.file = file;
         self
     }
 

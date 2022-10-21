@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Removed `prelude` module.
 - Spinner support is now optional and is kept under `spinner` feature.
+- `file` field is removed from `Bar` and it is replaced with `writer` feature.
 
 ## [0.2.7] - 2022-10-11
 
