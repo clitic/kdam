@@ -3,9 +3,6 @@ use crate::progress::BarExt;
 use crate::styles::Animation;
 use crate::term::{Colorizer, Writer};
 
-#[cfg(feature = "writer")]
-use std::io::Write;
-
 #[cfg(feature = "spinner")]
 use crate::styles::Spinner;
 
@@ -211,7 +208,22 @@ impl Bar {
     #[cfg(feature = "template")]
     #[cfg_attr(docsrs, doc(cfg(feature = "template")))]
     pub fn set_bar_format<T: Into<String>>(&mut self, bar_format: T) -> Result<(), formatx::Error> {
-        self.bar_format = Some(bar_format.into().parse::<formatx::Template>()?);
+        let bar_format = bar_format.into().parse::<Template>()?;
+        let mut bar_format_check = bar_format.clone();
+        bar_format_check.replace("desc", "");
+        bar_format_check.replace("percentage", 0.0);
+        bar_format_check.replace("count", 0);
+        bar_format_check.replace("total", 0);
+        bar_format_check.replace("elapsed", 0);
+        bar_format_check.replace("remaining", 0);
+        bar_format_check.replace("rate", 0.0);
+        bar_format_check.replace("unit", "");
+        bar_format_check.replace("postfix", "");
+        #[cfg(feature = "spinner")]
+        bar_format_check.replace("spinner", "");
+        bar_format_check.replace("animation", "");
+        bar_format_check.text()?;
+        self.bar_format = Some(bar_format);
         Ok(())
     }
 
@@ -700,7 +712,7 @@ impl BarExt for Bar {
     }
 
     #[cfg(feature = "writer")]
-    fn update_writer<T: Write>(&mut self, n: usize, writer: &mut T) {
+    fn update_writer<T: std::io::Write>(&mut self, n: usize, writer: &mut T) {
         if self.trigger(n) {
             let text = self.render();
             let length = text.len_ansi() as i16;
@@ -712,7 +724,9 @@ impl BarExt for Bar {
             self.bar_length = length;
 
             crate::thread::lock::acquire();
-            writer.write_fmt(format_args!("{}\n", text.as_str())).unwrap();
+            writer
+                .write_fmt(format_args!("{}\n", text.as_str()))
+                .unwrap();
             writer.flush().unwrap();
             crate::thread::lock::release();
         }
@@ -724,7 +738,7 @@ impl BarExt for Bar {
     }
 
     #[cfg(feature = "writer")]
-    fn update_to_writer<T: Write>(&mut self, update_to_n: usize, writer: &mut T) {
+    fn update_to_writer<T: std::io::Write>(&mut self, update_to_n: usize, writer: &mut T) {
         self.counter = update_to_n;
         self.update_writer(0, writer);
     }
@@ -854,13 +868,13 @@ impl BarBuilder {
     /// Specify a custom bar string formatting. May impact performance.
     /// (default: `None`)
     ///
-    /// # Default Style
+    /// ## Default Style
     ///
     /// ```text
     /// {desc}{percentage:3.0}%|{animation}| {count}/{total} [{elapsed}<{remaining}, {rate:.2}{unit}/s{postfix}]
     /// ```
     ///
-    /// # Placeholders
+    /// ## Placeholders
     ///
     /// | Placeholder | Attributes                                              | Formatting      |
     /// |-------------|---------------------------------------------------------|-----------------|
@@ -902,7 +916,7 @@ impl BarBuilder {
     /// Specify additional stats to display at the end of the bar.
     /// (default: `""`)
     pub fn postfix<T: Into<String>>(mut self, postfix: T) -> Self {
-        self.pb.set_postfix(postfix.into());
+        self.pb.set_postfix(postfix);
         self
     }
 
@@ -927,14 +941,15 @@ impl BarBuilder {
         self
     }
 
-    /// Defines the animation style to use with progress bar.
-    /// (default: `kdam::Animation::Tqdm`)
+    /// Animation style to use with progress bar.
+    /// (default: [tqdm](crate::Animation::Tqdm))
     pub fn animation<T: Into<Animation>>(mut self, animation: T) -> Self {
         self.pb.animation = animation.into();
         self
     }
 
-    /// Defines the spinner to use with progress bar.
+    /// Spinner to use with progress bar.
+    /// Spinner is only used when `bar_format` is used.
     /// (default: `None`)
     #[cfg(feature = "spinner")]
     #[cfg_attr(docsrs, doc(cfg(feature = "spinner")))]
@@ -943,12 +958,13 @@ impl BarBuilder {
         self
     }
 
-    /// Select writer type to display progress bar output between stdout and stderr.
-    /// (default: `kdam::Output::Stderr`)
+    /// Select writer type to display progress bar output between `stdout` and `stderr`.
+    /// (default: [stderr](crate::term::Writer))
     pub fn writer<T: Into<Writer>>(mut self, writer: T) -> Self {
         self.pb.writer = writer.into();
         self
     }
+
     /// If true, each update method call will be rendered.
     /// (default: `false`)
     pub fn force_refresh(mut self, force_refresh: bool) -> Self {
@@ -956,31 +972,26 @@ impl BarBuilder {
         self
     }
 
-    /// Build [Bar](crate::Bar)
-    ///
-    /// # Panics
-    ///
-    /// Only panics if bar_format syntax is incorrect.
-    ///
+    /// Build [Bar](crate::Bar), this method only returns error when incorrect `bar_format` is used incorrectly.
     #[allow(unused_mut)]
-    pub fn build(mut self) -> Bar {
+    pub fn build(mut self) -> Result<Bar, String> {
         #[cfg(feature = "template")]
         if let Some(bar_format) = self.bar_format {
-            self.pb.set_bar_format(bar_format).unwrap();
+            self.pb.set_bar_format(bar_format).map_err(|e| e.message())?;
         }
 
-        self.pb.init()
+        Ok(self.pb.init())
     }
 }
 
 /// [tqdm](https://github.com/tqdm/tqdm) like macro for constructing [BarIterator](crate::BarIterator) if iterable is given else [Bar](crate::Bar).
 ///
 /// This macro use [BarBuilder](crate::BarBuilder) for creating [Bar](crate::Bar).
-/// See all available [methods](https://docs.rs/kdam/latest/kdam/struct.BarBuilder.html).
+/// See all available [methods](crate::BarBuilder).
 ///
 /// # Panics
 ///
-/// This macro will panic if [BarBuilder::build](crate::BarBuilder::build) method panics.
+/// This macro will panic if [BarBuilder::build](crate::BarBuilder::build) returns error.
 ///
 /// # Examples
 ///
@@ -997,7 +1008,7 @@ impl BarBuilder {
 #[macro_export]
 macro_rules! tqdm {
     ($($setter_method: ident = $value: expr),*) => {
-        $crate::BarBuilder::default()$(.$setter_method($value))*.build()
+        $crate::BarBuilder::default()$(.$setter_method($value))*.build().unwrap()
     };
 
     ($iterable: expr) => {
@@ -1005,6 +1016,6 @@ macro_rules! tqdm {
     };
 
     ($iterable: expr, $($setter_method: ident = $value: expr),*) => {
-        $crate::BarIterator::new_with_bar($iterable, kdam::BarBuilder::default()$(.$setter_method($value))*.build())
+        $crate::BarIterator::new_with_bar($iterable, kdam::BarBuilder::default()$(.$setter_method($value))*.build().unwrap())
     };
 }
