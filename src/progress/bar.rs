@@ -41,6 +41,7 @@ pub struct Bar {
     dynamic_ncols: bool,
     force_refresh: bool,
     initial: usize,
+    inverse_unit: bool,
     leave: bool,
     mininterval: f32,
     miniters: usize,
@@ -77,6 +78,7 @@ impl Default for Bar {
             unit_scale: false,
             dynamic_ncols: false,
             initial: 0,
+            inverse_unit: false,
             #[cfg(feature = "template")]
             bar_format: None,
             position: 0,
@@ -452,17 +454,29 @@ impl Bar {
     }
 
     pub(crate) fn fmt_rate(&self) -> String {
-        format!(
-            "{}{}/s",
-            if self.counter == 0 {
-                "?".to_owned()
-            } else if self.unit_scale {
-                format::format_sizeof(self.rate() as f64, self.unit_divisor as f64)
-            } else {
-                format!("{:.2}", self.rate())
-            },
-            self.unit
-        )
+        if self.counter == 0 {
+            format!("?{}/s", self.unit)
+        } else if self.rate() < 1. {
+            format!(
+                "{}/{}",
+                if self.unit_scale {
+                    format::format_time(1. / (self.rate() as f64))
+                } else {
+                    format!("{:.2}s", 1. / self.rate())
+                },
+                self.unit
+            )
+        } else {
+            format!(
+                "{}{}/s",
+                if self.unit_scale {
+                    format::format_sizeof(self.rate() as f64, self.unit_divisor as f64)
+                } else {
+                    format!("{:.2}", self.rate())
+                },
+                self.unit
+            )
+        }
     }
 }
 
@@ -848,6 +862,13 @@ impl BarBuilder {
     /// (default: `false`)
     pub fn unit_scale(mut self, unit_scale: bool) -> Self {
         self.pb.unit_scale = unit_scale;
+        self
+    }
+
+    /// If true, if the number of iterations per second is less than 1, then the number of seconds per iteration will be used instead.
+    /// (default: `false`)
+    pub fn inverse_unit(mut self, inverse_unit: bool) -> Self {
+        self.pb.inverse_unit = inverse_unit;
         self
     }
 

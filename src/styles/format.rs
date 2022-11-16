@@ -24,6 +24,18 @@ pub fn format_sizeof(num: f64, divisor: f64) -> String {
     format!("{:3.1}Y", value)
 }
 
+pub fn format_time(num: f64) -> String {
+    let mut value = num;
+    let units = [(60., "s"), (60., "min"), (24., "hr")];
+    for (d, i) in units {
+        if value.abs() < d - 0.005 {
+            return format!("{value:1.2}{i}");
+        }
+        value /= d;
+    }
+    format!("{value:1.2}days")
+}
+
 /// Formats a number of seconds as a clock time, \[H:\]MM:SS and SSs.
 pub fn format_interval(seconds: usize, human: bool) -> String {
     if human && seconds < 60 {
@@ -48,3 +60,4 @@ pub fn format_interval(seconds: usize, human: bool) -> String {
 //     let n = format!("{}", n).to_string();
 //     return if f.len() < n.len() { f } else { n };
 // }
+
