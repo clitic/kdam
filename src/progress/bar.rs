@@ -454,15 +454,16 @@ impl Bar {
     }
 
     pub(crate) fn fmt_rate(&self) -> String {
+        let rate = self.rate();
         if self.counter == 0 {
             format!("?{}/s", self.unit)
-        } else if self.rate() < 1. {
+        } else if rate < 1. {
             format!(
                 "{}/{}",
                 if self.unit_scale {
-                    format::format_time(1. / (self.rate() as f64))
+                    format::format_time(1. / (rate as f64))
                 } else {
-                    format!("{:.2}s", 1. / self.rate())
+                    format!("{:.2}s", 1. / rate)
                 },
                 self.unit
             )
@@ -470,9 +471,9 @@ impl Bar {
             format!(
                 "{}{}/s",
                 if self.unit_scale {
-                    format::format_sizeof(self.rate() as f64, self.unit_divisor as f64)
+                    format::format_sizeof(rate as f64, self.unit_divisor as f64)
                 } else {
-                    format!("{:.2}", self.rate())
+                    format!("{:.2}", rate)
                 },
                 self.unit
             )
