@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## Added
+
+- `inverse_unit` field in `kdam::Bar` for displaying progress rate in inverse form.
+
 ## Changed
 
 - Removed `prelude` module.

@@ -64,6 +64,10 @@ name = "misc_file_copy"
 path = "examples/miscellaneous/file_copy.rs"
 
 [[example]]
+name = "misc_inverse_unit"
+path = "examples/miscellaneous/inverse_unit.rs"
+
+[[example]]
 name = "misc_max_fps"
 path = "examples/miscellaneous/max_fps.rs"
 

@@ -454,29 +454,32 @@ impl Bar {
     }
 
     pub(crate) fn fmt_rate(&self) -> String {
-        let rate = self.rate();
         if self.counter == 0 {
             format!("?{}/s", self.unit)
-        } else if rate < 1. {
-            format!(
-                "{}/{}",
-                if self.unit_scale {
-                    format::format_time(1. / (rate as f64))
-                } else {
-                    format!("{:.2}s", 1. / rate)
-                },
-                self.unit
-            )
         } else {
-            format!(
-                "{}{}/s",
-                if self.unit_scale {
-                    format::format_sizeof(rate as f64, self.unit_divisor as f64)
-                } else {
-                    format!("{:.2}", rate)
-                },
-                self.unit
-            )
+            let rate = self.rate();
+
+            if rate < 1. && self.inverse_unit {
+                format!(
+                    "{}/{}",
+                    if self.unit_scale {
+                        format::format_time(1. / (rate as f64))
+                    } else {
+                        format!("{:.2}s", 1. / rate)
+                    },
+                    self.unit
+                )
+            } else {
+                format!(
+                    "{}{}/s",
+                    if self.unit_scale {
+                        format::format_sizeof(rate as f64, self.unit_divisor as f64)
+                    } else {
+                        format!("{:.2}", rate)
+                    },
+                    self.unit
+                )
+            }
         }
     }
 }
@@ -866,7 +869,8 @@ impl BarBuilder {
         self
     }
 
-    /// If true, if the number of iterations per second is less than 1, then the number of seconds per iteration will be used instead.
+    /// If true, and the number of iterations per second is less than 1,
+    /// then s/its will be used instead of its/s.
     /// (default: `false`)
     pub fn inverse_unit(mut self, inverse_unit: bool) -> Self {
         self.pb.inverse_unit = inverse_unit;
@@ -999,7 +1003,9 @@ impl BarBuilder {
     pub fn build(mut self) -> Result<Bar, String> {
         #[cfg(feature = "template")]
         if let Some(bar_format) = self.bar_format {
-            self.pb.set_bar_format(bar_format).map_err(|e| e.message())?;
+            self.pb
+                .set_bar_format(bar_format)
+                .map_err(|e| e.message())?;
         }
 
         Ok(self.pb.init())
