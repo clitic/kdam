@@ -630,7 +630,7 @@ impl BarExt for Bar {
                     );
 
                     #[cfg(not(feature = "gradient"))]
-                    panic!("Enable cargo feature `gradient` to use gradient colours.");
+                    panic!("Enable cargo feature `gradient` in `kdam` crate to use gradient colours.");
                 } else if self.colour != "default" {
                     return fmtval.colorize(&self.colour);
                 }
@@ -715,7 +715,7 @@ impl BarExt for Bar {
         self.timer = std::time::Instant::now();
     }
 
-    fn update(&mut self, n: usize) {
+    fn update(&mut self, n: usize) -> bool {
         if self.trigger(n) {
             let text = self.render();
             let length = text.len_ansi() as i16;
@@ -726,39 +726,15 @@ impl BarExt for Bar {
 
             self.bar_length = length;
             self.write_at(text);
+            return true;
         }
+
+        false
     }
 
-    #[cfg(feature = "writer")]
-    fn update_writer<T: std::io::Write>(&mut self, n: usize, writer: &mut T) {
-        if self.trigger(n) {
-            let text = self.render();
-            let length = text.len_ansi() as i16;
-
-            if length != self.bar_length {
-                self.clear();
-            }
-
-            self.bar_length = length;
-
-            crate::thread::lock::acquire();
-            writer
-                .write_fmt(format_args!("{}\n", text.as_str()))
-                .unwrap();
-            writer.flush().unwrap();
-            crate::thread::lock::release();
-        }
-    }
-
-    fn update_to(&mut self, update_to_n: usize) {
+    fn update_to(&mut self, update_to_n: usize) -> bool {
         self.counter = update_to_n;
-        self.update(0);
-    }
-
-    #[cfg(feature = "writer")]
-    fn update_to_writer<T: std::io::Write>(&mut self, update_to_n: usize, writer: &mut T) {
-        self.counter = update_to_n;
-        self.update_writer(0, writer);
+        self.update(0)
     }
 
     fn write<T: Into<String>>(&mut self, text: T) {
@@ -768,6 +744,27 @@ impl BarExt for Bar {
         if self.leave {
             self.refresh();
         }
+    }
+
+    fn write_to<T: std::io::Write>(&mut self, writer: &mut T, n: Option<usize>) -> bool {
+        let text;
+
+        if let Some(n) = &n {
+            if self.trigger(*n) {
+                text = self.render().trim_ansi();
+            } else {
+                return false;
+            }
+        } else {
+            text = self.render().trim_ansi();
+        }
+
+        self.bar_length = text.len_ansi() as i16;
+        crate::thread::lock::acquire();
+        writer.write_fmt(format_args!("{}\n", text)).unwrap();
+        writer.flush().unwrap();
+        crate::thread::lock::release();
+        true
     }
 }
 

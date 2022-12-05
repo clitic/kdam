@@ -256,7 +256,7 @@ Break Loop [y/n]: y
 
 ### Terminal Colorization
 
-kdam also provides a text colorization trait for printing colored text in terminal. It can be used as an alternative for existing [colored](https://github.com/mackwic/colored) library. Note that tty detection is not implemented yet.
+kdam also provides a text colorization trait for printing colored text in terminal. It can be used as an alternative for existing [colored](https://github.com/mackwic/colored) crate. Note that tty detection is not implemented, an alternative is to use [atty](https://github.com/softprops/atty) crate to detect if stream is tty and then use [set_colorize](https://docs.rs/kdam/latest/kdam/term/fn.set_colorize.html) function.
 
 ```rust
 use kdam::term::Colorizer;

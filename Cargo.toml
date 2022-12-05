@@ -24,7 +24,6 @@ unicode-segmentation = "1"
 gradient = ["dep:colorgrad"]
 spinner = []
 template = ["dep:formatx"]
-writer = []
 
 [workspace]
 members = ["examples/miscellaneous/file_download"]
@@ -78,7 +77,6 @@ path = "examples/miscellaneous/monitor_mode.rs"
 [[example]]
 name = "misc_redirect_output"
 path = "examples/miscellaneous/redirect_output.rs"
-required-features = ["writer"]
 
 [[example]]
 name = "multi_nested"

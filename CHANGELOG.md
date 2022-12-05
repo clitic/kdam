@@ -7,15 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2022-12-05
+
 ## Added
 
 - `inverse_unit` field in `kdam::Bar` for displaying progress rate in inverse form.
+- `set_colorize` function in `term` module to enable/disable colours.
 
 ## Changed
 
 - Removed `prelude` module.
 - Spinner support is now optional and is kept under `spinner` feature.
-- `file` field is removed from `Bar` and it is replaced with `writer` feature.
+- `file` field is removed from `Bar` and it is replaced with `BarExt::write_to` method.
 - `BarBuilder::build` methods now returns a `Result` type.
 
 ## [0.2.7] - 2022-10-11
@@ -142,8 +145,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.0] - 2022-03-20
 
-[Unreleased]: https://github.com/clitic/kdam/compare/799b34c...HEAD
-[0.3.0]: https://github.com/clitic/kdam/compare/799b34c...
+[Unreleased]: https://github.com/clitic/kdam/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/clitic/kdam/compare/799b34c...v0.3.0
 [0.2.7]: https://github.com/clitic/kdam/compare/a206ef9...799b34c
 [0.2.6]: https://github.com/clitic/kdam/compare/7b6497d...a206ef9
 [0.2.5]: https://github.com/clitic/kdam/compare/fd14805...7b6497d

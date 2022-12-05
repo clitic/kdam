@@ -29,10 +29,9 @@
 //!
 //! ## Cargo Features
 //! 
-//! - **gradient**: Enables gradient colours for progress bars and printing text.
+//! - **gradient**: Enables gradient colours support for progress bars and printing text.
 //! - **spinner**: Enables support for using spinners. 
 //! - **template**: Enables templating capabilities for [Bar](crate::Bar).
-//! - **writer**: Enables redirecting progress bar output to a writer using [BarExt](crate::BarExt) trait.
 
 mod progress;
 mod styles;

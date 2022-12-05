@@ -17,27 +17,42 @@ pub trait BarExt {
     fn reset(&mut self, total: Option<usize>);
 
     /// Manually update the progress bar, useful for streams such as reading files.
-    fn update(&mut self, n: usize);
+    /// Returns wheter a update was triggered or not depending on constraints.
+    fn update(&mut self, n: usize) -> bool;
 
-    /// Manually update the progress bar to a writer, useful for streams such as reading files.
-    #[cfg(feature = "writer")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "writer")))]
-    fn update_writer<T: std::io::Write>(&mut self, n: usize, writer: &mut T);
-
-    /// Set counter position instead of incrementing progress bar through `self.update`.
+    /// Set counter position instead of incrementing progress bar through [update](Self::update).
     /// Alternative way to update bar.
-    fn update_to(&mut self, update_to_n: usize);
-
-    /// Set counter position instead of incrementing progress bar through `self.update_writer`.
-    /// Alternative way to update bar.
-    #[cfg(feature = "writer")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "writer")))]
-    fn update_to_writer<T: std::io::Write>(&mut self, update_to_n: usize, writer: &mut T);
+    /// Returns wheter a update was triggered or not depending on constraints.
+    fn update_to(&mut self, update_to_n: usize) -> bool;
 
     /// Print a message via bar (without overlap with bars).
     fn write<T: Into<String>>(&mut self, text: T);
-}
 
+    /// Write rendered text to a writer, useful for writing files.
+    /// If `n` is supplied then this method behaves like [update](Self::update).
+    /// Returns wheter a update was triggered or not depending on constraints.
+    /// 
+    /// # Example
+    /// 
+    /// Using [write_to](Self::write_to) as [update_to](Self::update_to).
+    /// 
+    /// ```
+    /// use kdam::{tqdm, BarExt};
+    /// use std::fs::File;
+    /// use std::io::Write;
+    /// 
+    /// fn main() {
+    ///     let mut pb = tqdm!(total = 100);
+    ///     let mut f = File::create("logs.txt").unwrap();
+    /// 
+    ///     for i in 1..101 {
+    ///         pb.set_counter(i);
+    ///         pb.write_to(&mut f, Some(0));
+    ///     }
+    /// }
+    /// ```
+    fn write_to<T: std::io::Write>(&mut self, writer: &mut T, n: Option<usize>) -> bool;
+}
 
 #[macro_export]
 #[doc(hidden)]
@@ -80,7 +95,7 @@ macro_rules! _impl_bar_methods {
                 self.pb.reset(total);
             }
 
-            fn update(&mut self, n: usize) {
+            fn update(&mut self, n: usize) -> bool {
                 if self.pb.trigger(n) {
                     let text = self.render();
                     let length = $crate::term::Colorizer::len_ansi(text.as_str()) as i16;
@@ -91,37 +106,15 @@ macro_rules! _impl_bar_methods {
 
                     self.pb.set_bar_length(length);
                     self.pb.write_at(text);
+                    return true;
                 }
+
+                false
             }
 
-            #[cfg(feature = "writer")]
-            fn update_writer<T: std::io::Write>(&mut self, n: usize, writer: &mut T) {
-                if self.pb.trigger(n) {
-                    let text = self.render();
-                    let length = $crate::term::Colorizer::len_ansi(text.as_str()) as i16;
-
-                    if length != self.pb.get_bar_length() {
-                        self.pb.clear();
-                    }
-
-                    self.pb.set_bar_length(length);
-
-                    crate::thread::lock::acquire();
-                    writer.write_fmt(format_args!("{}\n", text.as_str())).unwrap();
-                    writer.flush().unwrap();
-                    crate::thread::lock::release();
-                }
-            }
-
-            fn update_to(&mut self, update_to_n: usize) {
+            fn update_to(&mut self, update_to_n: usize) -> bool {
                 self.pb.set_counter(update_to_n);
-                self.update(0);
-            }
-
-            #[cfg(feature = "writer")]
-            fn update_to_writer<T: std::io::Write>(&mut self, update_to_n: usize, writer: &mut T) {
-                self.pb.set_counter(update_to_n);
-                self.update_writer(0, writer);
+                self.update(0)
             }
 
             fn write<T: Into<String>>(&mut self, text: T) {
@@ -133,6 +126,28 @@ macro_rules! _impl_bar_methods {
                 if self.pb.get_leave() {
                     self.refresh();
                 }
+            }
+
+            fn write_to<T: std::io::Write>(&mut self, writer: &mut T, n: Option<usize>) -> bool {
+                let text;
+
+                if let Some(n) = &n {
+                    if self.pb.trigger(*n) {
+                        text = $crate::term::Colorizer::trim_ansi(self.render().as_str());
+                    } else {
+                        return false;
+                    }
+                } else {
+                    text = $crate::term::Colorizer::trim_ansi(self.render().as_str());
+                }
+
+                self.pb
+                    .set_bar_length($crate::term::Colorizer::len_ansi(text.as_str()) as i16);
+                crate::thread::lock::acquire();
+                writer.write_fmt(format_args!("{}\n", text)).unwrap();
+                writer.flush().unwrap();
+                crate::thread::lock::release();
+                true
             }
         }
     };

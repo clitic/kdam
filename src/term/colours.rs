@@ -1,7 +1,16 @@
+use std::sync::atomic::{AtomicBool, Ordering};
 use unicode_segmentation::UnicodeSegmentation;
 
 #[cfg(target_os = "windows")]
-static COLOURS_ENABLED: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+static COLOURS_ENABLED: AtomicBool = AtomicBool::new(false);
+
+static COLORIZE: AtomicBool = AtomicBool::new(true);
+
+/// Enable/Disable colorization property of [colorizer](crate::term::Colorizer) trait.
+/// Colorization is done always by default. 
+pub fn set_colorize(always: bool) {
+    COLORIZE.store(always, Ordering::SeqCst);
+}
 
 /// Create ANSI colour escape code from primary colours or hex colour code or rgb(r,g,b).
 ///
@@ -15,7 +24,7 @@ static COLOURS_ENABLED: std::sync::atomic::AtomicBool = std::sync::atomic::Atomi
 /// ```
 pub fn colour(colour_code: &str) -> String {
     #[cfg(target_os = "windows")]
-    if !COLOURS_ENABLED.load(std::sync::atomic::Ordering::Acquire) {
+    if !COLOURS_ENABLED.load(Ordering::Acquire) {
         std::process::Command::new("cmd")
             .args(["/c", "color"])
             .spawn()
@@ -23,7 +32,7 @@ pub fn colour(colour_code: &str) -> String {
             .wait()
             .unwrap();
 
-        COLOURS_ENABLED.store(true, std::sync::atomic::Ordering::SeqCst);
+        COLOURS_ENABLED.store(true, Ordering::SeqCst);
     }
 
     let mut color = colour_code.to_uppercase();
@@ -170,7 +179,6 @@ pub fn colour(colour_code: &str) -> String {
 }
 
 /// Add ANSI colour escape codes to the given text for printing coloured text in terminal.
-/// This trait is only implemented for `&str`.
 pub trait Colorizer {
     /// Add ANSI colour escape codes to the given text.
     ///
@@ -236,6 +244,10 @@ pub trait Colorizer {
 
 impl Colorizer for str {
     fn colorize(&self, code: &str) -> String {
+        if !COLORIZE.load(Ordering::Acquire) {
+            return self.to_owned();
+        }
+
         let esc_code = colour(code);
 
         if esc_code.is_empty() {
@@ -247,6 +259,10 @@ impl Colorizer for str {
 
     #[cfg(feature = "gradient")]
     fn gradient(&self, codes: &[&str], len: usize) -> String {
+        if !COLORIZE.load(Ordering::Acquire) {
+            return self.to_owned();
+        }
+
         let gradient = colorgrad::CustomGradient::new()
             .html_colors(codes)
             .build()
@@ -269,6 +285,10 @@ impl Colorizer for str {
 
     #[cfg(feature = "gradient")]
     fn gradient_text(&self, codes: &[&str]) -> String {
+        if !COLORIZE.load(Ordering::Acquire) {
+            return self.to_owned();
+        }
+
         self.gradient(codes, self.graphemes(true).count())
     }
 
