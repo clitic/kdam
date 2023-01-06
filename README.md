@@ -8,7 +8,7 @@
     <img src="https://img.shields.io/crates/v/kdam?style=flat-square">
   </a>
   <a href="https://github.com/clitic/kdam">
-    <img src="https://img.shields.io/github/workflow/status/clitic/kdam/Tests?logo=github&style=flat-square">
+    <img src="https://img.shields.io/github/actions/workflow/status/clitic/kdam/tests.yml?logo=github&style=flat-square">
   </a>
   <a href="https://docs.rs/kdam/latest/kdam">
     <img src="https://img.shields.io/docsrs/kdam?logo=docsdotrs&style=flat-square">
