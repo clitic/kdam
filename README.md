@@ -55,7 +55,7 @@ kdam doesn't restrict you to use default progress bar styles. You can create you
 [examples/template.rs](https://github.com/clitic/kdam/blob/main/examples/template.rs)
 ![showcase_alive_progress_template](https://raw.githubusercontent.com/clitic/kdam/main/images/template.gif)
 
-Using a gradient progress bar can be more appealing than using a plain b/w progress bar sometimes.
+A gradient progress bar can also be created.
 
 [examples/coloured/gradient.rs](https://github.com/clitic/kdam/blob/main/examples/coloured/gradient.rs)
 ![showcase_gradient](https://raw.githubusercontent.com/clitic/kdam/main/images/gradient.gif)

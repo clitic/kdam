@@ -24,6 +24,7 @@ pub fn format_sizeof(num: f64, divisor: f64) -> String {
     format!("{:3.1}Y", value)
 }
 
+/// Formats seconds as a clock time, SSs | MMmin | Hhr | Ddays.
 pub fn format_time(num: f64) -> String {
     let mut value = num;
 

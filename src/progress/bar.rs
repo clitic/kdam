@@ -995,7 +995,7 @@ impl BarBuilder {
         self
     }
 
-    /// Build [Bar](crate::Bar), this method only returns error when incorrect `bar_format` is used incorrectly.
+    /// Build [Bar](crate::Bar), this method only returns error when `bar_format` is used incorrectly.
     #[allow(unused_mut)]
     pub fn build(mut self) -> Result<Bar, String> {
         #[cfg(feature = "template")]

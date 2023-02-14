@@ -6,7 +6,7 @@ use std::collections::HashSet;
 /// `nrows` is the number of progress bars to display at once.
 /// All other bars are hidden and visible once any active progress bar is completed.
 /// Traces of progress are left in terminal if `leave=true` else progress bar is cleared.
-/// Cursor position are not restored by RowManager.
+/// Cursor position is not restored by RowManager.
 ///
 /// # Example
 ///
