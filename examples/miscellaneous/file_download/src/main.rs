@@ -24,7 +24,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     while let Some(item) = stream.next().await {
         let chunk = item?;
-        file.write(&chunk)?;
+        file.write_all(&chunk)?;
         pb.update(chunk.len());
     }
 

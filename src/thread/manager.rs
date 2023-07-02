@@ -20,7 +20,7 @@ use std::collections::HashSet;
 ///     manager.get_mut(pb_index).unwrap().update(1);
 ///     manager.notify(pb_index);
 /// }
-/// 
+///
 /// manager.bars.remove(pb_index);
 /// ```
 pub struct RowManager {
@@ -89,14 +89,14 @@ impl RowManager {
 
     /// Append a progress bar returning its index.
     pub fn append(&mut self, mut pb: Bar) -> usize {
-        pb.set_position(self.acquired_pos.len() as u16);
-        self.bars_true_disable.push(pb.get_disable());
+        pb.position = self.acquired_pos.len() as u16;
+        self.bars_true_disable.push(pb.disable);
 
-        if self.nrows > pb.get_position() {
+        if self.nrows > pb.position {
             pb.refresh();
-            self.acquired_pos.insert(pb.get_position());
+            self.acquired_pos.insert(pb.position);
         } else {
-            pb.set_disable(true);
+            pb.disable = true;
         }
 
         self.bars.push(pb);
@@ -108,20 +108,20 @@ impl RowManager {
         let pb = self.bars.get_mut(index).unwrap();
 
         if pb.completed() && !self.bars_true_disable.get(index).unwrap() {
-            if pb.get_leave() {
+            if pb.leave {
                 let text = pb.render();
-                pb.get_writer().print(format_args!("\r{}\n", text));
+                pb.writer.print(format_args!("\r{}\n", text));
             }
 
             pb.clear();
-            pb.set_disable(true);
+            pb.disable = true;
 
-            if self.acquired_pos.remove(&pb.get_position()) {
-                self.avaliable_pos.insert(pb.get_position());
+            if self.acquired_pos.remove(&pb.position) {
+                self.avaliable_pos.insert(pb.position);
             }
         }
 
-        let writer = pb.get_writer();
+        let writer = pb.writer.clone();
 
         let remaining_bars = self.bars.len()
             - self
@@ -134,11 +134,11 @@ impl RowManager {
         if self.nrows as usize > remaining_bars {
             let mut count = 0;
             for (i, bar) in self.bars.iter_mut().enumerate() {
-                if bar.get_total() > bar.get_counter() && !self.bars_true_disable.get(i).unwrap() {
-                    if bar.get_position() != count {
+                if bar.total > bar.get_counter() && !self.bars_true_disable.get(i).unwrap() {
+                    if bar.position != count {
                         bar.clear();
-                        bar.set_position(count);
-                        bar.set_disable(false);
+                        bar.position = count;
+                        bar.disable = false;
                         bar.refresh();
                     }
 
@@ -159,19 +159,19 @@ impl RowManager {
             }
 
             for (i, bar) in self.bars.iter_mut().enumerate() {
-                if bar.get_total() > bar.get_counter() && !self.bars_true_disable.get(i).unwrap() {
+                if bar.total > bar.get_counter() && !self.bars_true_disable.get(i).unwrap() {
                     if let Some(pos) = self.avaliable_pos.iter().min() {
-                        if bar.get_disable() && bar.get_position() != *pos {
-                            bar.set_position(*pos);
+                        if bar.disable && bar.position != *pos {
+                            bar.position = *pos;
 
-                            if self.nrows > bar.get_position() {
-                                bar.set_disable(false);
+                            if self.nrows > bar.position {
+                                bar.disable = false;
                             }
 
                             bar.refresh();
 
-                            if self.avaliable_pos.remove(&bar.get_position()) {
-                                self.acquired_pos.insert(bar.get_position());
+                            if self.avaliable_pos.remove(&bar.position) {
+                                self.acquired_pos.insert(bar.position);
                             }
                         }
                     }

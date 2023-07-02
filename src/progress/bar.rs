@@ -30,36 +30,36 @@ use formatx::Template;
 #[derive(Debug)]
 pub struct Bar {
     // CUSTOMIZABLE FIELDS
-    animation: Animation,
+    pub animation: Animation,
     #[cfg(feature = "template")]
-    bar_format: Option<Template>,
-    colour: String,
-    delay: f32,
-    desc: String,
-    disable: bool,
-    dynamic_miniters: bool,
-    dynamic_ncols: bool,
-    force_refresh: bool,
-    initial: usize,
-    inverse_unit: bool,
-    leave: bool,
-    mininterval: f32,
-    miniters: usize,
-    ncols: i16,
-    position: u16,
-    postfix: String,
-    total: usize,
+    pub bar_format: Option<Template>,
+    pub colour: String,
+    pub delay: f32,
+    pub desc: String,
+    pub disable: bool,
+    pub dynamic_miniters: bool,
+    pub dynamic_ncols: bool,
+    pub force_refresh: bool,
+    pub initial: usize,
+    pub inverse_unit: bool,
+    pub leave: bool,
+    pub mininterval: f32,
+    pub miniters: usize,
+    pub ncols: i16,
+    pub position: u16,
+    pub postfix: String,
+    pub total: usize,
     #[cfg(feature = "spinner")]
-    spinner: Option<Spinner>,
-    unit: String,
-    unit_divisor: usize,
-    unit_scale: bool,
-    writer: Writer,
+    pub spinner: Option<Spinner>,
+    pub unit: String,
+    pub unit_divisor: usize,
+    pub unit_scale: bool,
+    pub writer: Writer,
     // NON CUSTOMIZABLE FIELDS
     bar_length: i16,
     counter: usize,
     timer: std::time::Instant,
-    pub elapsed_time: f32,
+    elapsed_time: f32,
     user_ncols: Option<i16>,
 }
 
@@ -153,7 +153,7 @@ impl Bar {
     // -----------------------------------------------------------------------------------------
 
     /// Get bar length value.
-    pub(crate) fn get_bar_length(&self) -> i16 {
+    pub fn get_bar_length(&self) -> i16 {
         self.bar_length
     }
 
@@ -162,47 +162,17 @@ impl Bar {
         self.counter
     }
 
-    /// Get disable value.
-    pub fn get_disable(&self) -> bool {
-        self.disable
-    }
-
-    /// Get force refresh value.
-    pub(crate) fn get_force_refresh(&self) -> bool {
-        self.force_refresh
-    }
-
-    /// Get leave value.
-    pub fn get_leave(&self) -> bool {
-        self.leave
-    }
-
-    /// Get ncols value.
-    pub(crate) fn get_ncols(&self) -> i16 {
-        self.ncols
-    }
-
-    /// Get position value.
-    pub fn get_position(&self) -> u16 {
-        self.position
-    }
-
-    /// Get total value.
-    pub fn get_total(&self) -> usize {
-        self.total
-    }
-
-    /// Get writer cloned value.
-    pub(crate) fn get_writer(&self) -> Writer {
-        self.writer.clone()
-    }
-
     // -----------------------------------------------------------------------------------------
     // SETTERS
     // -----------------------------------------------------------------------------------------
 
+    /// Set/Modify counter property.
+    pub fn set_counter(&mut self, counter: usize) {
+        self.counter = counter;
+    }
+
     /// Set/Modify bar length property.
-    pub(crate) fn set_bar_length(&mut self, bar_length: i16) {
+    pub fn set_bar_length(&mut self, bar_length: i16) {
         self.bar_length = bar_length;
     }
 
@@ -229,49 +199,14 @@ impl Bar {
         Ok(())
     }
 
-    /// Set/Modify colour property.
-    pub fn set_colour<T: Into<String>>(&mut self, colour: T) {
-        self.colour = colour.into();
-    }
-
-    /// Set/Modify counter property.
-    pub fn set_counter(&mut self, counter: usize) {
-        self.counter = counter;
-    }
-
     /// Set/Modify description property.
-    pub fn set_description<T: Into<String>>(&mut self, desc: T) {
-        self.desc = desc.into();
-    }
-
-    /// Set/Modify disable property.
-    pub fn set_disable(&mut self, disable: bool) {
-        self.disable = disable;
-    }
-
-    /// Set/Modify force refresh property.
-    pub(crate) fn set_force_refresh(&mut self, force_refresh: bool) {
-        self.force_refresh = force_refresh;
-    }
-
-    /// Set/Modify leave property.
-    pub fn set_leave(&mut self, leave: bool) {
-        self.leave = leave;
-    }
-
-    /// Set/Modify position property.
-    pub fn set_position(&mut self, position: u16) {
-        self.position = position;
+    pub fn set_description<T: Into<String>>(&mut self, description: T) {
+        self.desc = description.into();
     }
 
     /// Set/Modify postfix property.
     pub fn set_postfix<T: Into<String>>(&mut self, postfix: T) {
         self.postfix = ", ".to_owned() + &postfix.into();
-    }
-
-    /// Set/Modify total property.
-    pub fn set_total(&mut self, total: usize) {
-        self.total = total;
     }
 
     // -----------------------------------------------------------------------------------------
@@ -630,7 +565,9 @@ impl BarExt for Bar {
                     );
 
                     #[cfg(not(feature = "gradient"))]
-                    panic!("Enable cargo feature `gradient` in `kdam` crate to use gradient colours.");
+                    panic!(
+                        "Enable cargo feature `gradient` in `kdam` crate to use gradient colours."
+                    );
                 } else if self.colour != "default" {
                     return fmtval.colorize(&self.colour);
                 }

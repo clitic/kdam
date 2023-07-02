@@ -14,7 +14,7 @@ impl<T: Iterator> BarIterator<T> {
     /// Create a new instance of [BarIterator](crate::BarIterator) from iterable.
     pub fn new(iterable: T) -> BarIterator<T> {
         let mut pb = Bar::default();
-        pb.set_total(iterable.size_hint().0);
+        pb.total = iterable.size_hint().0;
 
         BarIterator {
             iterable,
@@ -34,7 +34,7 @@ impl<T: Iterator> BarIterator<T> {
         };
 
         if pb_iter.pb.indefinite() {
-            pb_iter.pb.set_total(total);
+            pb_iter.pb.total = total;
         }
 
         pb_iter

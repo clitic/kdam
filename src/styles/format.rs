@@ -2,7 +2,7 @@
 
 /// Returns floor division and modulus of two values.
 pub fn divmod(x: usize, y: usize) -> (usize, usize) {
-    (x / y as usize, x % y)
+    (x / y, x % y)
 }
 
 /// Formats a number (greater than unity) with SI order of magnitude prefixes.

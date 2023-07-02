@@ -31,32 +31,29 @@ pub trait BarExt {
     /// Write rendered text to a writer, useful for writing files.
     /// If `n` is supplied then this method behaves like [update](Self::update).
     /// Returns wheter a update was triggered or not depending on constraints.
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// Using [write_to](Self::write_to) as [update_to](Self::update_to).
-    /// 
+    ///
     /// ```
     /// use kdam::{tqdm, BarExt};
     /// use std::fs::File;
     /// use std::io::Write;
+    ///
+    /// let mut pb = tqdm!(total = 100);
+    /// let mut f = File::create("logs.txt").unwrap();
     /// 
-    /// fn main() {
-    ///     let mut pb = tqdm!(total = 100);
-    ///     let mut f = File::create("logs.txt").unwrap();
-    /// 
-    ///     for i in 1..101 {
-    ///         pb.set_counter(i);
-    ///         pb.write_to(&mut f, Some(0));
-    ///     }
+    /// for i in 1..101 {
+    ///     pb.set_counter(i);
+    ///     pb.write_to(&mut f, Some(0));
     /// }
     /// ```
     fn write_to<T: std::io::Write>(&mut self, writer: &mut T, n: Option<usize>) -> bool;
 }
 
 #[macro_export]
-#[doc(hidden)]
-macro_rules! _impl_bar_methods {
+macro_rules! derive_bar_ext {
     ($struct: ident, $render: ident) => {
         impl $crate::BarExt for $struct {
             fn clear(&mut self) {
@@ -65,12 +62,12 @@ macro_rules! _impl_bar_methods {
 
             fn input<T: Into<String>>(&mut self, text: T) -> Result<String, std::io::Error> {
                 self.clear();
-                self.pb.get_writer().print_str(&text.into());
+                self.pb.writer.print_str(&text.into());
 
                 let mut input_string = String::new();
                 std::io::stdin().read_line(&mut input_string)?;
 
-                if self.pb.get_leave() {
+                if self.pb.leave {
                     self.refresh();
                 }
 
@@ -78,10 +75,10 @@ macro_rules! _impl_bar_methods {
             }
 
             fn refresh(&mut self) {
-                if !self.pb.get_force_refresh() {
-                    self.pb.set_force_refresh(true);
+                if !self.pb.force_refresh {
+                    self.pb.force_refresh = true;
                     self.update(0);
-                    self.pb.set_force_refresh(false);
+                    self.pb.force_refresh = false;
                 } else {
                     self.update(0);
                 }
@@ -119,11 +116,9 @@ macro_rules! _impl_bar_methods {
 
             fn write<T: Into<String>>(&mut self, text: T) {
                 self.pb.clear();
-                self.pb
-                    .get_writer()
-                    .print(format_args!("\r{}\n", text.into()));
+                self.pb.writer.print(format_args!("\r{}\n", text.into()));
 
-                if self.pb.get_leave() {
+                if self.pb.leave {
                     self.refresh();
                 }
             }
@@ -143,10 +138,10 @@ macro_rules! _impl_bar_methods {
 
                 self.pb
                     .set_bar_length($crate::term::Colorizer::len_ansi(text.as_str()) as i16);
-                crate::thread::lock::acquire();
+                $crate::thread::lock::acquire();
                 writer.write_fmt(format_args!("{}\n", text)).unwrap();
                 writer.flush().unwrap();
-                crate::thread::lock::release();
+                $crate::thread::lock::release();
                 true
             }
         }

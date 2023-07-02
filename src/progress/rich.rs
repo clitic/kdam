@@ -116,7 +116,7 @@ impl RichProgress {
     }
 }
 
-crate::_impl_bar_methods!(RichProgress, render);
+crate::derive_bar_ext!(RichProgress, render);
 
 fn render(progress: &mut RichProgress) -> String {
     let mut bar_text = vec![];
@@ -210,7 +210,7 @@ fn render(progress: &mut RichProgress) -> String {
 
     if let Some(progress_bar_index) = progress_bar_index {
         progress.pb.adjust_ncols(bar_length as i16);
-        ncols = progress.pb.get_ncols();
+        ncols = progress.pb.ncols;
 
         if ncols == 0 {
             let _ = bar_text.remove(progress_bar_index);
