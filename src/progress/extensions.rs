@@ -52,6 +52,7 @@ pub trait BarExt {
     fn write_to<T: std::io::Write>(&mut self, writer: &mut T, n: Option<usize>) -> bool;
 }
 
+/// Derive [BarExt](crate::progress::extensions::BarExt)
 #[macro_export]
 macro_rules! derive_bar_ext {
     ($struct: ident, $render: ident) => {

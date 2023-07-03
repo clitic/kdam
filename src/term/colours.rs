@@ -8,6 +8,9 @@ static COLORIZE: AtomicBool = AtomicBool::new(true);
 
 /// Enable/Disable colorization property of [colorizer](crate::term::Colorizer) trait.
 /// Colorization is done always by default. 
+/// 
+/// **TIP**: Use [IsTerminal](https://doc.rust-lang.org/stable/std/io/trait.IsTerminal.html) 
+/// trait to detect real terminals and then use this function.
 pub fn set_colorize(always: bool) {
     COLORIZE.store(always, Ordering::SeqCst);
 }

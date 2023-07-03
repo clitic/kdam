@@ -23,7 +23,7 @@ pub enum Column {
     /// Progress remaining time / ETA.
     RemainingTime,
     /// Spinner for progress. See more styles at [rich repository](https://github.com/Textualize/rich/blob/master/rich/_spinners.py).
-    /// - first argument is Vec<String> of frames.
+    /// - first argument is `Vec<String>` of frames.
     /// - second argument is interval of frames.
     /// - third argument is speed of frames.
     ///
