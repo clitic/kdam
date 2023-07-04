@@ -273,7 +273,7 @@ impl Bar {
 
     /// Checks wheter to trigger a display update or not.
     /// This method will increment internal counter.
-    pub(crate) fn trigger(&mut self, n: usize) -> bool {
+    pub fn trigger(&mut self, n: usize) -> bool {
         self.counter += n;
 
         if !self.disable {
@@ -334,7 +334,7 @@ impl Bar {
     }
 
     /// Print a string in position of bar.
-    pub(crate) fn write_at(&self, text: String) {
+    pub fn write_at(&self, text: String) {
         if self.position == 0 {
             self.writer.print(format_args!("\r{}", text));
         } else {
@@ -351,7 +351,7 @@ impl Bar {
     // FORMATTING (FOR INTERNAL USE ONLY)
     // -----------------------------------------------------------------------------------------
 
-    pub(crate) fn fmt_percentage(&self, precision: usize) -> String {
+    pub fn fmt_percentage(&self, precision: usize) -> String {
         format!(
             "{:1$.2$}%",
             self.percentage() * 100.0,
@@ -360,27 +360,27 @@ impl Bar {
         )
     }
 
-    pub(crate) fn fmt_counter(&self) -> String {
+    pub fn fmt_counter(&self) -> String {
         if self.unit_scale {
             format::format_sizeof(self.counter as f64, self.unit_divisor as f64)
         } else {
-            format!("{}", self.counter)
+            format!("{:1$}", self.counter, self.fmt_total().len())
         }
     }
 
-    pub(crate) fn fmt_total(&self) -> String {
+    pub fn fmt_total(&self) -> String {
         if self.unit_scale {
             format::format_sizeof(self.total as f64, self.unit_divisor as f64)
         } else {
-            format!("{}", self.total)
+            self.total.to_string()
         }
     }
 
-    pub(crate) fn fmt_elapsed_time(&self) -> String {
+    pub fn fmt_elapsed_time(&self) -> String {
         format::format_interval(self.elapsed_time as usize, false)
     }
 
-    pub(crate) fn fmt_remaining_time(&self) -> String {
+    pub fn fmt_remaining_time(&self) -> String {
         if self.counter == 0 || self.indefinite() {
             "inf".to_owned()
         } else {
@@ -388,7 +388,7 @@ impl Bar {
         }
     }
 
-    pub(crate) fn fmt_rate(&self) -> String {
+    pub fn fmt_rate(&self) -> String {
         if self.counter == 0 {
             format!("?{}/s", self.unit)
         } else {

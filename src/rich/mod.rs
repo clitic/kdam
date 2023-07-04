@@ -96,38 +96,38 @@ fn render(progress: &mut RichProgress) -> String {
 
             Column::Count => {
                 let fmt_progress = progress.pb.fmt_counter();
-                bar_length += fmt_progress.chars().count();
+                bar_length += fmt_progress.len();
                 bar_text.push(fmt_progress.colorize("green"));
             }
 
             Column::CountTotal => {
                 let fmt_progress =
                     format!("{}/{}", progress.pb.fmt_counter(), progress.pb.fmt_total());
-                bar_length += fmt_progress.chars().count();
+                bar_length += fmt_progress.len();
                 bar_text.push(fmt_progress.colorize("green"));
             }
 
             Column::ElapsedTime => {
                 let elapsed_time = progress.pb.fmt_elapsed_time();
-                bar_length += elapsed_time.chars().count();
+                bar_length += elapsed_time.len();
                 bar_text.push(elapsed_time.colorize("cyan"));
             }
 
             Column::Percentage(precision) => {
                 let percentage = format!("{:.1$}%", progress.pb.percentage() * 100., precision);
-                bar_length += percentage.chars().count();
+                bar_length += percentage.len();
                 bar_text.push(percentage.colorize("magenta"));
             }
 
             Column::Rate => {
-                let speed = progress.pb.fmt_rate();
-                bar_length += speed.chars().count();
-                bar_text.push(speed.colorize("red"));
+                let rate = progress.pb.fmt_rate();
+                bar_length += rate.len();
+                bar_text.push(rate.colorize("red"));
             }
 
             Column::RemainingTime => {
                 let remaining_time = progress.pb.fmt_remaining_time();
-                bar_length += remaining_time.chars().count();
+                bar_length += remaining_time.len();
                 bar_text.push(remaining_time.colorize("cyan"));
             }
 
@@ -162,7 +162,7 @@ fn render(progress: &mut RichProgress) -> String {
 
             Column::Total => {
                 let fmt_progress = progress.pb.fmt_total();
-                bar_length += fmt_progress.chars().count();
+                bar_length += fmt_progress.len();
                 bar_text.push(fmt_progress.colorize("green"));
             }
         }
