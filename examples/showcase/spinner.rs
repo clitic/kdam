@@ -1,9 +1,5 @@
-// [dependencies]
-// kdam = { version = "0.3.0", features = ["spinner"] }
-
+use kdam::{term::get_columns_or, Spinner};
 use std::io::Write;
-use kdam::term::get_columns_or;
-use kdam::Spinner;
 
 fn main() {
     let spin = Spinner::new(
@@ -34,7 +30,7 @@ fn main() {
         stdout
             .write_fmt(format_args!(
                 "\r{}",
-                spin.render_pulse(get_columns_or(3) as i16 / 3, timer.elapsed().as_secs_f32())
+                spin.render_frames(timer.elapsed().as_secs_f32(), get_columns_or(3) as i16 / 3)
             ))
             .unwrap();
         stdout.flush().unwrap();

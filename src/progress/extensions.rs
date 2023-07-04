@@ -53,6 +53,8 @@ pub trait BarExt {
 }
 
 /// Derive [BarExt](crate::progress::extensions::BarExt)
+#[cfg(feature = "derive")]
+#[cfg_attr(docsrs, doc(cfg(feature = "derive")))]
 #[macro_export]
 macro_rules! derive_bar_ext {
     ($struct: ident, $render: ident) => {

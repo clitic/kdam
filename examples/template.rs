@@ -1,6 +1,3 @@
-// [dependencies]
-// kdam = { version = "0.3.0", features = ["spinner", "template"] }
-
 use kdam::{tqdm, BarExt};
 use kdam::Spinner;
 

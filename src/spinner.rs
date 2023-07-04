@@ -1,5 +1,6 @@
 /// Generic spinner for rendering spinner animations.
-/// See styles at [rich repository](https://github.com/Textualize/rich/blob/master/rich/_spinners.py).
+///
+/// See more styles at [rich repository](https://github.com/Textualize/rich/blob/master/rich/_spinners.py).
 #[derive(Debug, Clone)]
 pub struct Spinner {
     frames: Vec<String>,
@@ -8,7 +9,7 @@ pub struct Spinner {
 }
 
 impl Spinner {
-    /// Create a new instance of [Spinner](crate::Spinner).
+    /// Create a new [Spinner](Self).
     ///
     /// # Example
     ///
@@ -31,14 +32,14 @@ impl Spinner {
         Self {
             frames: frames
                 .iter()
-                .map(|x| x.to_string())
-                .collect::<Vec<String>>(),
+                .map(|x| String::from(*x))
+                .collect(),
             interval,
             speed,
         }
     }
 
-    /// Render single frame of spinner.
+    /// Render a single frame.
     pub fn render_frame(&self, elapsed_time: f32) -> String {
         let frame_no = (elapsed_time * self.speed) / (self.interval / 1000.0);
         self.frames
@@ -48,7 +49,7 @@ impl Spinner {
     }
 
     /// Render multiple frames upto `ncols` with an pulsating animation.
-    pub fn render_pulse(&self, ncols: i16, elapsed_time: f32) -> String {
+    pub fn render_frames(&self, elapsed_time: f32, ncols: i16) -> String {
         let pulse = self
             .frames
             .iter()

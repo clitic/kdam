@@ -1,5 +1,4 @@
-use kdam::{tqdm, BarExt, Column, RichProgress};
-use kdam::term::Colorizer;
+use kdam::{term::Colorizer, tqdm, BarExt, Column, RichProgress, Spinner};
 
 fn main() {
     let mut pb = RichProgress::new(
@@ -10,22 +9,19 @@ fn main() {
             unit = "B"
         ),
         vec![
-            Column::Spinner(
-                "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
-                    .chars()
-                    .map(|x| x.to_string())
-                    .collect::<Vec<String>>(),
+            Column::Spinner(Spinner::new(
+                &["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"],
                 80.0,
                 1.0,
-            ),
-            Column::text("[bold blue]?"),
+            )),
+            Column::Text("[bold blue]?".to_owned()),
             Column::Bar,
             Column::Percentage(1),
-            Column::text("•"),
+            Column::Text("•".to_owned()),
             Column::CountTotal,
-            Column::text("•"),
+            Column::Text("•".to_owned()),
             Column::Rate,
-            Column::text("•"),
+            Column::Text("•".to_owned()),
             Column::RemainingTime,
         ],
     );
@@ -36,7 +32,7 @@ fn main() {
         pb.refresh();
     }
 
-    pb.replace(1, Column::text("[bold blue]docker.exe"));
+    pb.replace(1, Column::Text("[bold blue]docker.exe".to_owned()));
     pb.write("downloading docker.exe".colorize("bold cyan"));
 
     let total_size = 231231231;

@@ -21,7 +21,9 @@ terminal_size = "0.2"
 unicode-segmentation = "1"
 
 [features]
+derive = []
 gradient = ["dep:colorgrad"]
+rich = ["derive"]
 spinner = []
 template = ["dep:formatx"]
 
@@ -103,6 +105,11 @@ path = "examples/showcase/fira_code.rs"
 name = "showcase_spinner"
 path = "examples/showcase/spinner.rs"
 required-features = ["spinner"]
+
+[[example]]
+name = "rich"
+path = "examples/rich.rs"
+required-features = ["rich", "spinner"]
 
 [[example]]
 name = "template"

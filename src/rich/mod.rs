@@ -1,50 +1,35 @@
-use crate::progress::Bar;
-use crate::term::Colorizer;
+mod styles;
 
-/// Renderable columns for [RichProgress](crate::RichProgress).
-///
-/// These columns may differ in name as of `rich.progress`.
+use crate::{progress::Bar, term::Colorizer};
+
+#[cfg(feature = "spinner")]
+use crate::spinner::Spinner;
+
+/// Renderable columns for [RichProgress](RichProgress).
 #[derive(Debug, Clone)]
 pub enum Column {
-    /// Progress bar column.
-    /// If progress.pb.n || progress.pb.total == 0, then an pulsating animation
-    /// else rich style animation.
+    /// Progress bar (animation) display.
+    /// If progress total is unknown then an pulsating animation is shown else a normal animation is shown.
     Bar,
-    /// Progress counter i.e. `sel.pb.n`.
+    /// Progress counter display.
     Count,
-    /// Formatted counter i.e. `progress.pb.n / progress.pb.total`
+    /// Progress formatted counter display i.e. `counter/total`.
     CountTotal,
-    /// Progress elapsed time
+    /// Progress elapsed time display.
     ElapsedTime,
-    /// Progress percentage done, with precision.
+    /// Progress percentage done (with precision) display.
     Percentage(usize),
-    /// Progress update rate.
+    /// Progress update rate display.
     Rate,
-    /// Progress remaining time / ETA.
+    /// Progress remaining time (ETA) display.
     RemainingTime,
-    /// Spinner for progress. See more styles at [rich repository](https://github.com/Textualize/rich/blob/master/rich/_spinners.py).
-    /// - first argument is `Vec<String>` of frames.
-    /// - second argument is interval of frames.
-    /// - third argument is speed of frames.
+    /// Custom spinners display.
+    #[cfg(feature = "spinner")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "spinner")))]
+    Spinner(Spinner),
+    /// Custom text display.
     ///
     /// # Example
-    ///
-    /// ```
-    /// use kdam::Column;
-    ///
-    /// Column::Spinner(
-    ///     "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
-    ///     .chars()
-    ///     .map(|x| x.to_string())
-    ///     .collect::<Vec<String>>(),
-    ///     80.0,
-    ///     1.0
-    /// );
-    /// ````
-    Spinner(Vec<String>, f32, f32),
-    /// Text column.
-    ///
-    /// # Example`
     ///
     /// ```
     /// use kdam::Column;
@@ -53,27 +38,8 @@ pub enum Column {
     /// Column::Text("[bold red]Downloading".to_owned());
     /// ```
     Text(String),
-    /// Progress total i.e. `progress.pb.total`.
+    /// Progress total display.
     Total,
-}
-
-impl Column {
-    /// Text column.
-    ///
-    /// # Example`
-    ///
-    /// ```
-    /// use kdam::Column;
-    ///
-    /// Column::text("•");
-    /// Column::Text("•".to_owned());
-    ///
-    /// Column::text("[bold red]Downloading");
-    /// Column::Text("[bold red]Downloading".to_owned());
-    /// ```
-    pub fn text(text: &str) -> Self {
-        Self::Text(text.to_owned())
-    }
 }
 
 /// An implementation [rich.progress](https://rich.readthedocs.io/en/latest/progress.html) using [Bar](crate::Bar).
@@ -93,38 +59,35 @@ impl Column {
 ///     pb.update(1);
 /// }
 ///
-/// eprint!("\n");
+/// eprintln!();
 /// ```
 #[derive(Debug)]
 pub struct RichProgress {
-    /// Instance of [Bar](crate::Bar) to render [RichProgress](crate::RichProgress).
     pub pb: Bar,
-    /// Vector of renderable columns.
     pub columns: Vec<Column>,
 }
 
 impl RichProgress {
-    /// Create a new instance of [RichProgress](crate::RichProgress).
+    /// Create a new [RichProgress](Self).
     pub fn new(pb: Bar, columns: Vec<Column>) -> Self {
         Self { pb, columns }
     }
 
-    /// Replace a column value at specific index.
+    /// Replace a column at specific index.
+    ///
+    /// **PANICS**: If index is out of range.
     pub fn replace(&mut self, index: usize, col: Column) {
         *self.columns.get_mut(index).unwrap() = col;
         // let _ = std::mem::replace(&mut self.columns[index], col);
     }
 }
 
-crate::derive_bar_ext!(RichProgress, render);
-
 fn render(progress: &mut RichProgress) -> String {
     let mut bar_text = vec![];
     let mut bar_length = 0;
     let mut progress_bar_index = None;
-    let et = progress.pb.elapsed_time();
 
-    for col in progress.columns.clone() {
+    for col in progress.columns.iter() {
         match col {
             Column::Bar => {
                 progress_bar_index = Some(bar_text.len());
@@ -168,32 +131,32 @@ fn render(progress: &mut RichProgress) -> String {
                 bar_text.push(remaining_time.colorize("cyan"));
             }
 
-            Column::Spinner(frames, interval, speed) => {
-                let frame_no = (progress.pb.elapsed_time() * speed) / (interval / 1000.0);
-                let frame = frames.get(frame_no as usize % frames.len()).unwrap();
+            #[cfg(feature = "spinner")]
+            Column::Spinner(spinner) => {
+                let frame = spinner.render_frame(progress.pb.elapsed_time());
                 bar_length += frame.chars().count();
                 bar_text.push(frame.colorize("green"));
             }
 
             Column::Text(text) => {
-                let color = match (text.find('['), text.find(']')) {
+                let (color, text_start_index) = match (text.find('['), text.find(']')) {
                     (Some(start), Some(end)) => {
                         if start == 0 {
-                            text.get(1..end)
+                            (text.get(1..end), end + 1)
                         } else {
-                            None
+                            (None, 0)
                         }
                     }
-                    _ => None,
+                    _ => (None, 0),
                 };
 
                 if let Some(code) = color {
-                    let text = text.replace(&format!("[{}]", code), "");
+                    let text = &text[text_start_index..];
                     bar_length += text.len_ansi();
                     bar_text.push(text.colorize(code));
                 } else {
                     bar_length += text.len_ansi();
-                    bar_text.push(text);
+                    bar_text.push(text.to_owned());
                 }
             }
 
@@ -217,15 +180,15 @@ fn render(progress: &mut RichProgress) -> String {
         } else {
             *bar_text.get_mut(progress_bar_index).unwrap() =
                 if progress.pb.indefinite() || !progress.pb.started() {
-                    crate::styles::rich::pulse(ncols, et)
+                    styles::pulse(ncols, progress.pb.elapsed_time())
                 } else {
-                    crate::styles::rich::bar(progress.pb.percentage() as f32, ncols)
+                    styles::bar(progress.pb.percentage() as f32, ncols)
                 };
         }
     }
 
-    progress
-        .pb
-        .set_bar_length(bar_length as i16 + ncols);
+    progress.pb.set_bar_length(bar_length as i16 + ncols);
     bar_text.join(" ")
 }
+
+crate::derive_bar_ext!(RichProgress, render);

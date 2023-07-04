@@ -4,7 +4,7 @@ use crate::styles::Animation;
 use crate::term::{Colorizer, Writer};
 
 #[cfg(feature = "spinner")]
-use crate::styles::Spinner;
+use crate::spinner::Spinner;
 
 #[cfg(feature = "template")]
 use formatx::Template;
@@ -312,7 +312,7 @@ impl Bar {
     }
 
     /// Adjust number of columns for bar animation using length of remanining bar.
-    pub(crate) fn adjust_ncols(&mut self, lbar_rbar_len: i16) {
+    pub fn adjust_ncols(&mut self, lbar_rbar_len: i16) {
         if self.dynamic_ncols || (lbar_rbar_len + self.ncols != self.bar_length) {
             if let Some(ncols) = self.user_ncols {
                 self.ncols = ncols;
