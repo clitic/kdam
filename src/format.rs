@@ -6,7 +6,7 @@ pub fn divmod(x: usize, y: usize) -> (usize, usize) {
 }
 
 /// Formats a number (greater than unity) with SI order of magnitude prefixes.
-pub fn format_sizeof(num: f64, divisor: f64) -> String {
+pub fn sizeof(num: f64, divisor: f64) -> String {
     let mut value = num;
 
     for i in ["", "k", "M", "G", "T", "P", "E", "Z"] {
@@ -25,7 +25,7 @@ pub fn format_sizeof(num: f64, divisor: f64) -> String {
 }
 
 /// Formats seconds as a clock time, SSs | MMmin | Hhr | Ddays.
-pub fn format_time(num: f64) -> String {
+pub fn time(num: f64) -> String {
     let mut value = num;
 
     for (d, i) in [(60., "s"), (60., "min"), (24., "hr")] {
@@ -39,7 +39,7 @@ pub fn format_time(num: f64) -> String {
 }
 
 /// Formats a number of seconds as a clock time, \[H:\]MM:SS and SSs.
-pub fn format_interval(seconds: usize, human: bool) -> String {
+pub fn interval(seconds: usize, human: bool) -> String {
     if human && seconds < 60 {
         return seconds.to_string() + "s";
     }

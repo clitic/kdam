@@ -18,14 +18,16 @@ edition = "2021"
 colorgrad = { version = "0.6", optional = true }
 formatx = { version = "0.2.1", optional = true }
 terminal_size = "0.2"
-unicode-segmentation = "1"
+unicode-segmentation = { version = "1", optional = true }
 
 [features]
+# default = ["gradient", "unicode"]
 derive = []
 gradient = ["dep:colorgrad"]
 rich = ["derive"]
 spinner = []
 template = ["dep:formatx"]
+unicode = ["dep:unicode-segmentation"]
 
 [package.metadata.docs.rs]
 all-features = true

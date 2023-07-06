@@ -9,6 +9,7 @@ The following are a list of [Cargo features](https://doc.rust-lang.org/stable/ca
 - **rich**: 
 - **spinner**: Enables support for using spinners. 
 - **template**: Enables templating capabilities for [Bar](crate::Bar).
+- **unicode**: 
 
 ## Usage
 

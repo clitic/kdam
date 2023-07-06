@@ -52,7 +52,7 @@ pub trait BarExt {
     fn write_to<T: std::io::Write>(&mut self, writer: &mut T, n: Option<usize>) -> bool;
 }
 
-/// Derive [BarExt](crate::progress::extensions::BarExt)
+/// Derive [BarExt](crate::std::BarExt)
 #[cfg(feature = "derive")]
 #[cfg_attr(docsrs, doc(cfg(feature = "derive")))]
 #[macro_export]

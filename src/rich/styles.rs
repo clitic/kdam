@@ -15,7 +15,7 @@ const BAR_PULSE_COLORS: [&str; 18] = [
 const BAR_UNCOMPLETED_COLOR: &str = "#525252";
 
 /// Panics -> capacity overflow, if ncols == 0
-pub(super) fn bar(progress: f32, ncols: i16) -> String {
+pub(super) fn bar(ncols: i16, progress: f32) -> String {
     if progress >= 1.0 {
         BAR_CHR.repeat(ncols as usize).colorize(BAR_COMPLETED_COLOR)
     } else {

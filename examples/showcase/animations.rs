@@ -1,4 +1,4 @@
-use kdam::{tqdm, BarExt};
+use kdam::{tqdm, BarExt, Animation};
 
 fn main() {
     let render_length = 300;
@@ -40,14 +40,14 @@ fn main() {
     let mut pb6 = tqdm!(
         total = render_length,
         desc = "custom1 ",
-        animation = kdam::Animation::custom(&["\\", "|", "/", "-"]),
+        animation = Animation::custom(&["\\", "|", "/", "-"], None),
         position = 10,
         force_refresh = true
     );
     let mut pb7 = tqdm!(
         total = render_length,
         desc = "custom2 ",
-        animation = kdam::Animation::custom_with_fill(&["\\", "|", "/", "-"], "."),
+        animation = Animation::custom(&["\\", "|", "/", "-"], Some(".")),
         position = 12,
         force_refresh = true
     );

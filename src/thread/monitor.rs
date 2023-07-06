@@ -30,7 +30,7 @@
 //! }
 //! ```
 
-use crate::progress::{Bar, BarExt};
+use crate::std::{Bar, BarExt};
 use std::{
     sync::{Arc, Mutex},
     thread,

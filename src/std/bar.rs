@@ -1,7 +1,5 @@
-use crate::format;
-use crate::progress::BarExt;
-use crate::styles::Animation;
-use crate::term::{Colorizer, Writer};
+use crate::{format, term::{Colorizer, Writer}};
+use super::{styles::{Animation, Colour}, BarExt};
 
 #[cfg(feature = "spinner")]
 use crate::spinner::Spinner;
@@ -33,7 +31,7 @@ pub struct Bar {
     pub animation: Animation,
     #[cfg(feature = "template")]
     pub bar_format: Option<Template>,
-    pub colour: String,
+    pub colour: Option<Colour>,
     pub delay: f32,
     pub desc: String,
     pub disable: bool,
@@ -84,7 +82,7 @@ impl Default for Bar {
             position: 0,
             postfix: "".to_string(),
             unit_divisor: 1000,
-            colour: "default".to_owned(),
+            colour: None,
             delay: 0.0,
             animation: Animation::Tqdm,
             #[cfg(feature = "spinner")]
@@ -362,7 +360,7 @@ impl Bar {
 
     pub fn fmt_counter(&self) -> String {
         if self.unit_scale {
-            format::format_sizeof(self.counter as f64, self.unit_divisor as f64)
+            format::sizeof(self.counter as f64, self.unit_divisor as f64)
         } else {
             format!("{:1$}", self.counter, self.fmt_total().len())
         }
@@ -370,21 +368,21 @@ impl Bar {
 
     pub fn fmt_total(&self) -> String {
         if self.unit_scale {
-            format::format_sizeof(self.total as f64, self.unit_divisor as f64)
+            format::sizeof(self.total as f64, self.unit_divisor as f64)
         } else {
             self.total.to_string()
         }
     }
 
     pub fn fmt_elapsed_time(&self) -> String {
-        format::format_interval(self.elapsed_time as usize, false)
+        format::interval(self.elapsed_time as usize, false)
     }
 
     pub fn fmt_remaining_time(&self) -> String {
         if self.counter == 0 || self.indefinite() {
             "inf".to_owned()
         } else {
-            format::format_interval(self.remaining_time() as usize, false)
+            format::interval(self.remaining_time() as usize, false)
         }
     }
 
@@ -398,7 +396,7 @@ impl Bar {
                 format!(
                     "{}/{}",
                     if self.unit_scale {
-                        format::format_time(1. / (rate as f64))
+                        format::time(1. / (rate as f64))
                     } else {
                         format!("{:.2}s", 1. / rate)
                     },
@@ -408,7 +406,7 @@ impl Bar {
                 format!(
                     "{}{}/s",
                     if self.unit_scale {
-                        format::format_sizeof(rate as f64, self.unit_divisor as f64)
+                        format::sizeof(rate as f64, self.unit_divisor as f64)
                     } else {
                         format!("{:.2}", rate)
                     },
@@ -475,7 +473,7 @@ impl BarExt for Bar {
 
             bar_format.replace_from_callback("count", |placeholder| {
                 if self.unit_scale {
-                    placeholder.format_spec.format(format::format_sizeof(
+                    placeholder.format_spec.format(format::sizeof(
                         self.counter as f64,
                         self.unit_divisor as f64,
                     ))
@@ -486,7 +484,7 @@ impl BarExt for Bar {
 
             bar_format.replace_from_callback("total", |placeholder| {
                 if self.unit_scale {
-                    placeholder.format_spec.format(format::format_sizeof(
+                    placeholder.format_spec.format(format::sizeof(
                         self.total as f64,
                         self.unit_divisor as f64,
                     ))
@@ -503,7 +501,7 @@ impl BarExt for Bar {
                     .unwrap_or(false);
                 placeholder
                     .format_spec
-                    .format(crate::format::format_interval(
+                    .format(crate::format::interval(
                         self.elapsed_time as usize,
                         human,
                     ))
@@ -520,7 +518,7 @@ impl BarExt for Bar {
                         .unwrap_or(false);
                     placeholder
                         .format_spec
-                        .format(crate::format::format_interval(
+                        .format(crate::format::interval(
                             self.remaining_time() as usize,
                             human,
                         ))
@@ -547,32 +545,15 @@ impl BarExt for Bar {
             self.adjust_ncols(length - 11);
 
             bar_format.replace_from_callback("animation", |_| {
-                let fmtval = self
+                let render = self
                     .animation
-                    .progress(self.percentage() as f32, self.ncols);
+                    .render(self.ncols, self.percentage() as f32);
 
-                if self.colour.to_lowercase().starts_with("gradient(") {
-                    #[cfg(feature = "gradient")]
-                    return fmtval.gradient_text(
-                        &self
-                            .colour
-                            .to_lowercase()
-                            .trim_start_matches("gradient(")
-                            .trim_end_matches(')')
-                            .split(',')
-                            .map(|x| x.trim())
-                            .collect::<Vec<&str>>(),
-                    );
-
-                    #[cfg(not(feature = "gradient"))]
-                    panic!(
-                        "Enable cargo feature `gradient` in `kdam` crate to use gradient colours."
-                    );
-                } else if self.colour != "default" {
-                    return fmtval.colorize(&self.colour);
+                if let Some(colour) = &self.colour {
+                    return colour.apply(&render);
                 }
 
-                fmtval
+                render
             });
 
             return bar_format.text().unwrap();
@@ -639,7 +620,7 @@ impl BarExt for Bar {
 
         lbar + &self
             .animation
-            .fmt_progress(progress, self.ncols, &self.colour)
+            .fmt_render(self.ncols, progress, &self.colour)
             + &rbar
     }
 
@@ -889,8 +870,8 @@ impl BarBuilder {
     }
 
     /// Bar colour (e.g. "green", "#00ff00").
-    pub fn colour<T: Into<String>>(mut self, colour: T) -> Self {
-        self.pb.colour = colour.into();
+    pub fn colour<T: Into<Colour>>(mut self, colour: T) -> Self {
+        self.pb.colour = Some(colour.into());
         self
     }
 

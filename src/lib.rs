@@ -1,18 +1,19 @@
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![doc=include_str!("../DOCS.md")]
 
-mod progress;
-mod styles;
 mod thread;
+mod std;
+mod iterator;
+mod utils;
 
+pub mod format;
 pub mod term;
 
-pub use styles::format;
 pub use thread::monitor;
 
-pub use progress::{Bar, BarBuilder, BarExt, BarIterator, TqdmIterator};
-pub use styles::Animation;
+pub use iterator::{BarIterator, TqdmIterator};
 pub use thread::RowManager;
+pub use crate::std::{Bar, BarBuilder, BarExt, Animation, Colour};
 
 #[cfg(feature = "rich")]
 mod rich;

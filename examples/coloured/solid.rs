@@ -8,7 +8,7 @@ fn main() {
         pb.update(1);
     }
 
-    pb.colour = "#da70d6".to_owned();
+    pb.colour = Some("#da70d6".into());
     pb.refresh();
 
     eprintln!();
