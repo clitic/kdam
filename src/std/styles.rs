@@ -1,4 +1,4 @@
-use crate::{format::divmod, term::Colorizer};
+use crate::{term::Colorizer, utils::divmod};
 
 #[cfg(feature = "gradient")]
 use crate::utils;

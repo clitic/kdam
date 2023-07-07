@@ -4,12 +4,14 @@
 //! Default monitor modes may not fit in many cases.
 //! So it is recommended to create a custom monitor mode.
 //! The basic idea behind monitor mode is to create a separate thread for updating progress bar
-//! which can be achieved by following code.
+//! which can be achieved by the following code.
 //!
 //! ```
 //! use kdam::{Bar, BarExt};
-//! use std::sync::{Arc, Mutex};
-//! use std::thread;
+//! use std::{
+//!     sync::{Arc, Mutex},
+//!     thread,
+//! };
 //!
 //! fn custom_monitor(pb: Bar, maxinterval: f32) -> (Arc<Mutex<Bar>>, thread::JoinHandle<()>) {
 //!     let pb_arc = Arc::new(Mutex::new(pb));
@@ -36,7 +38,7 @@ use std::{
     thread,
 };
 
-/// Monitor mode for [Bar](crate::Bar)
+/// Monitor mode for [Bar](crate::Bar).
 ///
 /// # Example
 ///
@@ -52,7 +54,7 @@ use std::{
 /// }
 ///
 /// monitor_thread.join().unwrap();
-/// eprint!("\n");
+/// eprintln!();
 /// ```
 pub fn bar(pb: Bar, maxinterval: f32) -> (Arc<Mutex<Bar>>, thread::JoinHandle<()>) {
     let pb_arc = Arc::new(Mutex::new(pb));

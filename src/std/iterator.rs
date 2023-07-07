@@ -1,4 +1,4 @@
-use crate::std::{Bar, BarExt};
+use super::{Bar, BarExt};
 
 /// Iterable version of [Bar](crate::Bar).
 #[derive(Debug)]

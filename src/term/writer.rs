@@ -1,4 +1,5 @@
 use std::io::Write;
+use crate::lock;
 
 /// Stderr and Stdout writer for [Bar](crate::Bar).
 #[derive(Debug, Clone)]
@@ -65,7 +66,7 @@ impl Writer {
             Self::Stderr => {
                 let mut writer = std::io::stderr();
 
-                crate::thread::lock::acquire();
+                lock::acquire();
 
                 if position > 0 {
                     writer
@@ -81,12 +82,12 @@ impl Writer {
                 }
 
                 writer.flush().unwrap();
-                crate::thread::lock::release();
+                lock::release();
             }
             Self::Stdout => {
                 let mut writer = std::io::stdout();
 
-                crate::thread::lock::acquire();
+                lock::acquire();
 
                 if position > 0 {
                     writer
@@ -102,7 +103,7 @@ impl Writer {
                 }
 
                 writer.flush().unwrap();
-                crate::thread::lock::release();
+                lock::release();
             }
         }
     }

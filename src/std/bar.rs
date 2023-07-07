@@ -1,5 +1,11 @@
-use crate::{format, term::{Colorizer, Writer}};
-use super::{styles::{Animation, Colour}, BarExt};
+use super::{
+    styles::{Animation, Colour},
+    BarExt,
+};
+use crate::{
+    format, lock,
+    term::{Colorizer, Writer},
+};
 
 #[cfg(feature = "spinner")]
 use crate::spinner::Spinner;
@@ -484,10 +490,9 @@ impl BarExt for Bar {
 
             bar_format.replace_from_callback("total", |placeholder| {
                 if self.unit_scale {
-                    placeholder.format_spec.format(format::sizeof(
-                        self.total as f64,
-                        self.unit_divisor as f64,
-                    ))
+                    placeholder
+                        .format_spec
+                        .format(format::sizeof(self.total as f64, self.unit_divisor as f64))
                 } else {
                     placeholder.format_spec.format(&self.total)
                 }
@@ -501,10 +506,7 @@ impl BarExt for Bar {
                     .unwrap_or(false);
                 placeholder
                     .format_spec
-                    .format(crate::format::interval(
-                        self.elapsed_time as usize,
-                        human,
-                    ))
+                    .format(crate::format::interval(self.elapsed_time as usize, human))
             });
 
             bar_format.replace_from_callback("remaining", |placeholder| {
@@ -516,12 +518,10 @@ impl BarExt for Bar {
                         .unwrap_or_else(|| "false".to_owned())
                         .parse::<bool>()
                         .unwrap_or(false);
-                    placeholder
-                        .format_spec
-                        .format(crate::format::interval(
-                            self.remaining_time() as usize,
-                            human,
-                        ))
+                    placeholder.format_spec.format(crate::format::interval(
+                        self.remaining_time() as usize,
+                        human,
+                    ))
                 }
             });
 
@@ -545,9 +545,7 @@ impl BarExt for Bar {
             self.adjust_ncols(length - 11);
 
             bar_format.replace_from_callback("animation", |_| {
-                let render = self
-                    .animation
-                    .render(self.ncols, self.percentage() as f32);
+                let render = self.animation.render(self.ncols, self.percentage() as f32);
 
                 if let Some(colour) = &self.colour {
                     return colour.apply(&render);
@@ -678,10 +676,10 @@ impl BarExt for Bar {
         }
 
         self.bar_length = text.len_ansi() as i16;
-        crate::thread::lock::acquire();
+        lock::acquire();
         writer.write_fmt(format_args!("{}\n", text)).unwrap();
         writer.flush().unwrap();
-        crate::thread::lock::release();
+        lock::release();
         true
     }
 }

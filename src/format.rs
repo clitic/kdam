@@ -1,9 +1,6 @@
 //! Functions for formatting values.
 
-/// Returns floor division and modulus of two values.
-pub fn divmod(x: usize, y: usize) -> (usize, usize) {
-    (x / y, x % y)
-}
+use crate::utils::divmod;
 
 /// Formats a number (greater than unity) with SI order of magnitude prefixes.
 pub fn sizeof(num: f64, divisor: f64) -> String {
