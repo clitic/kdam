@@ -366,7 +366,7 @@ impl Bar {
 
     pub fn fmt_counter(&self) -> String {
         if self.unit_scale {
-            format::sizeof(self.counter as f64, self.unit_divisor as f64)
+            format::size_of(self.counter as f64, self.unit_divisor as f64)
         } else {
             format!("{:1$}", self.counter, self.fmt_total().len())
         }
@@ -374,7 +374,7 @@ impl Bar {
 
     pub fn fmt_total(&self) -> String {
         if self.unit_scale {
-            format::sizeof(self.total as f64, self.unit_divisor as f64)
+            format::size_of(self.total as f64, self.unit_divisor as f64)
         } else {
             self.total.to_string()
         }
@@ -412,7 +412,7 @@ impl Bar {
                 format!(
                     "{}{}/s",
                     if self.unit_scale {
-                        format::sizeof(rate as f64, self.unit_divisor as f64)
+                        format::size_of(rate as f64, self.unit_divisor as f64)
                     } else {
                         format!("{:.2}", rate)
                     },
@@ -479,7 +479,7 @@ impl BarExt for Bar {
 
             bar_format.replace_from_callback("count", |placeholder| {
                 if self.unit_scale {
-                    placeholder.format_spec.format(format::sizeof(
+                    placeholder.format_spec.format(format::size_of(
                         self.counter as f64,
                         self.unit_divisor as f64,
                     ))
@@ -492,7 +492,7 @@ impl BarExt for Bar {
                 if self.unit_scale {
                     placeholder
                         .format_spec
-                        .format(format::sizeof(self.total as f64, self.unit_divisor as f64))
+                        .format(format::size_of(self.total as f64, self.unit_divisor as f64))
                 } else {
                     placeholder.format_spec.format(&self.total)
                 }
@@ -783,7 +783,7 @@ impl BarBuilder {
     }
 
     /// If true, and the number of iterations per second is less than 1,
-    /// then s/its will be used instead of its/s.
+    /// then s/it will be displayed instead of it/s.
     /// (default: `false`)
     pub fn inverse_unit(mut self, inverse_unit: bool) -> Self {
         self.pb.inverse_unit = inverse_unit;
