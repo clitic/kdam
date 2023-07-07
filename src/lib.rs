@@ -10,6 +10,7 @@ pub mod format;
 pub mod term;
 
 pub use thread::monitor;
+pub use thread::lock;
 
 pub use iterator::{BarIterator, TqdmIterator};
 pub use thread::RowManager;

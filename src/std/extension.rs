@@ -52,7 +52,27 @@ pub trait BarExt {
     fn write_to<T: std::io::Write>(&mut self, writer: &mut T, n: Option<usize>) -> bool;
 }
 
-/// Derive [BarExt](crate::std::BarExt)
+/// Derive [BarExt](crate::std::BarExt) trait for a struct.
+/// 
+/// # Example
+/// 
+/// ```
+/// use kdam::{derive_bar_ext, Bar};
+/// 
+/// struct CustomBar {
+///     pb: Bar, // Required
+/// }
+/// 
+/// fn render(progress: &mut CustomBar) -> String {
+///     format!(
+///         "Progress: {}/{}",
+///         progress.pb.fmt_counter(),
+///         progress.pb.fmt_total(),
+///     )
+/// }
+/// 
+/// derive_bar_ext!(CustomBar, render);
+/// ```
 #[cfg(feature = "derive")]
 #[cfg_attr(docsrs, doc(cfg(feature = "derive")))]
 #[macro_export]
@@ -141,10 +161,10 @@ macro_rules! derive_bar_ext {
 
                 self.pb
                     .set_bar_length($crate::term::Colorizer::len_ansi(text.as_str()) as i16);
-                $crate::thread::lock::acquire();
+                $crate::lock::acquire();
                 writer.write_fmt(format_args!("{}\n", text)).unwrap();
                 writer.flush().unwrap();
-                $crate::thread::lock::release();
+                $crate::lock::release();
                 true
             }
         }

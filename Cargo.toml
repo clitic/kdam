@@ -21,7 +21,7 @@ terminal_size = "0.2"
 unicode-segmentation = { version = "1", optional = true }
 
 [features]
-# default = ["gradient", "unicode"]
+# default = ["gradient", "unicode", "derive"]
 derive = []
 gradient = ["dep:colorgrad"]
 rich = ["derive"]
@@ -58,6 +58,11 @@ path = "examples/messages/simple.rs"
 [[example]]
 name = "msg_write"
 path = "examples/messages/write.rs"
+
+[[example]]
+name = "misc_custom"
+path = "examples/miscellaneous/custom.rs"
+required-features = ["derive"]
 
 [[example]]
 name = "misc_file_copy"
