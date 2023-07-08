@@ -12,6 +12,10 @@ pub use crate::std::{
     monitor, Animation, Bar, BarBuilder, BarExt, BarIterator, Colour, RowManager, TqdmIterator,
 };
 
+#[cfg(feature = "derive")]
+#[cfg_attr(docsrs, doc(cfg(feature = "derive")))]
+pub use kdam_derive::BarExt;
+
 #[cfg(feature = "rich")]
 mod rich;
 
@@ -25,3 +29,8 @@ mod spinner;
 #[cfg(feature = "spinner")]
 #[cfg_attr(docsrs, doc(cfg(feature = "spinner")))]
 pub use spinner::Spinner;
+
+// use ::std::sync::atomic::AtomicI16;
+
+// const KDAM_NCOLS: AtomicI16 = AtomicI16::new(40);
+

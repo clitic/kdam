@@ -5,6 +5,7 @@ use super::{
 use crate::{
     format, lock,
     term::{Colorizer, Writer},
+    utils::get_columns_or,
 };
 
 #[cfg(feature = "spinner")]
@@ -321,7 +322,7 @@ impl Bar {
             if let Some(ncols) = self.user_ncols {
                 self.ncols = ncols;
             } else {
-                let columns = crate::term::get_columns_or(0);
+                let columns = get_columns_or(0);
 
                 if columns != 0 {
                     let new_ncols = columns as i16 - lbar_rbar_len;
@@ -427,7 +428,7 @@ impl BarExt for Bar {
     fn clear(&mut self) {
         self.write_at(format!(
             "\r{}",
-            " ".repeat(crate::term::get_columns_or(self.bar_length as u16) as usize)
+            " ".repeat(get_columns_or(self.bar_length as u16) as usize)
         ));
     }
 
@@ -577,7 +578,7 @@ impl BarExt for Bar {
             if !self.leave && self.position != 0 {
                 return format!(
                     "{}\r",
-                    " ".repeat(crate::term::get_columns_or(self.bar_length as u16) as usize)
+                    " ".repeat(get_columns_or(self.bar_length as u16) as usize)
                 );
             }
 
@@ -592,7 +593,7 @@ impl BarExt for Bar {
             if !self.leave && self.position != 0 {
                 return format!(
                     "{}\r",
-                    " ".repeat(crate::term::get_columns_or(self.bar_length as u16) as usize)
+                    " ".repeat(get_columns_or(self.bar_length as u16) as usize)
                 );
             }
         }
