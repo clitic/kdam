@@ -4,9 +4,9 @@ Ultimate console progress bar. (inspired by [tqdm](https://github.com/tqdm/tqdm)
 
 The following are a list of [Cargo features](https://doc.rust-lang.org/stable/cargo/reference/manifest.html#the-features-section) that can be enabled or disabled:
 
-- **derive**: Enables a macro for deriving [BarExt](crate::BarExt) trait.
+- **derive**: Adds a derive macro for deriving [BarExt](crate::BarExt) trait.
 - **gradient**: Enables gradient colours support for progress bars and printing text.
-- **rich**: Enables rich style progress bar.
+- **rich**: Enables [rich](https://rich.readthedocs.io/en/latest/progress.html) style progress bar.
 - **spinner**: Enables support for using spinners. 
 - **template**: Enables templating capabilities for [Bar](crate::Bar).
 - **unicode**: Enables unicode support.

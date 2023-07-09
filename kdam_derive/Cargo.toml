@@ -1,7 +1,14 @@
 [package]
-name = "kdam_derive"
-version = "0.1.0"
+authors = ["clitic <clitic21@gmail.com>"]
 edition = "2021"
+description = "A derive macro for deriving kdam::BarExt trait for a struct."
+documentation = "https://docs.rs/kdam_derive"
+keywords = ["derive"]
+license = "MIT OR Apache-2.0"
+name = "kdam_derive"
+readme = "README.md"
+repository = "https://github.com/clitic/kdam/tree/main/kdam_derive"
+version = "0.1.0"
 
 [lib]
 proc-macro = true

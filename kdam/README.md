@@ -42,22 +42,22 @@ fn main() {
 
 kdam also supports different animation styles. All available animation styles are:
 
-[examples/showcase/animations.rs](https://github.com/clitic/kdam/blob/main/examples/showcase/animations.rs)
+[kdam/examples/showcase/animations.rs](https://github.com/clitic/kdam/blob/main/kdam/examples/showcase/animations.rs)
 ![showcase_animations](https://raw.githubusercontent.com/clitic/kdam/main/images/animations.gif)
 
 kdam also supports [rich.progress](https://rich.readthedocs.io/en/latest/progress.html) style bars with customizable columns.
 
-[examples/rich.rs](https://github.com/clitic/kdam/blob/main/examples/rich.rs)
+[kdam/examples/rich.rs](https://github.com/clitic/kdam/blob/main/kdam/examples/rich.rs)
 ![showcase_rich_progress_animation](https://raw.githubusercontent.com/clitic/kdam/main/images/rich_progress.gif)
 
 kdam doesn't restrict you to use default progress bar styles. You can create your own progress bar template using bar_format. Here is clone of [alive-progress](https://github.com/rsalmei/alive-progress) using kdam.
 
-[examples/template.rs](https://github.com/clitic/kdam/blob/main/examples/template.rs)
+[kdam/examples/template.rs](https://github.com/clitic/kdam/blob/main/kdam/examples/template.rs)
 ![showcase_alive_progress_template](https://raw.githubusercontent.com/clitic/kdam/main/images/template.gif)
 
 A gradient progress bar can also be created.
 
-[examples/coloured/gradient.rs](https://github.com/clitic/kdam/blob/main/examples/coloured/gradient.rs)
+[kdam/examples/coloured/gradient.rs](https://github.com/clitic/kdam/blob/main/kdam/examples/coloured/gradient.rs)
 ![showcase_gradient](https://raw.githubusercontent.com/clitic/kdam/main/images/gradient.gif)
 
 ## Getting Started
@@ -75,12 +75,12 @@ Or add from command line.
 $ cargo add kdam
 ```
 
-See [docs](https://docs.rs/kdam/latest/kdam) and [examples](https://github.com/clitic/kdam/tree/main/examples) to 
+See [docs](https://docs.rs/kdam) and [examples](https://github.com/clitic/kdam/tree/main/kdam/examples) to 
 know how to use it.
 
 ## License
 
 Dual Licensed
 
-- [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0) ([LICENSE-APACHE](LICENSE-APACHE))
-- [MIT license](https://opensource.org/licenses/MIT) ([LICENSE-MIT](LICENSE-MIT))
+- [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0) ([LICENSE-APACHE](https://github.com/clitic/kdam/blob/main/kdam/LICENSE-APACHE))
+- [MIT license](https://opensource.org/licenses/MIT) ([LICENSE-MIT](https://github.com/clitic/kdam/blob/main/kdam/LICENSE-MIT))

@@ -1,4 +1,4 @@
-use kdam::{term::get_columns_or, Spinner};
+use kdam::Spinner;
 use std::io::Write;
 
 fn main() {
@@ -30,7 +30,7 @@ fn main() {
         stdout
             .write_fmt(format_args!(
                 "\r{}",
-                spin.render_frames(timer.elapsed().as_secs_f32(), get_columns_or(3) as i16 / 3)
+                spin.render_frames(timer.elapsed().as_secs_f32(), 10)
             ))
             .unwrap();
         stdout.flush().unwrap();
