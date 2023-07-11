@@ -13,12 +13,17 @@ version = "0.3.1"
 
 [dependencies]
 colorgrad = { version = "0.6", optional = true }
+crossterm = {version = "0.26", optional = true }
 formatx = { version = "0.2.1", optional = true }
 kdam_derive = { version = "0.1", path = "../kdam_derive", optional = true }
 terminal_size = "0.2"
 unicode-segmentation = { version = "1", optional = true }
 
+# [target.'cfg(not(feature = "crossterm"))'.dependencies]
+# terminal_size = "0.2"
+
 [features]
+crossterm = ["dep:crossterm"]
 derive = ["dep:kdam_derive"]
 gradient = ["dep:colorgrad"]
 rich = ["derive"]

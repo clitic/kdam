@@ -22,7 +22,7 @@ pub fn interval(seconds: usize, human: bool) -> String {
 pub fn size_of(num: f64, divisor: f64) -> String {
     let mut value = num;
 
-    for i in ["", "k", "M", "G", "T", "P", "E", "Z"] {
+    for i in ["", "K", "M", "G", "T", "P", "E", "Z"] {
         if value.abs() < 999.5 {
             if value.abs() < 99.95 {
                 if value.abs() < 9.995 {
