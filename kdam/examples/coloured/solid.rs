@@ -1,6 +1,9 @@
 use kdam::{tqdm, BarExt};
+use std::io::{stderr, IsTerminal};
 
 fn main() {
+    kdam::term::init(stderr().is_terminal());
+
     let mut pb = tqdm!(total = 100, colour = "#a485ca");
 
     for _ in 0..100 {

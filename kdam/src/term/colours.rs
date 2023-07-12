@@ -3,19 +3,18 @@
     ----------
 
     1. https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797
+    2. https://github.com/colored-rs/colored/blob/f1e593b8e240bbf5233031c1a65c248780d53c21/src/control.rs#L9-L59
 
 */
 
 use crate::utils;
 use std::sync::atomic::{AtomicBool, Ordering};
 
-// #[cfg(feature = "crossterm")]
-// use crossterm::style::Stylize;
-
-#[cfg(target_os = "windows")]
-static COLOURS_ENABLED: AtomicBool = AtomicBool::new(false);
-
-static COLORIZE: AtomicBool = AtomicBool::new(true);
+#[cfg(windows)]
+use windows_sys::Win32::System::Console::{
+    GetConsoleMode, GetStdHandle, SetConsoleMode, ENABLE_VIRTUAL_TERMINAL_PROCESSING,
+    STD_OUTPUT_HANDLE,
+};
 
 const COLOURS: [&str; 8] = [
     "black", "red", "green", "yellow", "blue", "magenta", "cyan", "white",
@@ -30,14 +29,37 @@ const COLOUR_ATTRIBUTES: [&str; 8] = [
     "hidden",
     "strikethrough",
 ];
+const COLOUR_RESET: &str = "\x1b[0m";
+
+static SHOULD_COLORIZE: AtomicBool = AtomicBool::new(false);
 
 /// Enable/Disable colorization property of [colorizer](crate::term::Colorizer) trait.
-/// Colorization is done always by default.
-///
-/// **TIP**: Use [IsTerminal](https://doc.rust-lang.org/stable/std/io/trait.IsTerminal.html)
-/// trait to detect real terminals and then use this function.
-pub fn set_colorize(always: bool) {
-    COLORIZE.store(always, Ordering::SeqCst);
+/// Colorization is disabled by default.
+/// This functions also enables support for ANSI escape codes on windows.
+/// 
+/// # Example
+/// 
+/// ```
+/// use std::io::{stderr, IsTerminal};
+/// 
+/// kdam::term::init(stderr().is_terminal());
+/// ```
+pub fn init(always: bool) {
+    #[cfg(windows)]
+    unsafe {
+        let handle = GetStdHandle(STD_OUTPUT_HANDLE);
+        let mut original_mode = 0;
+        GetConsoleMode(handle, &mut original_mode);
+
+        let enabled = original_mode & ENABLE_VIRTUAL_TERMINAL_PROCESSING
+            == ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+
+        if !enabled {
+            SetConsoleMode(handle, ENABLE_VIRTUAL_TERMINAL_PROCESSING | original_mode);
+        }
+    }
+
+    SHOULD_COLORIZE.store(always, Ordering::SeqCst);
 }
 
 // #FFFFFF -> Some((255, 255, 255))
@@ -67,29 +89,17 @@ fn parse_rgb(code: &str) -> Option<(u8, u8, u8)> {
     Some((values.next()?, values.next()?, values.next()?))
 }
 
-/// Create ANSI colour escape code from primary colours or hex colour code or rgb(r,g,b).
+/// Create ANSI colour escape code from primary colours, hex code, rgb(r,g,b) and ansi(n).
 ///
 /// # Example
 ///
 /// ```
 /// use kdam::term::colour;
 ///
-/// assert_eq!(colour("bold red"), "\x1b[31;1m");
-/// assert_eq!(colour("blue on white"), "\x1b[34;47m");
+/// assert_eq!(colour("bold red"), Some("\x1b[31;1m"));
+/// assert_eq!(colour("blue on white"), Some("\x1b[34;47m"));
 /// ```
 pub fn colour(code: &str) -> Option<String> {
-    #[cfg(target_os = "windows")]
-    if !COLOURS_ENABLED.load(Ordering::Acquire) {
-        std::process::Command::new("cmd")
-            .args(["/c", "color"])
-            .spawn()
-            .unwrap()
-            .wait()
-            .unwrap();
-
-        COLOURS_ENABLED.store(true, Ordering::SeqCst);
-    }
-
     let mut code = code.to_lowercase();
     let mut bg = None;
 
@@ -209,17 +219,19 @@ pub fn colour(code: &str) -> Option<String> {
     } else {
         Some(attributes)
     };
-    let escape_code = "\x1b[".to_owned();
 
-    match (fg, bg, attributes) {
-        (None, None, Some(z)) => Some(escape_code + &z + "m"),
-        (None, Some(y), None) => Some(escape_code + &y + "m"),
-        (None, Some(y), Some(z)) => Some(escape_code + &y + ";" + &z + "m"),
-        (Some(x), None, None) => Some(escape_code + &x + "m"),
-        (Some(x), None, Some(z)) => Some(escape_code + &x + ";" + &z + "m"),
-        (Some(x), Some(y), None) => Some(escape_code + &x + ";" + &y + "m"),
-        (Some(x), Some(y), Some(z)) => Some(escape_code + &x + ";" + &y + ";" + &z + "m"),
-        _ => None,
+    let escape_code = "\x1b[".to_owned()
+        + &[fg, bg, attributes]
+            .into_iter()
+            .flatten()
+            .collect::<Vec<String>>()
+            .join(";")
+        + "m";
+
+    if escape_code == "\x1b[m" {
+        None
+    } else {
+        Some(escape_code)
     }
 }
 
@@ -238,7 +250,7 @@ pub trait Colorizer {
     /// println!("{}", "hello world!".colorize("bright white on blue"));
     ///
     /// // ANSI [256; 8-bit]
-    /// 
+    ///
     /// println!("{}", "hello world!".colorize("ansi(200)"));
     /// println!("{}", "hello world!".colorize("ansi(0) on ansi(255)"));
     ///
@@ -265,27 +277,26 @@ pub trait Colorizer {
 
 impl Colorizer for str {
     fn colorize(&self, code: &str) -> String {
-        if !COLORIZE.load(Ordering::Acquire) {
+        if !SHOULD_COLORIZE.load(Ordering::Acquire) {
             return self.to_owned();
         }
 
         let escape_code = colour(code);
 
         if let Some(escape_code) = escape_code {
-            escape_code + self + "\x1b[0m"
+            escape_code + self + COLOUR_RESET
         } else {
             self.to_owned()
         }
     }
 
     fn trim_ansi(&self) -> String {
-        let mut text = self.replace("\x1b[0m", "");
+        let mut text = self.to_owned();
 
         while let Some(start) = text.find("\x1b[") {
-            text = text.replace(
-                &text[start..(start + text[start..].find('m').unwrap() + 1)],
-                "",
-            );
+            if let Some(end) = text[start..].find('m') {
+                text.replace_range(start..(start + end + 1), "");
+            }
         }
 
         text

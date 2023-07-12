@@ -1,6 +1,8 @@
 use kdam::{tqdm, BarExt, Animation};
 
 fn main() {
+    kdam::term::init(false);
+    
     let render_length = 300;
 
     let mut pb1 = tqdm!(

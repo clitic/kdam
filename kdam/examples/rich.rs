@@ -1,6 +1,9 @@
 use kdam::{term::Colorizer, tqdm, BarExt, Column, RichProgress, Spinner};
+use std::io::{stderr, IsTerminal};
 
 fn main() {
+    kdam::term::init(stderr().is_terminal());
+
     let mut pb = RichProgress::new(
         tqdm!(
             total = 231231231,

@@ -3,6 +3,8 @@ use std::thread;
 use std::time::Duration;
 
 fn main() {
+    kdam::term::init(false);
+    
     let mut pb1 = tqdm!(total = 150, position = 0);
     let mut pb2 = tqdm!(total = 100, position = 1);
     let mut pb3 = tqdm!(total = 200, position = 2);

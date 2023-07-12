@@ -2,6 +2,8 @@ use kdam::term::Writer;
 use kdam::{tqdm, BarExt};
 
 fn main() {
+    kdam::term::init(false);
+    
     let mut pb1 = tqdm!(total = 100, position = 0);
     let mut pb2 = tqdm!(total = 100, position = 4);
 

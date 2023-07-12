@@ -1,6 +1,9 @@
 use kdam::{term::Colorizer, tqdm, Colour};
+use std::io::{stderr, IsTerminal};
 
 fn main() {
+    kdam::term::init(stderr().is_terminal());
+
     for _ in tqdm!(
         0..300,
         total = 300,

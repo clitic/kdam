@@ -848,6 +848,10 @@ impl BarBuilder {
     /// Specify the line offset to print this bar (starting from 0).
     /// Useful to manage multiple bars at once (eg, from threads).
     /// (default: `0`)
+    /// 
+    /// # Note
+    /// 
+    /// Use `kdam::term::init` function before using this function, especially on windows.
     pub fn position(mut self, position: u16) -> Self {
         self.pb.position = position;
         self

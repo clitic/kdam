@@ -4,6 +4,8 @@ use std::thread;
 use std::time::Duration;
 
 fn main() {
+    kdam::term::init(false);
+    
     let mut manager = RowManager::new(3);
 
     for (i, total) in [150, 100, 200, 400, 500, 600].iter().enumerate() {
