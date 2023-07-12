@@ -96,8 +96,8 @@ fn parse_rgb(code: &str) -> Option<(u8, u8, u8)> {
 /// ```
 /// use kdam::term::colour;
 ///
-/// assert_eq!(colour("bold red"), Some("\x1b[31;1m"));
-/// assert_eq!(colour("blue on white"), Some("\x1b[34;47m"));
+/// assert_eq!(colour("bold red"), Some("\x1b[31;1m".to_owned()));
+/// assert_eq!(colour("blue on white"), Some("\x1b[34;47m".to_owned()));
 /// ```
 pub fn colour(code: &str) -> Option<String> {
     let mut code = code.to_lowercase();
