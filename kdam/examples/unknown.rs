@@ -1,12 +1,15 @@
 use kdam::{tqdm, BarExt};
+use std::io::Result;
 
-fn main() {
+fn main() -> Result<()> {
     let mut pb = tqdm!();
 
     for _ in 0..10000000 {
-        pb.update(1);
+        pb.update(1)?;
     }
-    pb.refresh();
 
+    pb.refresh()?;
     eprintln!();
+
+    Ok(())
 }

@@ -25,7 +25,7 @@
 //!             break;
 //!         }
 //!
-//!         pb_monitor.refresh();
+//!         let _ = pb_monitor.refresh();
 //!     });
 //!
 //!     (pb_arc, handle)
@@ -68,7 +68,7 @@ pub fn bar(pb: Bar, maxinterval: f32) -> (Arc<Mutex<Bar>>, thread::JoinHandle<()
             break;
         }
 
-        pb_monitor.refresh();
+        let _ = pb_monitor.refresh();
     });
 
     (pb_arc, handle)

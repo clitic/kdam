@@ -1,7 +1,7 @@
 use kdam::{term::Colorizer, tqdm, BarExt, Column, RichProgress, Spinner};
-use std::io::{stderr, IsTerminal};
+use std::io::{stderr, IsTerminal, Result};
 
-fn main() {
+fn main() -> Result<()> {
     kdam::term::init(stderr().is_terminal());
 
     let mut pb = RichProgress::new(
@@ -29,14 +29,14 @@ fn main() {
         ],
     );
 
-    pb.write("download will begin in 5 seconds".colorize("bold red"));
+    pb.write("download will begin in 5 seconds".colorize("bold red"))?;
 
     while pb.pb.elapsed_time() <= 5.0 {
-        pb.refresh();
+        pb.refresh()?;
     }
 
     pb.replace(1, Column::Text("[bold blue]docker.exe".to_owned()));
-    pb.write("downloading docker.exe".colorize("bold cyan"));
+    pb.write("downloading docker.exe".colorize("bold cyan"))?;
 
     let total_size = 231231231;
     let mut downloaded = 0;
@@ -44,10 +44,12 @@ fn main() {
     while downloaded < total_size {
         let new = std::cmp::min(downloaded + 223211, total_size);
         downloaded = new;
-        pb.update_to(new);
+        pb.update_to(new)?;
         std::thread::sleep(std::time::Duration::from_millis(12));
     }
 
-    pb.write("downloaded docker.exe".colorize("bold green"));
+    pb.write("downloaded docker.exe".colorize("bold green"))?;
     eprintln!();
+
+    Ok(())
 }

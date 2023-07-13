@@ -18,7 +18,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         force_refresh = true
     );
 
-    pb.write(format!("Downloading {}", URL));
+    pb.write(format!("Downloading {}", URL))?;
 
     let mut file = File::create(PATH)?;
     let mut stream = res.bytes_stream();
@@ -26,10 +26,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
     while let Some(item) = stream.next().await {
         let chunk = item?;
         file.write_all(&chunk)?;
-        pb.update(chunk.len());
+        pb.update(chunk.len())?;
     }
 
-    pb.refresh();
+    pb.refresh()?;
     eprintln!("\nDownloaded {} to {}", URL, PATH);
     Ok(())
 }

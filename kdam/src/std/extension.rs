@@ -1,13 +1,15 @@
+use std::io::{Result, Write};
+
 /// Comman progress bar functionalities shared between different types of progress bars.
 pub trait BarExt {
     /// Clear current bar display.
-    fn clear(&mut self);
+    fn clear(&mut self) -> Result<()>;
 
     /// Take input via bar (without overlap with bars).
-    fn input<T: Into<String>>(&mut self, text: T) -> Result<String, std::io::Error>;
+    fn input<T: Into<String>>(&mut self, text: T) -> Result<String>;
 
     /// Force refresh the display of this bar.
-    fn refresh(&mut self);
+    fn refresh(&mut self) -> Result<()>;
 
     /// Render progress bar.
     fn render(&mut self) -> String;
@@ -18,15 +20,15 @@ pub trait BarExt {
 
     /// Manually update the progress bar, useful for streams such as reading files.
     /// Returns wheter a update was triggered or not depending on constraints.
-    fn update(&mut self, n: usize) -> bool;
+    fn update(&mut self, n: usize) -> Result<bool>;
 
     /// Set counter position instead of incrementing progress bar through [update](Self::update).
     /// Alternative way to update bar.
     /// Returns wheter a update was triggered or not depending on constraints.
-    fn update_to(&mut self, update_to_n: usize) -> bool;
+    fn update_to(&mut self, update_to_n: usize) -> Result<bool>;
 
     /// Print a message via bar (without overlap with bars).
-    fn write<T: Into<String>>(&mut self, text: T);
+    fn write<T: Into<String>>(&mut self, text: T) -> Result<()>;
 
     /// Write rendered text to a writer, useful for writing files.
     /// If `n` is supplied then this method behaves like [update](Self::update).
@@ -49,5 +51,5 @@ pub trait BarExt {
     ///     pb.write_to(&mut f, Some(0));
     /// }
     /// ```
-    fn write_to<T: std::io::Write>(&mut self, writer: &mut T, n: Option<usize>) -> bool;
+    fn write_to<T: Write>(&mut self, writer: &mut T, n: Option<usize>) -> Result<bool>;
 }

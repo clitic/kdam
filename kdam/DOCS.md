@@ -26,7 +26,7 @@ fn main() {
         charset += i;
     }
 
-    eprint!("\n");
+    eprintln!();
     assert_eq!(charset, "abcd");
 }
 ```
@@ -35,15 +35,17 @@ fn main() {
 
 ```
 use kdam::{tqdm, BarExt};
+use std::io::Result;
 
-fn main() {
+fn main() -> Result<()> {
     let mut pb = tqdm!(total = 100);
 
     for _ in 0..100 {
-        pb.update(1);
+        pb.update(1)?;
     }
 
-    eprint!("\n");
+    eprintln!();
+    Ok(())
 }
 ```
 
@@ -51,16 +53,19 @@ Another example without a total value. This only shows basic stats.
 
 ```
 use kdam::{tqdm, BarExt};
+use std::io::Result;
 
-fn main() {
+fn main() -> Result<()> {
     let mut pb = tqdm!();
 
     for _ in 0..10000000 {
-        pb.update(1);
+        pb.update(1)?;
     }
-    pb.refresh();
 
+    pb.refresh()?;
     eprintln!();
+
+    Ok(())
 }
 ```
 
@@ -76,19 +81,21 @@ Custom information can be displayed and updated dynamically on `kdam` bars with 
 
 ```
 use kdam::{tqdm, BarExt};
+use std::io::Result;
 
-fn main() {
+fn main() -> Result<()> {
     let mut pb = tqdm!(total = 10);
     pb.set_postfix(format!("str={}, lst={:?}", "h", [1, 2]));
-    pb.refresh();
+    pb.refresh()?;
 
     for i in 0..10 {
         std::thread::sleep(std::time::Duration::from_secs_f32(0.5));
         pb.set_description(format!("GEN {}", i));
-        pb.update(1);
+        pb.update(1)?;
     }
     
-    eprint!("\n");
+    eprintln!();
+    Ok(())
 }
 ```
 
@@ -133,18 +140,20 @@ To write messages in the terminal without any collision with `kdam` bar display,
 
 ```
 use kdam::{tqdm, BarExt};
+use std::io::Result;
 
-fn main() {
+fn main() -> Result<()> {
     let mut pb = tqdm!(total = 10);
 
     for i in 0..10 {
         std::thread::sleep(std::time::Duration::from_secs_f32(0.1));
 
-        pb.update(1);
-        pb.write(format!("Done task {}", i));
+        pb.update(1)?;
+        pb.write(format!("Done task {}", i))?;
     }
 
-    eprint!("\n");
+    eprintln!();
+    Ok(())
 }
 ```
 
@@ -166,13 +175,14 @@ Similarly `.input()` method can be called to store an user input.
 
 ```
 use kdam::{tqdm, BarExt};
+use std::io::Result;
 
-fn main() {
+fn main() -> Result<()> {
     let mut pb = tqdm!(total = 10);
 
     for i in 0..10 {
         if i == 5 {
-            if pb.input("Break Loop [y/n]: ").unwrap().trim() == "y" {
+            if pb.input("Break Loop [y/n]: ")?.trim() == "y" {
                 break;
             }
         }
@@ -180,7 +190,8 @@ fn main() {
         pb.update(1);
     }
 
-    eprint!("\n");
+    eprintln!();
+    Ok(())
 }
 ```
 
@@ -195,6 +206,8 @@ kdam also provides a text colorization trait for printing colored text in termin
 
 ```
 use kdam::term::Colorizer;
+
+kdam::term::init(true);
 
 println!("{}", "hello world!".colorize("bold red"));
 println!("{}", "hello world!".colorize("bright white on blue"));

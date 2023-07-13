@@ -66,9 +66,9 @@ impl<S, T: Iterator<Item = S>> Iterator for BarIterator<T> {
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.started {
-            self.pb.update(1);
+            self.pb.update(1).unwrap();
         } else {
-            self.pb.refresh();
+            self.pb.refresh().unwrap();
             self.started = true;
         }
 
@@ -79,9 +79,9 @@ impl<S, T: Iterator<Item = S>> Iterator for BarIterator<T> {
 impl<T: DoubleEndedIterator> DoubleEndedIterator for BarIterator<T> {
     fn next_back(&mut self) -> Option<Self::Item> {
         if self.started {
-            self.pb.update(1);
+            self.pb.update(1).unwrap();
         } else {
-            self.pb.refresh();
+            self.pb.refresh().unwrap();
             self.started = true;
         }
 

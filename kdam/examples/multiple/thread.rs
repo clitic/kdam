@@ -1,6 +1,5 @@
 use kdam::{tqdm, BarExt};
-use std::thread;
-use std::time::Duration;
+use std::{thread, time::Duration};
 
 fn main() {
     kdam::term::init(false);
@@ -12,21 +11,21 @@ fn main() {
     let thread1 = thread::spawn(move || {
         for _ in 0..150 {
             thread::sleep(Duration::from_secs_f32(0.1));
-            pb1.update(1);
+            pb1.update(1).unwrap();
         }
     });
 
     let thread2 = thread::spawn(move || {
         for _ in 0..100 {
             thread::sleep(Duration::from_secs_f32(0.1));
-            pb2.update(1);
+            pb2.update(1).unwrap();
         }
     });
 
     let thread3 = thread::spawn(move || {
         for _ in 0..200 {
             thread::sleep(Duration::from_secs_f32(0.1));
-            pb3.update(1);
+            pb3.update(1).unwrap();
         }
     });
 

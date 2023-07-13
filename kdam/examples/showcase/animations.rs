@@ -1,8 +1,9 @@
-use kdam::{tqdm, BarExt, Animation};
+use kdam::{tqdm, Animation, BarExt};
+use std::io::Result;
 
-fn main() {
+fn main() -> Result<()> {
     kdam::term::init(false);
-    
+
     let render_length = 300;
 
     let mut pb1 = tqdm!(
@@ -57,15 +58,16 @@ fn main() {
     println!("animations:\n");
 
     for _ in 0..render_length {
-        pb1.update(1);
-        pb2.update(1);
-        pb3.update(1);
-        pb4.update(1);
-        pb5.update(1);
-        pb6.update(1);
-        pb7.update(1);
+        pb1.update(1)?;
+        pb2.update(1)?;
+        pb3.update(1)?;
+        pb4.update(1)?;
+        pb5.update(1)?;
+        pb6.update(1)?;
+        pb7.update(1)?;
         std::thread::sleep(std::time::Duration::from_secs_f32(0.02));
     }
 
     eprint!("{}", "\n".repeat(13));
+    Ok(())
 }

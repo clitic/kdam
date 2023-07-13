@@ -1,5 +1,5 @@
 use super::{Bar, BarExt};
-use std::collections::HashSet;
+use std::{collections::HashSet, io::Result};
 
 /// RowManager allows to store and update many progress bars.
 ///
@@ -14,11 +14,11 @@ use std::collections::HashSet;
 /// use kdam::{tqdm, BarExt, RowManager};
 ///
 /// let mut manager = RowManager::new(3);
-/// let pb_index = manager.append(tqdm!(total = 100));
+/// let pb_index = manager.append(tqdm!(total = 100)).unwrap();
 ///
 /// for _ in 0..100 {
-///     manager.get_mut(pb_index).unwrap().update(1);
-///     manager.notify(pb_index);
+///     manager.get_mut(pb_index).unwrap().update(1).unwrap();
+///     manager.notify(pb_index).unwrap();
 /// }
 ///
 /// manager.bars.remove(pb_index);
@@ -88,32 +88,32 @@ impl RowManager {
     }
 
     /// Append a progress bar returning its index.
-    pub fn append(&mut self, mut pb: Bar) -> usize {
+    pub fn append(&mut self, mut pb: Bar) -> Result<usize> {
         pb.position = self.acquired_pos.len() as u16;
         self.bars_true_disable.push(pb.disable);
 
         if self.nrows > pb.position {
-            pb.refresh();
+            pb.refresh()?;
             self.acquired_pos.insert(pb.position);
         } else {
             pb.disable = true;
         }
 
         self.bars.push(pb);
-        self.bars.len() - 1
+        Ok(self.bars.len() - 1)
     }
 
     /// Update and print the required stuff for progress bar at that index.
-    pub fn notify(&mut self, index: usize) {
+    pub fn notify(&mut self, index: usize) -> Result<()> {
         let pb = self.bars.get_mut(index).unwrap();
 
         if pb.completed() && !self.bars_true_disable.get(index).unwrap() {
             if pb.leave {
                 let text = pb.render();
-                pb.writer.print(format_args!("\r{}\n", text));
+                pb.writer.print(format!("\r{}\n", text).as_bytes())?;
             }
 
-            pb.clear();
+            pb.clear()?;
             pb.disable = true;
 
             if self.acquired_pos.remove(&pb.position) {
@@ -136,10 +136,10 @@ impl RowManager {
             for (i, bar) in self.bars.iter_mut().enumerate() {
                 if bar.total > bar.get_counter() && !self.bars_true_disable.get(i).unwrap() {
                     if bar.position != count {
-                        bar.clear();
+                        bar.clear()?;
                         bar.position = count;
                         bar.disable = false;
-                        bar.refresh();
+                        bar.refresh()?;
                     }
 
                     count += 1;
@@ -148,14 +148,14 @@ impl RowManager {
         } else {
             if self.nrows as usize == remaining_bars {
                 writer.print_at(
-                    (self.acquired_pos.iter().max().unwrap_or(&0) + 1) as usize,
-                    format!("\r{}\r", " ".repeat(22)),
-                );
+                    self.acquired_pos.iter().max().unwrap_or(&0) + 1,
+                    format!("\r{}\r", " ".repeat(22)).as_bytes(),
+                )?;
             } else {
                 writer.print_at(
-                    (self.acquired_pos.iter().max().unwrap_or(&0) + 1) as usize,
-                    " ... (more hidden) ...",
-                );
+                    self.acquired_pos.iter().max().unwrap_or(&0) + 1,
+                    " ... (more hidden) ...".as_bytes(),
+                )?;
             }
 
             for (i, bar) in self.bars.iter_mut().enumerate() {
@@ -168,7 +168,7 @@ impl RowManager {
                                 bar.disable = false;
                             }
 
-                            bar.refresh();
+                            bar.refresh()?;
 
                             if self.avaliable_pos.remove(&bar.position) {
                                 self.acquired_pos.insert(bar.position);
@@ -178,5 +178,7 @@ impl RowManager {
                 }
             }
         }
+
+        Ok(())
     }
 }

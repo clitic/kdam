@@ -1,4 +1,5 @@
 /target
 Cargo.lock
 **/*.rs.bk
-kdam/kdam-logs.txt
+kdam-logs.txt
+kdam/logs.txt

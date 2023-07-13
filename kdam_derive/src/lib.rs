@@ -72,32 +72,34 @@ pub fn bar_ext(input: TokenStream) -> TokenStream {
 
     let expanded = quote! {
         impl #impl_generics #crate_name::BarExt for #name #ty_generics #where_clause {
-            fn clear(&mut self) {
-                self.#bar_field.clear();
+            fn clear(&mut self) -> ::std::io::Result<()> {
+                self.#bar_field.clear()
             }
 
-            fn input<T: Into<String>>(&mut self, text: T) -> Result<String, std::io::Error> {
-                self.clear();
-                self.#bar_field.writer.print_str(&text.into());
+            fn input<T: Into<String>>(&mut self, text: T) -> ::std::io::Result<String> {
+                self.clear()?;
+                self.#bar_field.writer.print(text.into().as_bytes())?;
 
-                let mut input_string = String::new();
-                std::io::stdin().read_line(&mut input_string)?;
+                let mut buf = String::new();
+                ::std::io::stdin().read_line(&mut buf)?;
 
                 if self.#bar_field.leave {
-                    self.refresh();
+                    self.refresh()?;
                 }
 
-                Ok(input_string)
+                Ok(buf)
             }
 
-            fn refresh(&mut self) {
+            fn refresh(&mut self) -> ::std::io::Result<()> {
                 if !self.#bar_field.force_refresh {
                     self.#bar_field.force_refresh = true;
-                    self.update(0);
+                    self.update(0)?;
                     self.#bar_field.force_refresh = false;
                 } else {
-                    self.update(0);
+                    self.update(0)?;
                 }
+
+                Ok(())
             }
 
             fn render(&mut self) -> String {
@@ -108,45 +110,47 @@ pub fn bar_ext(input: TokenStream) -> TokenStream {
                 self.#bar_field.reset(total);
             }
 
-            fn update(&mut self, n: usize) -> bool {
+            fn update(&mut self, n: usize) -> ::std::io::Result<bool> {
                 if self.#bar_field.trigger(n) {
                     let text = self.render();
                     let length = #crate_name::term::Colorizer::len_ansi(text.as_str()) as i16;
 
                     if length != self.#bar_field.get_bar_length() {
-                        self.#bar_field.clear();
+                        self.#bar_field.clear()?;
                     }
 
                     self.#bar_field.set_bar_length(length);
-                    self.#bar_field.write_at(text);
-                    return true;
+                    self.#bar_field.writer.print_at(self.pb.position, text.as_bytes())?;
+                    return Ok(true);
                 }
 
-                false
+                Ok(false)
             }
 
-            fn update_to(&mut self, update_to_n: usize) -> bool {
+            fn update_to(&mut self, update_to_n: usize) -> ::std::io::Result<bool> {
                 self.#bar_field.set_counter(update_to_n);
                 self.update(0)
             }
 
-            fn write<T: Into<String>>(&mut self, text: T) {
-                self.#bar_field.clear();
-                self.#bar_field.writer.print(format_args!("\r{}\n", text.into()));
+            fn write<T: Into<String>>(&mut self, text: T) -> ::std::io::Result<()> {
+                self.#bar_field.clear()?;
+                self.#bar_field.writer.print(format!("\r{}\n", text.into()).as_bytes())?;
 
                 if self.#bar_field.leave {
-                    self.refresh();
+                    self.refresh()?;
                 }
+
+                Ok(())
             }
 
-            fn write_to<T: std::io::Write>(&mut self, writer: &mut T, n: Option<usize>) -> bool {
+            fn write_to<T: ::std::io::Write>(&mut self, writer: &mut T, n: Option<usize>) -> ::std::io::Result<bool> {
                 let text;
 
                 if let Some(n) = &n {
                     if self.#bar_field.trigger(*n) {
                         text = #crate_name::term::Colorizer::trim_ansi(self.render().as_str());
                     } else {
-                        return false;
+                        return Ok(false);
                     }
                 } else {
                     text = #crate_name::term::Colorizer::trim_ansi(self.render().as_str());
@@ -155,10 +159,10 @@ pub fn bar_ext(input: TokenStream) -> TokenStream {
                 self.#bar_field
                     .set_bar_length(#crate_name::term::Colorizer::len_ansi(text.as_str()) as i16);
                 #crate_name::lock::acquire();
-                writer.write_fmt(format_args!("{}\n", text)).unwrap();
-                writer.flush().unwrap();
+                writer.write_all((text + "\n").as_bytes())?;
+                writer.flush()?;
                 #crate_name::lock::release();
-                true
+                Ok(true)
             }
         }
     };

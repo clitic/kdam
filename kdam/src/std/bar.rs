@@ -7,6 +7,7 @@ use crate::{
     term::{Colorizer, Writer},
     utils::get_columns_or,
 };
+use std::{io::{Result, stdin, Write}, time::Instant};
 
 #[cfg(feature = "spinner")]
 use crate::spinner::Spinner;
@@ -63,7 +64,7 @@ pub struct Bar {
     // NON CUSTOMIZABLE FIELDS
     bar_length: i16,
     counter: usize,
-    timer: std::time::Instant,
+    timer: Instant,
     elapsed_time: f32,
     user_ncols: Option<i16>,
 }
@@ -97,7 +98,7 @@ impl Default for Bar {
             writer: Writer::Stderr,
             force_refresh: false,
             counter: 0,
-            timer: std::time::Instant::now(),
+            timer: Instant::now(),
             elapsed_time: 0.0,
             user_ncols: None,
             bar_length: 0,
@@ -184,7 +185,7 @@ impl Bar {
     /// Set/Modify bar_format property.
     #[cfg(feature = "template")]
     #[cfg_attr(docsrs, doc(cfg(feature = "template")))]
-    pub fn set_bar_format<T: Into<String>>(&mut self, bar_format: T) -> Result<(), formatx::Error> {
+    pub fn set_bar_format<T: Into<String>>(&mut self, bar_format: T) -> ::std::result::Result<(), formatx::Error> {
         let bar_format = bar_format.into().parse::<Template>()?;
         let mut bar_format_check = bar_format.clone();
         bar_format_check.replace("desc", "");
@@ -338,19 +339,19 @@ impl Bar {
         }
     }
 
-    /// Print a string in position of bar.
-    pub fn write_at(&self, text: String) {
-        if self.position == 0 {
-            self.writer.print(format_args!("\r{}", text));
-        } else {
-            self.writer.print(format_args!(
-                "{}{}\x1b[{}A",
-                "\n".repeat(self.position as usize),
-                text,
-                self.position
-            ));
-        }
-    }
+    // /// Print a string in position of bar.
+    // pub fn write_at(&self, text: String) {
+    //     if self.position == 0 {
+    //         self.writer.print(format_args!("\r{}", text));
+    //     } else {
+    //         self.writer.print(format_args!(
+    //             "{}{}\x1b[{}A",
+    //             "\n".repeat(self.position as usize),
+    //             text,
+    //             self.position
+    //         ));
+    //     }
+    // }
 
     // -----------------------------------------------------------------------------------------
     // FORMATTING (FOR INTERNAL USE ONLY)
@@ -425,35 +426,36 @@ impl Bar {
 }
 
 impl BarExt for Bar {
-    fn clear(&mut self) {
-        self.write_at(format!(
-            "\r{}",
-            " ".repeat(get_columns_or(self.bar_length as u16) as usize)
-        ));
+    fn clear(&mut self) -> Result<()> {
+        self.writer.print_at(
+            self.position, " ".repeat(get_columns_or(self.bar_length as u16) as usize).as_bytes()
+        )
     }
 
-    fn input<T: Into<String>>(&mut self, text: T) -> Result<String, std::io::Error> {
-        self.clear();
-        self.writer.print_str(&text.into());
+    fn input<T: Into<String>>(&mut self, text: T) -> Result<String> {
+        self.clear()?;
+        self.writer.print(text.into().as_bytes())?;
 
-        let mut input_string = String::new();
-        std::io::stdin().read_line(&mut input_string)?;
+        let mut buf = String::new();
+        stdin().read_line(&mut buf)?;
 
         if self.leave {
-            self.refresh();
+            self.refresh()?;
         }
 
-        Ok(input_string)
+        Ok(buf)
     }
 
-    fn refresh(&mut self) {
+    fn refresh(&mut self) -> Result<()> {
         if !self.force_refresh {
             self.force_refresh = true;
-            self.update(0);
+            self.update(0)?;
             self.force_refresh = false;
         } else {
-            self.update(0);
+            self.update(0)?;
         }
+
+        Ok(())
     }
 
     fn render(&mut self) -> String {
@@ -629,48 +631,50 @@ impl BarExt for Bar {
         }
 
         self.counter = self.initial;
-        self.timer = std::time::Instant::now();
+        self.timer = Instant::now();
     }
 
-    fn update(&mut self, n: usize) -> bool {
+    fn update(&mut self, n: usize) -> Result<bool> {
         if self.trigger(n) {
             let text = self.render();
             let length = text.len_ansi() as i16;
 
             if length != self.bar_length {
-                self.clear();
+                self.clear()?;
             }
 
             self.bar_length = length;
-            self.write_at(text);
-            return true;
+            self.writer.print_at(self.position, text.as_bytes())?;
+            return Ok(true);
         }
 
-        false
+        Ok(false)
     }
 
-    fn update_to(&mut self, update_to_n: usize) -> bool {
+    fn update_to(&mut self, update_to_n: usize) -> Result<bool> {
         self.counter = update_to_n;
         self.update(0)
     }
 
-    fn write<T: Into<String>>(&mut self, text: T) {
-        self.clear();
-        self.writer.print(format_args!("\r{}\n", text.into()));
+    fn write<T: Into<String>>(&mut self, text: T) -> Result<()> {
+        self.clear()?;
+        self.writer.print(format!("\r{}\n", text.into()).as_bytes())?;
 
         if self.leave {
-            self.refresh();
+            self.refresh()?;
         }
+
+        Ok(())
     }
 
-    fn write_to<T: std::io::Write>(&mut self, writer: &mut T, n: Option<usize>) -> bool {
+    fn write_to<T: Write>(&mut self, writer: &mut T, n: Option<usize>) -> Result<bool> {
         let text;
 
         if let Some(n) = &n {
             if self.trigger(*n) {
                 text = self.render().trim_ansi();
             } else {
-                return false;
+                return Ok(false);
             }
         } else {
             text = self.render().trim_ansi();
@@ -678,10 +682,10 @@ impl BarExt for Bar {
 
         self.bar_length = text.len_ansi() as i16;
         lock::acquire();
-        writer.write_fmt(format_args!("{}\n", text)).unwrap();
-        writer.flush().unwrap();
+        writer.write_all((text + "\n").as_bytes())?;
+        writer.flush()?;
         lock::release();
-        true
+        Ok(true)
     }
 }
 
@@ -904,8 +908,8 @@ impl BarBuilder {
 
     /// Select writer type to display progress bar output between `stdout` and `stderr`.
     /// (default: [stderr](crate::term::Writer))
-    pub fn writer<T: Into<Writer>>(mut self, writer: T) -> Self {
-        self.pb.writer = writer.into();
+    pub fn writer(mut self, writer: Writer) -> Self {
+        self.pb.writer = writer;
         self
     }
 
@@ -918,7 +922,7 @@ impl BarBuilder {
 
     /// Build [Bar](crate::Bar), this method only returns error when `bar_format` is used incorrectly.
     #[allow(unused_mut)]
-    pub fn build(mut self) -> Result<Bar, String> {
+    pub fn build(mut self) -> ::std::result::Result<Bar, String> {
         #[cfg(feature = "template")]
         if let Some(bar_format) = self.bar_format {
             self.pb

@@ -1,110 +1,62 @@
-use std::io::Write;
 use crate::lock;
+use std::io::{stderr, stdout, Result, Write};
 
-/// Stderr and Stdout writer for [Bar](crate::Bar).
+/// Stderr and Stdout writer.
 #[derive(Debug, Clone)]
 pub enum Writer {
     Stderr,
     Stdout,
 }
 
-impl From<&str> for Writer {
-    fn from(output: &str) -> Self {
-        match output.to_lowercase().as_str() {
-            "stdout" => Self::Stdout,
-            _ => Self::Stderr,
-        }
-    }
-}
-
 impl Writer {
-    /// Print [Arguments](std::fmt::Arguments) in terminal followed by a flush.
-    pub fn print(&self, args: std::fmt::Arguments) {
-        match self {
-            Self::Stderr => {
-                let mut writer = std::io::stderr();
-                writer.write_fmt(args).unwrap();
-                writer.flush().unwrap();
-            }
-            Self::Stdout => {
-                let mut writer = std::io::stdout();
-                writer.write_fmt(args).unwrap();
-                writer.flush().unwrap();
-            }
-        }
+    /// Print text buffer in terminal followed by a flush.
+    pub fn print(&self, buf: &[u8]) -> Result<()> {
+        let mut writer: Box<dyn Write> = match self {
+            Self::Stderr => Box::new(stderr()),
+            Self::Stdout => Box::new(stdout()),
+        };
+
+        lock::acquire();
+        writer.write_all(buf)?;
+        writer.flush()?;
+        lock::release();
+
+        Ok(())
     }
 
-    /// Print `&str` in terminal followed by a flush.
-    pub fn print_str(&self, text: &str) {
-        match self {
-            Self::Stderr => {
-                let mut writer = std::io::stderr();
-                writer.write_all(text.as_bytes()).unwrap();
-                writer.flush().unwrap();
-            }
-            Self::Stdout => {
-                let mut writer = std::io::stdout();
-                writer.write_all(text.as_bytes()).unwrap();
-                writer.flush().unwrap();
-            }
-        }
-    }
-
-    /// Prints to the standard error at specified position.
+    /// Print text buffer in terminal followed by a flush at specified position.
     ///
-    /// Also cursor position is restored to original position after print.
+    /// # Note
+    /// 
+    /// Cursor position is restored to original position after buffer is printed.
     ///
     /// # Example
     ///
     /// ```
     /// use kdam::term::Writer;
     ///
-    /// Writer::Stderr.print_at(1, format!("1 + 1 = {}", 2));
+    /// Writer::Stderr.print_at(1, format!("1 + 1 = {}", 2).as_bytes()).unwrap();
     /// ```
-    pub fn print_at<T: Into<String>>(&self, position: usize, text: T) {
-        match self {
-            Self::Stderr => {
-                let mut writer = std::io::stderr();
+    pub fn print_at(&self, position: u16, buf: &[u8]) -> Result<()> {
+        let mut writer: Box<dyn Write> = match self {
+            Self::Stderr => Box::new(stderr()),
+            Self::Stdout => Box::new(stdout()),
+        };
 
-                lock::acquire();
+        lock::acquire();
 
-                if position > 0 {
-                    writer
-                        .write_fmt(format_args!(
-                            "{}{}\x1b[{}A",
-                            "\n".repeat(position),
-                            text.into(),
-                            position
-                        ))
-                        .unwrap();
-                } else {
-                    writer.write_fmt(format_args!("{}", text.into())).unwrap();
-                }
-
-                writer.flush().unwrap();
-                lock::release();
-            }
-            Self::Stdout => {
-                let mut writer = std::io::stdout();
-
-                lock::acquire();
-
-                if position > 0 {
-                    writer
-                        .write_fmt(format_args!(
-                            "{}{}\x1b[{}A",
-                            "\n".repeat(position),
-                            text.into(),
-                            position
-                        ))
-                        .unwrap();
-                } else {
-                    writer.write_fmt(format_args!("{}", text.into())).unwrap();
-                }
-
-                writer.flush().unwrap();
-                lock::release();
-            }
+        if position > 0 {
+            writer.write_all("\n".repeat(position as usize).as_bytes())?;
+            writer.write_all(buf)?;
+            writer.write_fmt(format_args!("\x1b[{}A", position))?;
+        } else {
+            writer.write_all(&[b'\r'])?;
+            writer.write_all(buf)?;
         }
+
+        writer.flush()?;
+        lock::release();
+
+        Ok(())
     }
 }

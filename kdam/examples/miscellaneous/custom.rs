@@ -1,4 +1,5 @@
 use kdam::{tqdm, Bar, BarExt};
+use std::io::Result;
 
 #[derive(BarExt)]
 struct CustomBar {
@@ -16,15 +17,16 @@ impl CustomBar {
     }
 }
 
-fn main() {
+fn main() -> Result<()> {
     let mut pb = CustomBar {
         pb: tqdm!(total = 100, force_refresh = true),
     };
 
     for _ in 0..100 {
         std::thread::sleep(std::time::Duration::from_secs_f32(0.02));
-        pb.update(1);
+        pb.update(1)?;
     }
 
     eprintln!();
+    Ok(())
 }

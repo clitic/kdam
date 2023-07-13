@@ -1,6 +1,8 @@
 use kdam::{tqdm, BarExt};
-use std::fs::File;
-use std::io::{BufReader, Read, Result, Write};
+use std::{
+    fs::File,
+    io::{BufReader, Read, Result, Write},
+};
 
 fn main() -> Result<()> {
     let src_file_path = "Cargo.toml"; // replace this with any big size file
@@ -24,10 +26,10 @@ fn main() -> Result<()> {
         reader.by_ref().take(chunk_size).read_to_end(&mut chunk)?;
         let chunk_len = chunk.len();
         dst_file.write_all(&chunk)?;
-        pb.update(chunk_len);
+        pb.update(chunk_len)?;
 
         if chunk_len == 0 {
-            pb.refresh();
+            pb.refresh()?;
             eprintln!();
             break;
         }

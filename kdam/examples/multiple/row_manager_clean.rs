@@ -1,11 +1,14 @@
 use kdam::{tqdm, BarExt, RowManager};
-use std::sync::{Arc, Mutex};
-use std::thread;
-use std::time::Duration;
+use std::{
+    io::Result,
+    sync::{Arc, Mutex},
+    thread,
+    time::Duration,
+};
 
-fn main() {
+fn main() -> Result<()> {
     kdam::term::init(false);
-    
+
     let mut manager = RowManager::new(3);
 
     for (i, total) in [150, 100, 200, 400, 500, 600].iter().enumerate() {
@@ -14,7 +17,7 @@ fn main() {
             leave = false,
             desc = format!("BAR {}", i),
             force_refresh = true
-        ));
+        ))?;
     }
 
     let manager = Arc::new(Mutex::new(manager));
@@ -24,8 +27,8 @@ fn main() {
         for _ in 0..150 {
             thread::sleep(Duration::from_secs_f32(0.02));
             let mut manager = manager1.lock().unwrap();
-            manager.get_mut(0).unwrap().update(1);
-            manager.notify(0);
+            manager.get_mut(0).unwrap().update(1).unwrap();
+            manager.notify(0).unwrap();
         }
     });
 
@@ -34,8 +37,8 @@ fn main() {
         for _ in 0..100 {
             thread::sleep(Duration::from_secs_f32(0.02));
             let mut manager = manager2.lock().unwrap();
-            manager.get_mut(1).unwrap().update(1);
-            manager.notify(1);
+            manager.get_mut(1).unwrap().update(1).unwrap();
+            manager.notify(1).unwrap();
         }
     });
 
@@ -44,8 +47,8 @@ fn main() {
         for _ in 0..200 {
             thread::sleep(Duration::from_secs_f32(0.02));
             let mut manager = manager3.lock().unwrap();
-            manager.get_mut(2).unwrap().update(1);
-            manager.notify(2);
+            manager.get_mut(2).unwrap().update(1).unwrap();
+            manager.notify(2).unwrap();
         }
     });
 
@@ -54,8 +57,8 @@ fn main() {
         for _ in 0..400 {
             thread::sleep(Duration::from_secs_f32(0.02));
             let mut manager = manager4.lock().unwrap();
-            manager.get_mut(3).unwrap().update(1);
-            manager.notify(3);
+            manager.get_mut(3).unwrap().update(1).unwrap();
+            manager.notify(3).unwrap();
         }
     });
 
@@ -64,8 +67,8 @@ fn main() {
         for _ in 0..500 {
             thread::sleep(Duration::from_secs_f32(0.02));
             let mut manager = manager5.lock().unwrap();
-            manager.get_mut(4).unwrap().update(1);
-            manager.notify(4);
+            manager.get_mut(4).unwrap().update(1).unwrap();
+            manager.notify(4).unwrap();
         }
     });
 
@@ -74,8 +77,8 @@ fn main() {
         for _ in 0..600 {
             thread::sleep(Duration::from_secs_f32(0.02));
             let mut manager = manager6.lock().unwrap();
-            manager.get_mut(5).unwrap().update(1);
-            manager.notify(5);
+            manager.get_mut(5).unwrap().update(1).unwrap();
+            manager.notify(5).unwrap();
         }
     });
 
@@ -84,4 +87,5 @@ fn main() {
     }
 
     println!("\rcompleted!");
+    Ok(())
 }
