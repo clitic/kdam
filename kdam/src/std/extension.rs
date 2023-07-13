@@ -14,7 +14,7 @@ pub trait BarExt {
     /// Render progress bar.
     fn render(&mut self) -> String;
 
-    /// Resets to intial iterations for repeated use.
+    /// Resets to initial iterations for repeated use.
     /// Consider combining with `leave=true`.
     fn reset(&mut self, total: Option<usize>);
 

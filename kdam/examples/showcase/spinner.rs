@@ -1,5 +1,5 @@
 use kdam::Spinner;
-use std::io::Write;
+use std::{io::Write, num::NonZeroI16};
 
 fn main() {
     let spin = Spinner::new(
@@ -30,7 +30,7 @@ fn main() {
         stdout
             .write_fmt(format_args!(
                 "\r{}",
-                spin.render_frames(timer.elapsed().as_secs_f32(), 10)
+                spin.render_frames(timer.elapsed().as_secs_f32(), NonZeroI16::new(10).unwrap())
             ))
             .unwrap();
         stdout.flush().unwrap();

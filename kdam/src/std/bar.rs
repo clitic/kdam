@@ -5,9 +5,12 @@ use super::{
 use crate::{
     format, lock,
     term::{Colorizer, Writer},
-    utils::get_columns_or,
+    utils,
 };
-use std::{io::{Result, stdin, Write}, time::Instant};
+use std::{
+    io::{stdin, Result, Write},
+    time::Instant, num::NonZeroU16,
+};
 
 #[cfg(feature = "spinner")]
 use crate::spinner::Spinner;
@@ -35,23 +38,22 @@ use formatx::Template;
 /// ```
 #[derive(Debug)]
 pub struct Bar {
-    // CUSTOMIZABLE FIELDS
+    // Builder Fields
     pub animation: Animation,
     #[cfg(feature = "template")]
     pub bar_format: Option<Template>,
     pub colour: Option<Colour>,
-    pub delay: f32,
     pub desc: String,
+    pub delay: f32,
     pub disable: bool,
     pub dynamic_miniters: bool,
     pub dynamic_ncols: bool,
     pub force_refresh: bool,
-    pub initial: usize,
     pub inverse_unit: bool,
     pub leave: bool,
     pub mininterval: f32,
     pub miniters: usize,
-    pub ncols: i16,
+    pub ncols: Option<u16>,
     pub position: u16,
     pub postfix: String,
     pub total: usize,
@@ -61,49 +63,52 @@ pub struct Bar {
     pub unit_divisor: usize,
     pub unit_scale: bool,
     pub writer: Writer,
-    // NON CUSTOMIZABLE FIELDS
-    bar_length: i16,
+    // Non Builder Fields
+    bar_length: u16,
     counter: usize,
-    timer: Instant,
     elapsed_time: f32,
-    user_ncols: Option<i16>,
+    timer: Instant,
 }
 
 impl Default for Bar {
     fn default() -> Self {
+        let mut ncols = None;
+
+        if let Ok(Ok(x)) = std::env::var("KDAM_NCOLS").map(|x| x.parse::<u16>()) {
+            ncols = Some(x);
+        }
+
         Self {
-            desc: "".to_owned(),
-            total: 0,
-            leave: true,
-            ncols: 10,
-            mininterval: 0.1,
-            miniters: 1,
-            dynamic_miniters: false,
-            disable: false,
-            unit: "it".to_owned(),
-            unit_scale: false,
-            dynamic_ncols: false,
-            initial: 0,
-            inverse_unit: false,
+            animation: Animation::Tqdm,
             #[cfg(feature = "template")]
             bar_format: None,
-            position: 0,
-            postfix: "".to_string(),
-            unit_divisor: 1000,
             colour: None,
             delay: 0.0,
-            animation: Animation::Tqdm,
+            desc: "".to_owned(),
+            disable: false,
+            dynamic_miniters: false,
+            dynamic_ncols: false,
+            force_refresh: false,
+            inverse_unit: false,
+            leave: true,
+            mininterval: 0.1,
+            miniters: 1,
+            ncols,
+            total: 0,
+            position: 0,
+            postfix: "".to_string(),
             #[cfg(feature = "spinner")]
             spinner: None,
+            unit: "it".to_owned(),
+            unit_divisor: 1000,
+            unit_scale: false,
             writer: Writer::Stderr,
-            force_refresh: false,
-            counter: 0,
-            timer: Instant::now(),
-            elapsed_time: 0.0,
-            user_ncols: None,
+
             bar_length: 0,
+            counter: 0,
+            elapsed_time: 0.0,
+            timer: Instant::now(),
         }
-        .init()
     }
 }
 
@@ -125,7 +130,6 @@ impl Bar {
             total,
             ..Default::default()
         }
-        .init()
     }
 
     /// Create a instance of [BarBuilder](crate::BarBuilder).
@@ -139,27 +143,12 @@ impl Bar {
         BarBuilder::default()
     }
 
-    fn init(mut self) -> Self {
-        if self.user_ncols.is_none() {
-            if let Ok(ncols) = std::env::var("KDAM_NCOLS") {
-                self.ncols = ncols
-                    .parse::<i16>()
-                    .expect("KDAM_NCOLS is not an valid integer (i16).");
-                self.user_ncols = Some(self.ncols);
-            }
-        }
-
-        self.counter = self.initial;
-        self.timer = std::time::Instant::now();
-        self
-    }
-
     // -----------------------------------------------------------------------------------------
     // GETTERS
     // -----------------------------------------------------------------------------------------
 
     /// Get bar length value.
-    pub fn get_bar_length(&self) -> i16 {
+    pub fn get_bar_length(&self) -> u16 {
         self.bar_length
     }
 
@@ -178,14 +167,17 @@ impl Bar {
     }
 
     /// Set/Modify bar length property.
-    pub fn set_bar_length(&mut self, bar_length: i16) {
+    pub fn set_bar_length(&mut self, bar_length: u16) {
         self.bar_length = bar_length;
     }
 
     /// Set/Modify bar_format property.
     #[cfg(feature = "template")]
     #[cfg_attr(docsrs, doc(cfg(feature = "template")))]
-    pub fn set_bar_format<T: Into<String>>(&mut self, bar_format: T) -> ::std::result::Result<(), formatx::Error> {
+    pub fn set_bar_format<T: Into<String>>(
+        &mut self,
+        bar_format: T,
+    ) -> ::std::result::Result<(), formatx::Error> {
         let bar_format = bar_format.into().parse::<Template>()?;
         let mut bar_format_check = bar_format.clone();
         bar_format_check.replace("desc", "");
@@ -317,26 +309,21 @@ impl Bar {
         false
     }
 
-    /// Adjust number of columns for bar animation using length of remanining bar.
-    pub fn adjust_ncols(&mut self, lbar_rbar_len: i16) {
-        if self.dynamic_ncols || (lbar_rbar_len + self.ncols != self.bar_length) {
-            if let Some(ncols) = self.user_ncols {
-                self.ncols = ncols;
-            } else {
-                let columns = get_columns_or(0);
+    /// Returns number of columns for bar animation with given padding.
+    pub fn ncols_for_animation(&self, padding: u16) -> u16 {
+        let mut ncols = self.ncols.unwrap_or(0);
 
-                if columns != 0 {
-                    let new_ncols = columns as i16 - lbar_rbar_len;
-                    self.ncols = if new_ncols > 0 { new_ncols } else { 0 };
-                } else {
-                    self.ncols = 10;
-
-                    if !self.dynamic_ncols {
-                        self.user_ncols = Some(10);
-                    }
+        if self.dynamic_ncols || ((padding + ncols) != self.bar_length) {
+            if let Some(width) = utils::get_terminal_width() {
+                if width >= padding {
+                    ncols = width - padding;
                 }
+            } else if self.ncols.is_none() {
+                ncols = 10;
             }
         }
+
+        ncols
     }
 
     // /// Print a string in position of bar.
@@ -428,7 +415,9 @@ impl Bar {
 impl BarExt for Bar {
     fn clear(&mut self) -> Result<()> {
         self.writer.print_at(
-            self.position, " ".repeat(get_columns_or(self.bar_length as u16) as usize).as_bytes()
+            self.position,
+            " ".repeat(utils::get_terminal_width().unwrap_or(self.bar_length) as usize)
+                .as_bytes(),
         )
     }
 
@@ -487,7 +476,7 @@ impl BarExt for Bar {
                         self.unit_divisor as f64,
                     ))
                 } else {
-                    placeholder.format_spec.format(&self.counter)
+                    placeholder.format_spec.format(self.counter)
                 }
             });
 
@@ -497,7 +486,7 @@ impl BarExt for Bar {
                         .format_spec
                         .format(format::size_of(self.total as f64, self.unit_divisor as f64))
                 } else {
-                    placeholder.format_spec.format(&self.total)
+                    placeholder.format_spec.format(self.total)
                 }
             });
 
@@ -544,18 +533,23 @@ impl BarExt for Bar {
                 }
             });
 
-            let length = bar_format.unchecked_text().len_ansi() as i16;
-            self.adjust_ncols(length - 11);
+            let length = bar_format.unchecked_text().len_ansi() as u16;
 
-            bar_format.replace_from_callback("animation", |_| {
-                let render = self.animation.render(self.ncols, self.percentage() as f32);
+            if bar_format.contains("animation") && length > 11 {
+                let ncols = self.ncols_for_animation(length - 11);
 
-                if let Some(colour) = &self.colour {
-                    return colour.apply(&render);
+                if ncols > 0 {
+                    bar_format.replace_from_callback("animation", |_| {
+                        let render = self.animation.render(NonZeroU16::new(ncols).unwrap(), self.percentage() as f32);
+
+                        if let Some(colour) = &self.colour {
+                            return colour.apply(&render);
+                        }
+
+                        render
+                    });
                 }
-
-                render
-            });
+            }
 
             return bar_format.text().unwrap();
         }
@@ -580,7 +574,7 @@ impl BarExt for Bar {
             if !self.leave && self.position != 0 {
                 return format!(
                     "{}\r",
-                    " ".repeat(get_columns_or(self.bar_length as u16) as usize)
+                    " ".repeat(utils::get_terminal_width().unwrap_or(self.bar_length) as usize)
                 );
             }
 
@@ -595,7 +589,7 @@ impl BarExt for Bar {
             if !self.leave && self.position != 0 {
                 return format!(
                     "{}\r",
-                    " ".repeat(get_columns_or(self.bar_length as u16) as usize)
+                    " ".repeat(utils::get_terminal_width().unwrap_or(self.bar_length) as usize)
                 );
             }
         }
@@ -611,18 +605,16 @@ impl BarExt for Bar {
             self.postfix,
         );
 
-        self.adjust_ncols(
-            (format!("{}{}", lbar, rbar).len_ansi() + self.animation.spaces() as usize) as i16,
+        let ncols = self.ncols_for_animation(
+            (lbar.len_ansi() + rbar.len_ansi() + self.animation.spaces() as usize) as u16,
         );
 
-        if self.ncols <= 0 {
-            return lbar + &rbar;
+        if ncols == 0 {
+            lbar + &rbar
+        } else {
+            lbar + &self.animation.fmt_render(NonZeroU16::new(ncols).unwrap(), progress, &self.colour) + &rbar
         }
 
-        lbar + &self
-            .animation
-            .fmt_render(self.ncols, progress, &self.colour)
-            + &rbar
     }
 
     fn reset(&mut self, total: Option<usize>) {
@@ -630,14 +622,14 @@ impl BarExt for Bar {
             self.total = x;
         }
 
-        self.counter = self.initial;
+        self.counter = 0;
         self.timer = Instant::now();
     }
 
     fn update(&mut self, n: usize) -> Result<bool> {
         if self.trigger(n) {
             let text = self.render();
-            let length = text.len_ansi() as i16;
+            let length = text.len_ansi() as u16;
 
             if length != self.bar_length {
                 self.clear()?;
@@ -658,7 +650,8 @@ impl BarExt for Bar {
 
     fn write<T: Into<String>>(&mut self, text: T) -> Result<()> {
         self.clear()?;
-        self.writer.print(format!("\r{}\n", text.into()).as_bytes())?;
+        self.writer
+            .print(format!("\r{}\n", text.into()).as_bytes())?;
 
         if self.leave {
             self.refresh()?;
@@ -680,7 +673,7 @@ impl BarExt for Bar {
             text = self.render().trim_ansi();
         }
 
-        self.bar_length = text.len_ansi() as i16;
+        self.bar_length = text.len_ansi() as u16;
         lock::acquire();
         writer.write_all((text + "\n").as_bytes())?;
         writer.flush()?;
@@ -736,9 +729,8 @@ impl BarBuilder {
     /// The fallback is a meter width of 10 and no limit for the counter and statistics.
     /// If 0, will not print any meter (only stats).
     /// (default: `10`)
-    pub fn ncols<T: Into<i16>>(mut self, ncols: T) -> Self {
-        self.pb.ncols = ncols.into();
-        self.pb.user_ncols = Some(self.pb.ncols);
+    pub fn ncols(mut self, ncols: u16) -> Self {
+        self.pb.ncols = Some(ncols);
         self
     }
 
@@ -805,7 +797,7 @@ impl BarBuilder {
     /// The initial counter value. Useful when restarting a progress bar.
     /// (default: 0)
     pub fn initial(mut self, initial: usize) -> Self {
-        self.pb.initial = initial;
+        self.pb.counter = initial;
         self
     }
 
@@ -852,9 +844,9 @@ impl BarBuilder {
     /// Specify the line offset to print this bar (starting from 0).
     /// Useful to manage multiple bars at once (eg, from threads).
     /// (default: `0`)
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// Use `kdam::term::init` function before using this function, especially on windows.
     pub fn position(mut self, position: u16) -> Self {
         self.pb.position = position;
@@ -930,7 +922,7 @@ impl BarBuilder {
                 .map_err(|e| e.message())?;
         }
 
-        Ok(self.pb.init())
+        Ok(self.pb)
     }
 }
 

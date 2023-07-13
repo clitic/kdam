@@ -113,7 +113,7 @@ pub fn bar_ext(input: TokenStream) -> TokenStream {
             fn update(&mut self, n: usize) -> ::std::io::Result<bool> {
                 if self.#bar_field.trigger(n) {
                     let text = self.render();
-                    let length = #crate_name::term::Colorizer::len_ansi(text.as_str()) as i16;
+                    let length = #crate_name::term::Colorizer::len_ansi(text.as_str()) as u16;
 
                     if length != self.#bar_field.get_bar_length() {
                         self.#bar_field.clear()?;
@@ -157,7 +157,7 @@ pub fn bar_ext(input: TokenStream) -> TokenStream {
                 }
 
                 self.#bar_field
-                    .set_bar_length(#crate_name::term::Colorizer::len_ansi(text.as_str()) as i16);
+                    .set_bar_length(#crate_name::term::Colorizer::len_ansi(text.as_str()) as u16);
                 #crate_name::lock::acquire();
                 writer.write_all((text + "\n").as_bytes())?;
                 writer.flush()?;

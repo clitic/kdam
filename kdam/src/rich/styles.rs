@@ -1,3 +1,4 @@
+use std::num::{NonZeroU16, NonZeroI16};
 use crate::term::Colorizer;
 
 // Characters
@@ -15,11 +16,15 @@ const BAR_PULSE_COLORS: [&str; 18] = [
 const BAR_UNCOMPLETED_COLOR: &str = "#525252";
 
 /// Panics -> capacity overflow, if ncols == 0
-pub(super) fn bar(ncols: i16, progress: f32) -> String {
+pub(super) fn bar(ncols: NonZeroU16, progress: f32) -> String {
+    assert!((0.0..=1.0).contains(&progress));
+
+    let ncols = ncols.get();
+
     if progress >= 1.0 {
         BAR_CHR.repeat(ncols as usize).colorize(BAR_COMPLETED_COLOR)
     } else {
-        let block = (ncols as f32 * progress) as i16;
+        let block = (ncols as f32 * progress) as u16;
         (BAR_CHR.repeat(block as usize) + BAR_END_CHR).colorize(BAR_COLOR)
             + &BAR_CHR
                 .repeat((ncols - block - 1) as usize)
@@ -27,7 +32,10 @@ pub(super) fn bar(ncols: i16, progress: f32) -> String {
     }
 }
 
-pub(super) fn pulse(ncols: i16, current_time: f32) -> String {
+pub(super) fn pulse(ncols: NonZeroI16, current_time: f32) -> String {
+    assert!(current_time.is_sign_positive());
+
+    let ncols = ncols.get();
     let pulse = BAR_PULSE_COLORS.repeat((ncols as f32 / 18_f32) as usize + 2);
 
     let pulse_len = pulse.len();

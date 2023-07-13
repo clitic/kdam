@@ -4,7 +4,7 @@ use std::io::Result;
 fn main() -> Result<()> {
     let mut pb = tqdm!(
         total = 300,
-        ncols = 40_i16,
+        ncols = 40,
         force_refresh = true,
         bar_format = "{desc suffix=' '}|{animation}| {spinner} {count}/{total} [{percentage:.0}%] in {elapsed human=true} ({rate:.1}/s, eta: {remaining human=true})",
         spinner = Spinner::new(

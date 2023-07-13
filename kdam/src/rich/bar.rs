@@ -1,3 +1,4 @@
+use std::num::{NonZeroU16, NonZeroI16};
 use super::styles;
 use crate::{std::Bar, term::Colorizer, BarExt};
 
@@ -171,22 +172,21 @@ impl RichProgress {
         let mut ncols = 0;
 
         if let Some(progress_bar_index) = progress_bar_index {
-            self.pb.adjust_ncols(bar_length as i16);
-            ncols = self.pb.ncols;
+            ncols = self.pb.ncols_for_animation(bar_length as u16);
 
             if ncols == 0 {
                 let _ = bar_text.remove(progress_bar_index);
             } else {
                 *bar_text.get_mut(progress_bar_index).unwrap() =
                     if self.pb.indefinite() || !self.pb.started() {
-                        styles::pulse(ncols, self.pb.elapsed_time())
+                        styles::pulse(NonZeroI16::new(ncols as i16).unwrap(), self.pb.elapsed_time())
                     } else {
-                        styles::bar(ncols, self.pb.percentage() as f32)
+                        styles::bar(NonZeroU16::new(ncols).unwrap(), self.pb.percentage() as f32)
                     };
             }
         }
 
-        self.pb.set_bar_length(bar_length as i16 + ncols);
+        self.pb.set_bar_length(ncols + bar_length as u16);
         bar_text.join(" ")
     }
 }

@@ -1,3 +1,4 @@
+use std::num::NonZeroU16;
 use crate::{term::Colorizer, utils::divmod};
 
 #[cfg(feature = "gradient")]
@@ -53,10 +54,14 @@ impl Animation {
     ///
     /// - *ncols*: Number of columns to render.
     /// - *progress*: Percentage done, it can be in range (0.0 - 1.0) inclusive.
-    pub fn render(&self, ncols: i16, progress: f32) -> String {
+    pub fn render(&self, ncols: NonZeroU16, progress: f32) -> String {
+        assert!((0.0..=1.0).contains(&progress));
+
+        let ncols = ncols.get();
+
         match self {
             Self::Arrow | Self::Classic => {
-                let block = (ncols as f32 * progress) as i16;
+                let block = (ncols as f32 * progress) as u16;
 
                 let (bar_completed, bar_head, bar_uncompleted) = match self {
                     Self::Arrow => ("=", ">", " "),
@@ -73,7 +78,7 @@ impl Animation {
             }
 
             Self::FiraCode => {
-                let block = (ncols as f32 * progress) as i16;
+                let block = (ncols as f32 * progress) as u16;
                 "\u{EE03}".to_owned()
                     + &"\u{EE04}".repeat(block as usize)
                     + &"\u{EE01}".repeat((ncols - block) as usize)
@@ -102,11 +107,11 @@ impl Animation {
                     divmod((progress * ncols as f32 * nsyms as f32) as usize, nsyms);
                 let mut bar_animation = charset.last().unwrap().repeat(bar_length);
 
-                if bar_length < ncols as usize {
+                if ncols > bar_length as u16 {
                     bar_animation += charset[frac_bar_length + 1];
                     let bar_uncompleted = bar_uncompleted.unwrap_or(" ");
                     bar_animation +=
-                        &bar_uncompleted.repeat((ncols - (bar_length as i16) - 1) as usize);
+                        &bar_uncompleted.repeat((ncols - bar_length as u16 - 1) as usize);
                 }
 
                 bar_animation
@@ -115,7 +120,7 @@ impl Animation {
     }
 
     /// Render progress bar animation with opening and closing brackets.
-    pub fn fmt_render(&self, ncols: i16, progress: f32, colour: &Option<Colour>) -> String {
+    pub fn fmt_render(&self, ncols: NonZeroU16, progress: f32, colour: &Option<Colour>) -> String {
         let (bar_open, bar_close) = match self {
             Self::Arrow | Self::Classic => ("[", "]"),
             Self::FiraCode => (" ", ""),

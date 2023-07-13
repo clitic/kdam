@@ -1,3 +1,5 @@
+use std::num::NonZeroI16;
+
 /// Generic spinner for rendering spinner animations.
 ///
 /// See more styles at [rich repository](https://github.com/Textualize/rich/blob/master/rich/_spinners.py).
@@ -49,7 +51,8 @@ impl Spinner {
     }
 
     /// Render multiple frames upto `ncols` with an pulsating animation.
-    pub fn render_frames(&self, elapsed_time: f32, ncols: i16) -> String {
+    pub fn render_frames(&self, elapsed_time: f32, ncols: NonZeroI16) -> String {
+        let ncols = ncols.get();
         let pulse = self
             .frames
             .iter()
