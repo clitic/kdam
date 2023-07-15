@@ -158,7 +158,7 @@ impl From<&str> for Animation {
     }
 }
 
-/// Colour for printing coloured [Bar](crate::Bar).
+/// Colour applicable to text.
 #[derive(Debug)]
 pub enum Colour {
     Solid(String),

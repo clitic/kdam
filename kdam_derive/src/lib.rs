@@ -7,21 +7,35 @@ use syn::{parse_macro_input, Data, DataStruct, DeriveInput, Fields, FieldsNamed,
 /// # Example
 ///
 /// ```no_test
-/// use kdam::{Bar, BarExt};
-///
+/// use kdam::{tqdm, Bar, BarExt};
+/// use std::{io::Result, num::NonZeroU16};
+/// 
 /// #[derive(BarExt)]
 /// struct CustomBar {
 ///     #[bar]
 ///     pb: Bar,
 /// }
-///
+/// 
 /// impl CustomBar {
+///     /// Render progress bar text.
 ///     fn render(&mut self) -> String {
-///         format!(
-///             "Progress: {}/{}",
-///             self.pb.fmt_counter(),
-///             self.pb.fmt_total(),
-///         )
+///         let fmt_percentage = self.pb.fmt_percentage(0);
+///         let padding = 1 + fmt_percentage.chars().count() as u16 + self.pb.animation.spaces() as u16;
+/// 
+///         let ncols = self.pb.ncols_for_animation(padding);
+/// 
+///         if ncols == 0 {
+///             self.pb.bar_length = padding - 1;
+///             fmt_percentage
+///         } else {
+///             self.pb.bar_length = padding + ncols;
+///             self.pb.animation.fmt_render(
+///                 NonZeroU16::new(ncols).unwrap(),
+///                 self.pb.percentage(),
+///                 &None,
+///             ) + " "
+///                 + &fmt_percentage
+///         }
 ///     }
 /// }
 /// ```
@@ -111,15 +125,17 @@ pub fn bar_ext(input: TokenStream) -> TokenStream {
             }
 
             fn update(&mut self, n: usize) -> ::std::io::Result<bool> {
-                if self.#bar_field.trigger(n) {
+                self.#bar_field.counter += n;
+
+                if self.#bar_field.should_refresh() {
                     let text = self.render();
                     let length = #crate_name::term::Colorizer::len_ansi(text.as_str()) as u16;
 
-                    if length != self.#bar_field.get_bar_length() {
+                    if length != self.#bar_field.bar_length {
                         self.#bar_field.clear()?;
                     }
 
-                    self.#bar_field.set_bar_length(length);
+                    self.#bar_field.bar_length = length;
                     self.#bar_field.writer.print_at(self.pb.position, text.as_bytes())?;
                     return Ok(true);
                 }
@@ -128,7 +144,7 @@ pub fn bar_ext(input: TokenStream) -> TokenStream {
             }
 
             fn update_to(&mut self, update_to_n: usize) -> ::std::io::Result<bool> {
-                self.#bar_field.set_counter(update_to_n);
+                self.#bar_field.counter = update_to_n;
                 self.update(0)
             }
 
@@ -146,8 +162,10 @@ pub fn bar_ext(input: TokenStream) -> TokenStream {
             fn write_to<T: ::std::io::Write>(&mut self, writer: &mut T, n: Option<usize>) -> ::std::io::Result<bool> {
                 let text;
 
-                if let Some(n) = &n {
-                    if self.#bar_field.trigger(*n) {
+                if let Some(n) = n {
+                    self.#bar_field.counter += n;
+
+                    if self.#bar_field.should_refresh() {
                         text = #crate_name::term::Colorizer::trim_ansi(self.render().as_str());
                     } else {
                         return Ok(false);
@@ -156,8 +174,7 @@ pub fn bar_ext(input: TokenStream) -> TokenStream {
                     text = #crate_name::term::Colorizer::trim_ansi(self.render().as_str());
                 }
 
-                self.#bar_field
-                    .set_bar_length(#crate_name::term::Colorizer::len_ansi(text.as_str()) as u16);
+                self.#bar_field.bar_length = #crate_name::term::Colorizer::len_ansi(text.as_str()) as u16;
                 #crate_name::lock::acquire();
                 writer.write_all((text + "\n").as_bytes())?;
                 writer.flush()?;

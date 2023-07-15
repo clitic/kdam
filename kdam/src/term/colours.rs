@@ -34,6 +34,7 @@ const COLOUR_RESET: &str = "\x1b[0m";
 static SHOULD_COLORIZE: AtomicBool = AtomicBool::new(false);
 
 /// Enable/Disable colorization property of [colorizer](crate::term::Colorizer) trait.
+/// 
 /// Colorization is disabled by default.
 /// This functions also enables support for ANSI escape codes on windows.
 /// 
@@ -271,7 +272,7 @@ pub trait Colorizer {
     /// This method trims all ANSI escape codes from given string.
     fn trim_ansi(&self) -> String;
 
-    /// Returns terminal display length of string using graphemes.
+    /// Returns display length of string by triming ANSI escape codes.
     fn len_ansi(&self) -> usize;
 }
 

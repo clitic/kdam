@@ -1,5 +1,5 @@
 use kdam::{tqdm, Bar, BarExt};
-use std::io::Result;
+use std::{io::Result, num::NonZeroU16};
 
 #[derive(BarExt)]
 struct CustomBar {
@@ -8,12 +8,25 @@ struct CustomBar {
 }
 
 impl CustomBar {
+    /// Render progress bar text.
     fn render(&mut self) -> String {
-        format!(
-            "Progress: {}/{}",
-            self.pb.fmt_counter(),
-            self.pb.fmt_total(),
-        )
+        let fmt_percentage = self.pb.fmt_percentage(0);
+        let padding = 1 + fmt_percentage.chars().count() as u16 + self.pb.animation.spaces() as u16;
+
+        let ncols = self.pb.ncols_for_animation(padding);
+
+        if ncols == 0 {
+            self.pb.bar_length = padding - 1;
+            fmt_percentage
+        } else {
+            self.pb.bar_length = padding + ncols;
+            self.pb.animation.fmt_render(
+                NonZeroU16::new(ncols).unwrap(),
+                self.pb.percentage(),
+                &None,
+            ) + " "
+                + &fmt_percentage
+        }
     }
 }
 

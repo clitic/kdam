@@ -18,7 +18,7 @@ fn main() -> Result<()> {
                 1.0,
             )),
             Column::Text("[bold blue]?".to_owned()),
-            Column::Bar,
+            Column::Animation,
             Column::Percentage(1),
             Column::Text("•".to_owned()),
             Column::CountTotal,

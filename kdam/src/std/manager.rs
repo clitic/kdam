@@ -5,7 +5,10 @@ use std::{collections::HashSet, io::Result};
 ///
 /// `nrows` is the number of progress bars to display at once.
 /// All other bars are hidden and visible once any active progress bar is completed.
-/// Traces of progress are left in terminal if `leave=true` else progress bar is cleared.
+/// Traces of progress are left in terminal if `leave = true` else progress bar is cleared.
+///
+/// # Note
+///
 /// Cursor position is not restored by RowManager.
 ///
 /// # Example
@@ -32,15 +35,15 @@ pub struct RowManager {
 }
 
 impl RowManager {
-    /// Create a new [RowManager](crate::RowManager) instance with specific number of rows.
+    /// Create a new [RowManager](crate::RowManager) with specified number of rows.
     ///
     /// # Example
     ///
     /// ```
     /// use kdam::RowManager;
     ///
-    /// // Will only display 3 progress bars at once.
-    /// let mut manager = RowManager::new(3);
+    /// // Display 3 progress bars at once.
+    /// let manager = RowManager::new(3);
     /// ```
     pub fn new(nrows: u16) -> Self {
         Self {
@@ -52,7 +55,7 @@ impl RowManager {
         }
     }
 
-    /// Create a new [RowManager](crate::RowManager) instance from terminal window size.
+    /// Create a new [RowManager](crate::RowManager) from terminal window size.
     ///
     /// # Example
     ///
@@ -65,13 +68,11 @@ impl RowManager {
         Self {
             acquired_pos: HashSet::new(),
             avaliable_pos: HashSet::new(),
-
             bars: vec![],
             bars_true_disable: vec![],
             nrows: terminal_size::terminal_size()
-                .unwrap_or((terminal_size::Width(0), terminal_size::Height(3)))
-                .1
-                 .0
+                .map(|(_, h)| h.0)
+                .unwrap_or(3)
                 - 2,
         }
     }
@@ -134,7 +135,7 @@ impl RowManager {
         if self.nrows as usize > remaining_bars {
             let mut count = 0;
             for (i, bar) in self.bars.iter_mut().enumerate() {
-                if bar.total > bar.get_counter() && !self.bars_true_disable.get(i).unwrap() {
+                if bar.total > bar.counter && !self.bars_true_disable.get(i).unwrap() {
                     if bar.position != count {
                         bar.clear()?;
                         bar.position = count;
@@ -159,7 +160,7 @@ impl RowManager {
             }
 
             for (i, bar) in self.bars.iter_mut().enumerate() {
-                if bar.total > bar.get_counter() && !self.bars_true_disable.get(i).unwrap() {
+                if bar.total > bar.counter && !self.bars_true_disable.get(i).unwrap() {
                     if let Some(pos) = self.avaliable_pos.iter().min() {
                         if bar.disable && bar.position != *pos {
                             bar.position = *pos;

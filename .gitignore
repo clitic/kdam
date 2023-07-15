@@ -2,4 +2,4 @@
 Cargo.lock
 **/*.rs.bk
 kdam-logs.txt
-kdam/logs.txt
+kdam/kdam-logs.txt

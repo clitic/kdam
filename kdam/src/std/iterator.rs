@@ -94,7 +94,7 @@ pub trait TqdmIterator
 where
     Self: Sized + Iterator,
 {
-    /// Decorate any sized iterator to [BarIterator](crate::BarIterator)`.
+    /// Decorate any sized iterator to [BarIterator](crate::BarIterator).
     ///
     /// # Example
     ///

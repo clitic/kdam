@@ -8,9 +8,10 @@ use crate::spinner::Spinner;
 /// Renderable columns for [RichProgress](RichProgress).
 #[derive(Debug, Clone)]
 pub enum Column {
-    /// Progress bar (animation) display.
-    /// If progress total is unknown then an pulsating animation is shown else a normal animation is shown.
-    Bar,
+    /// Progress bar animation display.
+    /// 
+    /// If `total = 0`, a pulsating animation is shown else a normal animation is shown.
+    Animation,
     /// Progress counter display.
     Count,
     /// Progress formatted counter display i.e. `counter/total`.
@@ -75,14 +76,16 @@ impl RichProgress {
     }
 
     /// Replace a column at specific index.
-    ///
-    /// **PANICS**: If index is out of range.
+    /// 
+    /// # Panics
+    /// 
+    /// If `index` is out of bounds.
     pub fn replace(&mut self, index: usize, col: Column) {
         *self.columns.get_mut(index).unwrap() = col;
         // let _ = std::mem::replace(&mut self.columns[index], col);
     }
 
-    /// Render progress bar.
+    /// Render progress bar text.
     pub fn render(&mut self) -> String {
         let mut bar_text = vec![];
         let mut bar_length = 0;
@@ -90,7 +93,7 @@ impl RichProgress {
 
         for col in self.columns.iter() {
             match col {
-                Column::Bar => {
+                Column::Animation => {
                     progress_bar_index = Some(bar_text.len());
                     bar_text.push(String::new());
                 }
@@ -181,12 +184,12 @@ impl RichProgress {
                     if self.pb.indefinite() || !self.pb.started() {
                         styles::pulse(NonZeroI16::new(ncols as i16).unwrap(), self.pb.elapsed_time())
                     } else {
-                        styles::bar(NonZeroU16::new(ncols).unwrap(), self.pb.percentage() as f32)
+                        styles::bar(NonZeroU16::new(ncols).unwrap(), self.pb.percentage())
                     };
             }
         }
 
-        self.pb.set_bar_length(ncols + bar_length as u16);
+        self.pb.bar_length = ncols + bar_length as u16;
         bar_text.join(" ")
     }
 }
