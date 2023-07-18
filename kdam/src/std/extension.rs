@@ -27,7 +27,7 @@ pub trait BarExt {
     /// Set counter value instead of incrementing counter through [update](Self::update) method.
     /// 
     /// Returns wheter a update was triggered or not depending on constraints.
-    fn update_to(&mut self, update_to_n: usize) -> Result<bool>;
+    fn update_to(&mut self, n: usize) -> Result<bool>;
 
     /// Print a message via progress bar (without overlaping with bar(s)).
     fn write<T: Into<String>>(&mut self, text: T) -> Result<()>;

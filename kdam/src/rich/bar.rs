@@ -53,7 +53,7 @@ pub enum Column {
 ///
 /// let mut pb = RichProgress::new(
 ///     tqdm!(total = 100),
-///     vec![Column::Bar, Column::Percentage(2)]
+///     vec![Column::Animation, Column::Percentage(2)]
 /// );
 ///
 /// for _ in 0..100 {

@@ -105,14 +105,15 @@ pub fn bar_ext(input: TokenStream) -> TokenStream {
             }
 
             fn refresh(&mut self) -> ::std::io::Result<()> {
-                if !self.#bar_field.force_refresh {
-                    self.#bar_field.force_refresh = true;
-                    self.update(0)?;
-                    self.#bar_field.force_refresh = false;
-                } else {
-                    self.update(0)?;
+                let text = self.render();
+                let bar_length = #crate_name::term::Colorizer::len_ansi(text.as_str()) as u16;
+        
+                if self.#bar_field.bar_length !=  bar_length {
+                    self.clear()?;
+                    self.#bar_field.bar_length = bar_length;
                 }
-
+        
+                self.#bar_field.writer.print_at(self.#bar_field.position, text.as_bytes())?;
                 Ok(())
             }
 
@@ -126,26 +127,24 @@ pub fn bar_ext(input: TokenStream) -> TokenStream {
 
             fn update(&mut self, n: usize) -> ::std::io::Result<bool> {
                 self.#bar_field.counter += n;
+                let should_refresh = self.#bar_field.should_refresh();
 
-                if self.#bar_field.should_refresh() {
-                    let text = self.render();
-                    let length = #crate_name::term::Colorizer::len_ansi(text.as_str()) as u16;
-
-                    if length != self.#bar_field.bar_length {
-                        self.#bar_field.clear()?;
-                    }
-
-                    self.#bar_field.bar_length = length;
-                    self.#bar_field.writer.print_at(self.pb.position, text.as_bytes())?;
-                    return Ok(true);
+                if should_refresh {
+                    self.refresh()?;
                 }
 
-                Ok(false)
+                Ok(should_refresh)
             }
 
-            fn update_to(&mut self, update_to_n: usize) -> ::std::io::Result<bool> {
-                self.#bar_field.counter = update_to_n;
-                self.update(0)
+            fn update_to(&mut self, n: usize) -> ::std::io::Result<bool> {
+                self.#bar_field.counter = n;
+                let should_refresh = self.#bar_field.should_refresh();
+
+                if should_refresh {
+                    self.refresh()?;
+                }
+
+                Ok(should_refresh)
             }
 
             fn write<T: Into<String>>(&mut self, text: T) -> ::std::io::Result<()> {

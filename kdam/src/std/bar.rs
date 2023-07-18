@@ -23,14 +23,12 @@ use formatx::Template;
 ///
 /// # Example
 ///
-/// A clean nice progress bar with a total value.
-///
 /// ```
 /// use kdam::{tqdm, Bar, BarExt};
 ///
 /// let mut pb = Bar::new(100);
 /// // let mut pb = tqdm!(total = 100);
-/// // let mut pb = Bar::builder().total(100).build();
+/// // let mut pb = Bar::builder().total(100).build().unwrap();
 ///
 /// for _ in 0..100 {
 ///     pb.update(1).unwrap();
@@ -139,7 +137,7 @@ impl Bar {
     /// ```
     /// use kdam::Bar;
     ///
-    /// let pb = Bar::builder().total(100).build();
+    /// let pb = Bar::builder().total(100).build().unwrap();
     /// ```
     pub fn builder() -> BarBuilder {
         BarBuilder::default()
@@ -149,14 +147,17 @@ impl Bar {
     // Setters
     // -----------------------------------------------------------------------------------------
 
-    /// Set/Modify bar_format property.
+    /// Set/Modify [bar_format](Self::bar_format) property.
     #[cfg(feature = "template")]
     #[cfg_attr(docsrs, doc(cfg(feature = "template")))]
     pub fn set_bar_format<T: Into<String>>(
         &mut self,
         bar_format: T,
     ) -> ::std::result::Result<(), String> {
-        let bar_format = bar_format.into().parse::<Template>().map_err(|x| x.message())?;
+        let bar_format = bar_format
+            .into()
+            .parse::<Template>()
+            .map_err(|x| x.message())?;
         let mut bar_format_check = bar_format.clone();
         bar_format_check.replace("desc", "");
         bar_format_check.replace("percentage", 0.0);
@@ -175,12 +176,12 @@ impl Bar {
         Ok(())
     }
 
-    /// Set/Modify description property.
+    /// Set/Modify [description](Self::desc) property.
     pub fn set_description<T: Into<String>>(&mut self, description: T) {
         self.desc = description.into();
     }
 
-    /// Set/Modify postfix property.
+    /// Set/Modify [postfix](Self::postfix) property.
     pub fn set_postfix<T: Into<String>>(&mut self, postfix: T) {
         self.postfix = ", ".to_owned() + &postfix.into();
     }
@@ -190,6 +191,7 @@ impl Bar {
     // -----------------------------------------------------------------------------------------
 
     /// Returns whether progress is completed or not.
+    ///
     /// If `total` is `0`, it always returns `false`.
     pub fn completed(&self) -> bool {
         if self.indefinite() {
@@ -278,7 +280,7 @@ impl Bar {
         }
     }
 
-    /// Returns whether progress is indefinite i.e. `total = 0` or not.
+    /// Returns whether progress is indefinite i.e. `total` is `0` or not.
     pub fn indefinite(&self) -> bool {
         self.total == 0
     }
@@ -304,8 +306,9 @@ impl Bar {
         ncols
     }
 
-    /// Returns progress percentage, like 0.62, 0.262, 1.0.
-    /// If total is 0, it returns 1.0.
+    /// Returns progress percentage, like `0.62`, `0.262`, `1.0`.
+    ///
+    /// If `total` is `0`, it always returns `1.0`.
     pub fn percentage(&self) -> f32 {
         if self.indefinite() {
             1.0
@@ -314,7 +317,7 @@ impl Bar {
         }
     }
 
-    /// Returns progress rate.
+    /// Returns progress/iterations rate.
     ///
     /// # Note
     ///
@@ -324,7 +327,8 @@ impl Bar {
     }
 
     /// Returns remaining time (ETA) for progress completion.
-    /// If total is 0, it returns infinity.
+    ///
+    /// If `total` is `0`, it always returns infinity.
     pub fn remaining_time(&self) -> f32 {
         if self.indefinite() {
             f32::INFINITY
@@ -333,7 +337,7 @@ impl Bar {
         }
     }
 
-    /// Check whether to trigger a display update or not.
+    /// Returns whether to trigger a display update or not.
     pub fn should_refresh(&mut self) -> bool {
         if !self.disable {
             if self.force_refresh {
@@ -369,9 +373,9 @@ impl Bar {
         false
     }
 
-    /// Returns whether progress is started i.e. `counter = 0` or not.
+    /// Returns whether progress is started i.e. `counter` is `0` or not.
     pub fn started(&self) -> bool {
-        self.counter != 0
+        self.counter > 0
     }
 }
 
@@ -399,14 +403,15 @@ impl BarExt for Bar {
     }
 
     fn refresh(&mut self) -> Result<()> {
-        if !self.force_refresh {
-            self.force_refresh = true;
-            self.update(0)?;
-            self.force_refresh = false;
-        } else {
-            self.update(0)?;
+        let text = self.render();
+        let bar_length = text.len_ansi() as u16;
+
+        if self.bar_length != bar_length {
+            self.clear()?;
+            self.bar_length = bar_length;
         }
 
+        self.writer.print_at(self.position, text.as_bytes())?;
         Ok(())
     }
 
@@ -596,26 +601,24 @@ impl BarExt for Bar {
 
     fn update(&mut self, n: usize) -> Result<bool> {
         self.counter += n;
+        let should_refresh = self.should_refresh();
 
-        if self.should_refresh() {
-            let text = self.render();
-            let length = text.len_ansi() as u16;
-
-            if length != self.bar_length {
-                self.clear()?;
-            }
-
-            self.bar_length = length;
-            self.writer.print_at(self.position, text.as_bytes())?;
-            return Ok(true);
+        if should_refresh {
+            self.refresh()?;
         }
 
-        Ok(false)
+        Ok(should_refresh)
     }
 
-    fn update_to(&mut self, update_to_n: usize) -> Result<bool> {
-        self.counter = update_to_n;
-        self.update(0)
+    fn update_to(&mut self, n: usize) -> Result<bool> {
+        self.counter = n;
+        let should_refresh = self.should_refresh();
+
+        if should_refresh {
+            self.refresh()?;
+        }
+
+        Ok(should_refresh)
     }
 
     fn write<T: Into<String>>(&mut self, text: T) -> Result<()> {
@@ -661,7 +664,7 @@ impl BarExt for Bar {
 /// ```
 /// use kdam::BarBuilder;
 ///
-/// let mut pb = BarBuilder::default().total(100).build();
+/// let mut pb = BarBuilder::default().total(100).build().unwrap();
 /// ```
 #[derive(Default)]
 pub struct BarBuilder {
@@ -671,7 +674,7 @@ pub struct BarBuilder {
 }
 
 impl BarBuilder {
-    /// Prefix for the progress bar.
+    /// Prefix for progress bar.
     /// (default: `""`)
     pub fn desc<T: Into<String>>(mut self, desc: T) -> Self {
         self.pb.desc = desc.into();
@@ -679,16 +682,16 @@ impl BarBuilder {
     }
 
     /// The number of expected iterations.
-    /// If unspecified, iterable.size_hint().0 is used if possible.
-    /// If 0, only basic progress statistics are displayed (no ETA, no progressbar).
+    /// If `unspecified`, `iterable.size_hint().0` is used if possible.
+    /// If `0`, only basic progress statistics are displayed (no ETA, no progressbar).
     /// (default: `0`)
     pub fn total(mut self, total: usize) -> Self {
         self.pb.total = total;
         self
     }
 
-    /// If true, keeps all traces of the progressbar upon termination of iteration.
-    /// If false, will leave only if position is 0.
+    /// If `true`, keeps all traces of the progress bar upon termination.
+    /// If `false`, will leave only if position is `0`.
     /// (default: `true`)
     pub fn leave(mut self, leave: bool) -> Self {
         self.pb.leave = leave;
@@ -696,10 +699,10 @@ impl BarBuilder {
     }
 
     /// The width of the entire output message.
-    /// If specified, dynamically resizes the progressbar to stay within this bound.
-    /// If unspecified, attempts to use KDAM_NCOLS environment variable or adjust width automatically.
-    /// The fallback is a meter width of 10 and no limit for the counter and statistics.
-    /// If 0, will not print any meter (only stats).
+    /// If `specified`, dynamically resizes the progress bar to stay within this bound.
+    /// If `unspecified`, attempts to use `KDAM_NCOLS` environment variable or adjust width automatically.
+    /// If `0`, will not print any meter (only stats).
+    /// The fallback is a meter width of `10` and no limit for the counter and statistics.
     /// (default: `10`)
     pub fn ncols(mut self, ncols: u16) -> Self {
         self.pb.ncols = Some(ncols);
@@ -708,21 +711,22 @@ impl BarBuilder {
 
     /// Minimum progress display update interval (in seconds).
     /// (default: `0.1`)
-    pub fn mininterval<T: Into<f32>>(mut self, mininterval: T) -> Self {
-        self.pb.mininterval = mininterval.into();
+    pub fn mininterval(mut self, mininterval: f32) -> Self {
+        self.pb.mininterval = mininterval;
         self
     }
 
-    /// Minimum progress display update interval, in iterations.
-    /// If > 0, will skip display of specified number of iterations. Tweak this and mininterval to get very efficient loops.
-    /// If your progress is erratic with both fast and slow iterations (network, skipping items, etc) you should set miniters=1.
+    /// Minimum progress display update interval (in iterations).
+    /// If `miniters > 0`, specified number of iterations will be skipped and not displayed.
+    /// If your progress is erratic with both fast and slow iterations (network, skipping items, etc.) you should keep it default.
+    /// Tweak this and [mininterval](Self::mininterval) to get very efficient loops.
     /// (default: `1`)
     pub fn miniters(mut self, miniters: usize) -> Self {
         self.pb.miniters = miniters;
         self
     }
 
-    /// Automatically adjusts miniters to correspond to mininterval after long display update lag.
+    /// Automatically adjusts [miniters](Self::miniters) to correspond to [mininterval](Self::mininterval) after long display update lag.
     /// (default: `false`)
     pub fn dynamic_miniters(mut self, dynamic_miniters: bool) -> Self {
         self.pb.dynamic_miniters = dynamic_miniters;
@@ -736,44 +740,44 @@ impl BarBuilder {
         self
     }
 
-    /// String that will be used to define the unit of each iteration.
+    /// Unit that will be used to define the unit of each iteration.
     /// (default: `"it"`)
     pub fn unit<T: Into<String>>(mut self, unit: T) -> Self {
         self.pb.unit = unit.into();
         self
     }
 
-    /// If true, the number of iterations will be reduced/scaled automatically
-    /// and a metric prefix following the International System of Units standard will be added (kilo, mega, etc.).
+    /// If `true`, the number of iterations will be reduced/scaled automatically 
+    /// and a metric prefix following the [International System of Units](https://en.wikipedia.org/wiki/Metric_prefix) standard will be added (kilo, mega, etc.).
     /// (default: `false`)
     pub fn unit_scale(mut self, unit_scale: bool) -> Self {
         self.pb.unit_scale = unit_scale;
         self
     }
 
-    /// If true, and the number of iterations per second is less than 1,
-    /// then s/it will be displayed instead of it/s.
+    /// If `true`, and the number of iterations per second is less than 1 
+    /// then `s/it` will be displayed instead of `it/s`.
     /// (default: `false`)
     pub fn inverse_unit(mut self, inverse_unit: bool) -> Self {
         self.pb.inverse_unit = inverse_unit;
         self
     }
 
-    /// If true, constantly alters ncols to the environment (allowing for window resizes).
+    /// If `true`, constantly alters [ncols](Self::ncols) to the environment (allowing for window resizes).
     /// (default: `false`)
     pub fn dynamic_ncols(mut self, dynamic_ncols: bool) -> Self {
         self.pb.dynamic_ncols = dynamic_ncols;
         self
     }
 
-    /// The initial counter value. Useful when restarting a progress bar.
-    /// (default: 0)
+    /// The initial counter value.
+    /// (default: `0`)
     pub fn initial(mut self, initial: usize) -> Self {
         self.pb.counter = initial;
         self
     }
 
-    /// Specify a custom bar string formatting. May impact performance.
+    /// Specify a custom progress bar format (may impact performance).
     /// (default: `None`)
     ///
     /// ## Default Style
@@ -813,55 +817,56 @@ impl BarBuilder {
         self
     }
 
-    /// Specify the line offset to print this bar (starting from 0).
-    /// Useful to manage multiple bars at once (eg, from threads).
+    /// Specify the line offset to print this progress bar (starting from `0`).
+    /// Useful for managing multiple progress bars at once (eg. from threads).
     /// (default: `0`)
+    /// 
+    /// # Platform-specific notes
     ///
-    /// # Note
-    ///
-    /// Use `kdam::term::init` function before using this method (especially on windows).
+    /// On windows, [term::init](crate::term::init) method should be called first.
     pub fn position(mut self, position: u16) -> Self {
         self.pb.position = position;
         self
     }
 
-    /// Specify additional stats to display at the end of the bar.
+    /// Specify additional stats to display at the end of the progress bar.
     /// (default: `""`)
     pub fn postfix<T: Into<String>>(mut self, postfix: T) -> Self {
         self.pb.set_postfix(postfix);
         self
     }
 
-    /// Divide values by this unit_divisor.
-    /// Ignored unless `unit_scale` is true.
-    /// (default: `1024`)
+    /// Divide values by this [unit_divisor](Self::unit_divisor).
+    /// It is ignored unless [unit_scale](Self::unit_scale) is true.
+    /// (default: `1000`)
     pub fn unit_divisor(mut self, unit_divisor: usize) -> Self {
         self.pb.unit_divisor = unit_divisor;
         self
     }
 
-    /// Bar colour (e.g. "green", "#00ff00").
+    /// Progress bar colour (e.g. "green", "#00ff00").
+    /// (default: `None`)
     pub fn colour<T: Into<Colour>>(mut self, colour: T) -> Self {
         self.pb.colour = Some(colour.into());
         self
     }
 
-    /// Don't display until few seconds have elapsed.
+    /// Don't display progress bar until few seconds have elapsed.
     /// (default: `0`)
     pub fn delay<T: Into<f32>>(mut self, delay: T) -> Self {
         self.pb.delay = delay.into();
         self
     }
 
-    /// Animation style to use with progress bar.
-    /// (default: [tqdm](crate::Animation::Tqdm))
+    /// Animation style to display progress bar.
+    /// (default: [Animation::Tqdm](crate::Animation::Tqdm))
     pub fn animation<T: Into<Animation>>(mut self, animation: T) -> Self {
         self.pb.animation = animation.into();
         self
     }
 
     /// Spinner to use with progress bar.
-    /// Spinner is only used when `bar_format` is used.
+    /// Spinner is only used when [bar_format](Self::bar_format) is used.
     /// (default: `None`)
     #[cfg(feature = "spinner")]
     #[cfg_attr(docsrs, doc(cfg(feature = "spinner")))]
@@ -870,14 +875,14 @@ impl BarBuilder {
         self
     }
 
-    /// Select writer type to display progress bar output between `stdout` and `stderr`.
-    /// (default: [stderr](crate::term::Writer))
+    /// Select writer between `stdout` and `stderr` to display progress bar output.
+    /// (default: [Writer::Stderr](crate::term::Writer))
     pub fn writer(mut self, writer: Writer) -> Self {
         self.pb.writer = writer;
         self
     }
 
-    /// If true, each update method call will be rendered.
+    /// If `true`, each progress bar update method call will be displayed.
     /// (default: `false`)
     pub fn force_refresh(mut self, force_refresh: bool) -> Self {
         self.pb.force_refresh = force_refresh;
@@ -885,10 +890,10 @@ impl BarBuilder {
     }
 
     /// Build a new [Bar](crate::Bar) with custom configurations.
-    /// 
+    ///
     /// # Note
-    /// 
-    /// This method only returns error when `bar_format` is used incorrectly.
+    ///
+    /// This method only returns error when [bar_format](Self::bar_format) is used incorrectly.
     #[allow(unused_mut)]
     pub fn build(mut self) -> ::std::result::Result<Bar, String> {
         #[cfg(feature = "template")]
