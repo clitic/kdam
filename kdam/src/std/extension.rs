@@ -46,7 +46,7 @@ pub trait BarExt {
     /// use kdam::{tqdm, BarExt};
     /// use std::{fs::File, io::Write};
     ///
-    /// let mut pb = tqdm!(total = 100);
+    /// let mut pb = tqdm!(total = 100, animation = "ascii");
     /// let mut f = File::create("kdam-logs.txt").unwrap();
     /// 
     /// for i in 1..101 {

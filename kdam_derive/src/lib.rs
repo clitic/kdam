@@ -105,10 +105,20 @@ pub fn bar_ext(input: TokenStream) -> TokenStream {
             }
 
             fn refresh(&mut self) -> ::std::io::Result<()> {
+                self.#bar_field.elapsed_time();
+
+                if self.#bar_field.completed() {
+                    if !self.#bar_field.leave && self.#bar_field.position > 0 {
+                        return self.clear();
+                    }
+        
+                    self.#bar_field.total = self.#bar_field.counter;
+                }
+
                 let text = self.render();
                 let bar_length = #crate_name::term::Colorizer::len_ansi(text.as_str()) as u16;
         
-                if self.#bar_field.bar_length !=  bar_length {
+                if bar_length > self.#bar_field.bar_length {
                     self.clear()?;
                     self.#bar_field.bar_length = bar_length;
                 }
@@ -138,13 +148,7 @@ pub fn bar_ext(input: TokenStream) -> TokenStream {
 
             fn update_to(&mut self, n: usize) -> ::std::io::Result<bool> {
                 self.#bar_field.counter = n;
-                let should_refresh = self.#bar_field.should_refresh();
-
-                if should_refresh {
-                    self.refresh()?;
-                }
-
-                Ok(should_refresh)
+                self.update(0)
             }
 
             fn write<T: Into<String>>(&mut self, text: T) -> ::std::io::Result<()> {

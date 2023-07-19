@@ -3,9 +3,8 @@ use super::{
     BarExt,
 };
 use crate::{
-    format, lock,
+    format, lock, term,
     term::{Colorizer, Writer},
-    utils,
 };
 use std::{
     io::{stdin, Result, Write},
@@ -64,6 +63,7 @@ pub struct Bar {
     // Non Builder Fields
     pub bar_length: u16,
     pub counter: usize,
+    current_ncols: u16,
     elapsed_time: f32,
     timer: Instant,
 }
@@ -103,6 +103,7 @@ impl Default for Bar {
             writer: Writer::Stderr,
             bar_length: 0,
             counter: 0,
+            current_ncols: 0,
             elapsed_time: 0.0,
             timer: Instant::now(),
         }
@@ -233,7 +234,7 @@ impl Bar {
 
     /// Returns formatted progress rate.
     pub fn fmt_rate(&self) -> String {
-        if self.counter == 0 {
+        if !self.started() {
             format!("?{}/s", self.unit)
         } else {
             let rate = self.rate();
@@ -287,23 +288,19 @@ impl Bar {
 
     /// Set and returns number of columns for bar animation with given padding.
     pub fn ncols_for_animation(&mut self, padding: u16) -> u16 {
-        let mut ncols = self.ncols.unwrap_or(0);
-
-        if self.dynamic_ncols || ((padding + ncols) != self.bar_length) {
-            if let Some(width) = utils::get_terminal_width() {
+        if self.dynamic_ncols || ((padding + self.current_ncols) != self.bar_length) {
+            if let Some(ncols) = self.ncols {
+                self.current_ncols = ncols;
+            } else if let Some(width) = term::width() {
                 if width >= padding {
-                    ncols = width - padding;
+                    self.current_ncols = width - padding;
                 }
-            } else if self.ncols.is_none() {
-                ncols = 10;
+            } else {
+                self.current_ncols = 10;
             }
         }
 
-        if ncols != 0 {
-            self.ncols = Some(ncols);
-        }
-
-        ncols
+        self.current_ncols
     }
 
     /// Returns progress percentage, like `0.62`, `0.262`, `1.0`.
@@ -383,7 +380,7 @@ impl BarExt for Bar {
     fn clear(&mut self) -> Result<()> {
         self.writer.print_at(
             self.position,
-            " ".repeat(utils::get_terminal_width().unwrap_or(self.bar_length) as usize)
+            " ".repeat(term::width().unwrap_or(self.bar_length) as usize)
                 .as_bytes(),
         )
     }
@@ -403,10 +400,20 @@ impl BarExt for Bar {
     }
 
     fn refresh(&mut self) -> Result<()> {
+        self.elapsed_time();
+
+        if self.completed() {
+            if !self.leave && self.position > 0 {
+                return self.clear();
+            }
+
+            self.total = self.counter;
+        }
+
         let text = self.render();
         let bar_length = text.len_ansi() as u16;
 
-        if self.bar_length != bar_length {
+        if bar_length > self.bar_length {
             self.clear()?;
             self.bar_length = bar_length;
         }
@@ -416,25 +423,23 @@ impl BarExt for Bar {
     }
 
     fn render(&mut self) -> String {
-        self.elapsed_time();
-
         #[cfg(feature = "template")]
-        if self.bar_format.is_some() {
-            let mut bar_format = self.bar_format.as_ref().unwrap().clone();
+        if let Some(bar_format) = &self.bar_format {
+            let mut bar_format = bar_format.clone();
 
             bar_format.replace_with_callback("desc", &self.desc, |fmtval, placeholder| {
-                if !self.desc.is_empty() {
+                if self.desc.is_empty() {
+                    fmtval
+                } else {
                     fmtval
                         + &placeholder
                             .attr("suffix")
                             .unwrap_or_else(|| ": ".to_owned())
-                } else {
-                    fmtval
                 }
             });
 
             bar_format.replace_from_callback("percentage", |placeholder| {
-                placeholder.format_spec.format(self.percentage() * 100.0)
+                placeholder.format_spec.format(self.percentage() * 100.)
             });
 
             bar_format.replace_from_callback("count", |placeholder| {
@@ -461,12 +466,11 @@ impl BarExt for Bar {
             bar_format.replace_from_callback("elapsed", |placeholder| {
                 let human = placeholder
                     .attr("human")
-                    .unwrap_or_else(|| "false".to_owned())
-                    .parse::<bool>()
+                    .and_then(|x| x.parse::<bool>().ok())
                     .unwrap_or(false);
                 placeholder
                     .format_spec
-                    .format(crate::format::interval(self.elapsed_time as usize, human))
+                    .format(format::interval(self.elapsed_time as usize, human))
             });
 
             bar_format.replace_from_callback("remaining", |placeholder| {
@@ -475,18 +479,24 @@ impl BarExt for Bar {
                 } else {
                     let human = placeholder
                         .attr("human")
-                        .unwrap_or_else(|| "false".to_owned())
-                        .parse::<bool>()
+                        .and_then(|x| x.parse::<bool>().ok())
                         .unwrap_or(false);
-                    placeholder.format_spec.format(crate::format::interval(
-                        self.remaining_time() as usize,
-                        human,
-                    ))
+                    placeholder
+                        .format_spec
+                        .format(format::interval(self.remaining_time() as usize, human))
                 }
             });
 
+            // inverse_unit field is not considered here.
             bar_format.replace_from_callback("rate", |placeholder| {
-                placeholder.format_spec.format(self.rate())
+                if self.unit_scale {
+                    placeholder.format_spec.format(format::size_of(
+                        self.rate() as f64,
+                        self.unit_divisor as f64,
+                    ))
+                } else {
+                    placeholder.format_spec.format(self.rate())
+                }
             });
 
             bar_format.replace("unit", &self.unit);
@@ -513,25 +523,27 @@ impl BarExt for Bar {
                             .render(NonZeroU16::new(ncols).unwrap(), self.percentage());
 
                         if let Some(colour) = &self.colour {
-                            return colour.apply(&render);
+                            colour.apply(&render)
+                        } else {
+                            render
                         }
-
-                        render
                     });
                 }
+            } else {
+                bar_format.replace("animation", "");
             }
 
-            return bar_format.text().unwrap();
+            return bar_format.text().unwrap(); // This should not panic.
         }
 
         let desc = if self.desc.is_empty() {
             "".to_owned()
         } else {
-            format!("{}: ", self.desc)
+            self.desc.clone() + ": "
         };
 
         if self.indefinite() {
-            let bar = format!(
+            format!(
                 "{}{}{} [{}, {}{}]",
                 desc,
                 self.fmt_counter(),
@@ -539,54 +551,32 @@ impl BarExt for Bar {
                 self.fmt_elapsed_time(),
                 self.fmt_rate(),
                 self.postfix
+            )
+        } else {
+            let lbar = desc + &self.fmt_percentage(0);
+            let rbar = format!(
+                " {}/{} [{}<{}, {}{}]",
+                self.fmt_counter(),
+                self.fmt_total(),
+                self.fmt_elapsed_time(),
+                self.fmt_remaining_time(),
+                self.fmt_rate(),
+                self.postfix,
             );
 
-            if !self.leave && self.position != 0 {
-                return format!(
-                    "{}\r",
-                    " ".repeat(utils::get_terminal_width().unwrap_or(self.bar_length) as usize)
-                );
+            let ncols = self.ncols_for_animation(
+                (lbar.len_ansi() + rbar.len_ansi() + self.animation.spaces() as usize) as u16,
+            );
+
+            if ncols > 0 {
+                lbar + &self.animation.fmt_render(
+                    NonZeroU16::new(ncols).unwrap(),
+                    self.percentage(),
+                    &self.colour,
+                ) + &rbar
+            } else {
+                lbar + &rbar
             }
-
-            return bar;
-        }
-
-        let progress = self.percentage();
-
-        if progress >= 1.0 {
-            self.total = self.counter;
-
-            if !self.leave && self.position != 0 {
-                return format!(
-                    "{}\r",
-                    " ".repeat(utils::get_terminal_width().unwrap_or(self.bar_length) as usize)
-                );
-            }
-        }
-
-        let lbar = desc + &self.fmt_percentage(0);
-        let rbar = format!(
-            " {}/{} [{}<{}, {}{}]",
-            self.fmt_counter(),
-            self.fmt_total(),
-            self.fmt_elapsed_time(),
-            self.fmt_remaining_time(),
-            self.fmt_rate(),
-            self.postfix,
-        );
-
-        let ncols = self.ncols_for_animation(
-            (lbar.len_ansi() + rbar.len_ansi() + self.animation.spaces() as usize) as u16,
-        );
-
-        if ncols == 0 {
-            lbar + &rbar
-        } else {
-            lbar + &self.animation.fmt_render(
-                NonZeroU16::new(ncols).unwrap(),
-                progress,
-                &self.colour,
-            ) + &rbar
         }
     }
 
@@ -612,13 +602,7 @@ impl BarExt for Bar {
 
     fn update_to(&mut self, n: usize) -> Result<bool> {
         self.counter = n;
-        let should_refresh = self.should_refresh();
-
-        if should_refresh {
-            self.refresh()?;
-        }
-
-        Ok(should_refresh)
+        self.update(0)
     }
 
     fn write<T: Into<String>>(&mut self, text: T) -> Result<()> {
@@ -747,7 +731,7 @@ impl BarBuilder {
         self
     }
 
-    /// If `true`, the number of iterations will be reduced/scaled automatically 
+    /// If `true`, the number of iterations will be reduced/scaled automatically
     /// and a metric prefix following the [International System of Units](https://en.wikipedia.org/wiki/Metric_prefix) standard will be added (kilo, mega, etc.).
     /// (default: `false`)
     pub fn unit_scale(mut self, unit_scale: bool) -> Self {
@@ -755,7 +739,7 @@ impl BarBuilder {
         self
     }
 
-    /// If `true`, and the number of iterations per second is less than 1 
+    /// If `true`, and the number of iterations per second is less than 1
     /// then `s/it` will be displayed instead of `it/s`.
     /// (default: `false`)
     pub fn inverse_unit(mut self, inverse_unit: bool) -> Self {
@@ -820,7 +804,7 @@ impl BarBuilder {
     /// Specify the line offset to print this progress bar (starting from `0`).
     /// Useful for managing multiple progress bars at once (eg. from threads).
     /// (default: `0`)
-    /// 
+    ///
     /// # Platform-specific notes
     ///
     /// On windows, [term::init](crate::term::init) method should be called first.

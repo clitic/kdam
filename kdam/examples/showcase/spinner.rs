@@ -1,5 +1,8 @@
-use kdam::Spinner;
-use std::{io::Write, num::NonZeroI16};
+use kdam::{term, term::Writer, Spinner};
+use std::{
+    num::NonZeroI16,
+    time::{Duration, Instant},
+};
 
 fn main() {
     let spin = Spinner::new(
@@ -22,17 +25,19 @@ fn main() {
         1.0,
     );
 
-    let mut stdout = std::io::stdout();
-    let timer = std::time::Instant::now();
+    let timer = Instant::now();
 
     loop {
-        std::thread::sleep(std::time::Duration::from_secs_f32(0.02));
-        stdout
-            .write_fmt(format_args!(
-                "\r{}",
-                spin.render_frames(timer.elapsed().as_secs_f32(), NonZeroI16::new(10).unwrap())
-            ))
+        std::thread::sleep(Duration::from_secs_f32(0.02));
+        Writer::Stderr
+            .print_at(
+                0,
+                spin.render_frames(
+                    timer.elapsed().as_secs_f32(),
+                    NonZeroI16::new((term::width().unwrap_or(30) / 3) as i16).unwrap(),
+                )
+                .as_bytes(),
+            )
             .unwrap();
-        stdout.flush().unwrap();
     }
 }
