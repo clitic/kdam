@@ -2,7 +2,7 @@
 //!
 //! In monitor mode progress bar is refreshed in specific intervals.
 //! Default monitor modes may not fit in many cases.
-//! So it is recommended to create a custom monitor mode.
+//! So, it is recommended to create a custom monitor mode.
 //! The basic idea behind monitor mode is to create a separate thread for updating progress bar
 //! which can be achieved by the following code.
 //!

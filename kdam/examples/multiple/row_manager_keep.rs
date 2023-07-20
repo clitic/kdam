@@ -1,4 +1,4 @@
-use kdam::{tqdm, BarExt, RowManager};
+use kdam::{tqdm, BarExt, RowManager, term};
 use std::{
     io::Result,
     sync::{Arc, Mutex},
@@ -7,7 +7,8 @@ use std::{
 };
 
 fn main() -> Result<()> {
-    kdam::term::init(false);
+    term::init(false);
+    term::hide_cursor()?;
 
     let mut manager = RowManager::new(3);
 

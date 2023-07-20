@@ -1,6 +1,6 @@
-use std::num::{NonZeroU16, NonZeroI16};
 use super::styles;
 use crate::{std::Bar, term::Colorizer, BarExt};
+use std::num::{NonZeroI16, NonZeroU16};
 
 #[cfg(feature = "spinner")]
 use crate::spinner::Spinner;
@@ -9,7 +9,7 @@ use crate::spinner::Spinner;
 #[derive(Debug, Clone)]
 pub enum Column {
     /// Progress bar animation display.
-    /// 
+    ///
     /// If `total = 0`, a pulsating animation is shown else a normal animation is shown.
     Animation,
     /// Progress counter display.
@@ -48,8 +48,7 @@ pub enum Column {
 /// # Example
 ///
 /// ```
-/// use kdam::{tqdm, BarExt};
-/// use kdam::{Column, RichProgress};
+/// use kdam::{tqdm, Column, BarExt, RichProgress};
 ///
 /// let mut pb = RichProgress::new(
 ///     tqdm!(total = 100),
@@ -57,28 +56,28 @@ pub enum Column {
 /// );
 ///
 /// for _ in 0..100 {
-///     pb.update(1);
+///     pb.update(1).unwrap();
 /// }
 ///
 /// eprintln!();
 /// ```
 #[derive(BarExt, Debug)]
 pub struct RichProgress {
+    pub columns: Vec<Column>,
     #[bar]
     pub pb: Bar,
-    pub columns: Vec<Column>,
 }
 
 impl RichProgress {
     /// Create a new [RichProgress](Self).
     pub fn new(pb: Bar, columns: Vec<Column>) -> Self {
-        Self { pb, columns }
+        Self { columns, pb }
     }
 
     /// Replace a column at specific index.
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// If `index` is out of bounds.
     pub fn replace(&mut self, index: usize, col: Column) {
         *self.columns.get_mut(index).unwrap() = col;
@@ -182,7 +181,10 @@ impl RichProgress {
             } else {
                 *bar_text.get_mut(progress_bar_index).unwrap() =
                     if self.pb.indefinite() || !self.pb.started() {
-                        styles::pulse(NonZeroI16::new(ncols as i16).unwrap(), self.pb.elapsed_time())
+                        styles::pulse(
+                            NonZeroI16::new(ncols as i16).unwrap(),
+                            self.pb.elapsed_time(),
+                        )
                     } else {
                         styles::bar(NonZeroU16::new(ncols).unwrap(), self.pb.percentage())
                     };

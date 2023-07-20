@@ -53,7 +53,7 @@ impl Animation {
     /// # Arguments
     ///
     /// - *ncols*: Number of columns to render.
-    /// - *progress*: Percentage done, it can be in range (0.0 - 1.0) inclusive.
+    /// - *progress*: Percentage done, it should be in range (0.0 - 1.0) inclusive.
     pub fn render(&self, ncols: NonZeroU16, progress: f32) -> String {
         assert!((0.0..=1.0).contains(&progress));
 

@@ -108,11 +108,13 @@ GEN 4:  50%|█████████▎        | 5/10 [00:02<00:02, 1.95it/s,
 `kdam` supports nested progress bars. For manual control over positioning (e.g. for multi-processing use), you may specify `position=n` where `n=0` for the outermost bar, `n=1` for the next, and so on.
 
 ```
-use kdam::tqdm;
+use kdam::{term, tqdm};
+use std::io::Result;
 
-fn main() {
-    kdam::term::init(false);
-    
+fn main() -> Result<()> {
+    term::init(false);
+    term::hide_cursor()?;
+
     for _ in tqdm!(0..4, desc = "1st loop", position = 0) {
         for _ in tqdm!(0..5, desc = "2nd loop", position = 1) {
             for _ in tqdm!(0..50, desc = "3rd loop", position = 2) {
@@ -123,6 +125,8 @@ fn main() {
 
     eprint!("{}", "\n".repeat(3));
     println!("completed!");
+
+    Ok(())
 }
 ```
 

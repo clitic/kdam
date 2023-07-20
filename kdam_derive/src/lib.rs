@@ -178,10 +178,8 @@ pub fn bar_ext(input: TokenStream) -> TokenStream {
                 }
 
                 self.#bar_field.bar_length = #crate_name::term::Colorizer::len_ansi(text.as_str()) as u16;
-                #crate_name::lock::acquire();
                 writer.write_all((text + "\n").as_bytes())?;
                 writer.flush()?;
-                #crate_name::lock::release();
                 Ok(true)
             }
         }

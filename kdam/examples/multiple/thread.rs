@@ -1,9 +1,10 @@
-use kdam::{tqdm, BarExt};
-use std::{thread, time::Duration};
+use kdam::{term, tqdm, BarExt};
+use std::{io::Result, thread, time::Duration};
 
-fn main() {
-    kdam::term::init(false);
-    
+fn main() -> Result<()> {
+    term::init(false);
+    term::hide_cursor()?;
+
     let mut pb1 = tqdm!(total = 150, position = 0);
     let mut pb2 = tqdm!(total = 100, position = 1);
     let mut pb3 = tqdm!(total = 200, position = 2);
@@ -36,4 +37,6 @@ fn main() {
 
     eprint!("{}", "\n".repeat(3));
     println!("completed!");
+
+    Ok(())
 }

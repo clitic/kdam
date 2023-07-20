@@ -3,7 +3,7 @@ use super::{
     BarExt,
 };
 use crate::{
-    format, lock, term,
+    format, term,
     term::{Colorizer, Writer},
 };
 use std::{
@@ -633,10 +633,8 @@ impl BarExt for Bar {
         }
 
         self.bar_length = text.len_ansi() as u16;
-        lock::acquire();
         writer.write_all((text + "\n").as_bytes())?;
         writer.flush()?;
-        lock::release();
         Ok(true)
     }
 }

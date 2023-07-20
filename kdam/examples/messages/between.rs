@@ -1,8 +1,9 @@
-use kdam::{term::Writer, tqdm, BarExt};
+use kdam::{term, term::Writer, tqdm, BarExt};
 use std::io::Result;
 
 fn main() -> Result<()> {
-    kdam::term::init(false);
+    term::init(false);
+    term::hide_cursor()?;
 
     let mut pb1 = tqdm!(total = 100, position = 0);
     let mut pb2 = tqdm!(total = 100, position = 4);

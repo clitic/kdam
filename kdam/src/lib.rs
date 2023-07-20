@@ -5,7 +5,6 @@ mod std;
 mod utils;
 
 pub mod format;
-pub mod lock;
 pub mod term;
 
 pub use crate::std::{
@@ -29,8 +28,3 @@ mod spinner;
 #[cfg(feature = "spinner")]
 #[cfg_attr(docsrs, doc(cfg(feature = "spinner")))]
 pub use spinner::Spinner;
-
-// use ::std::sync::atomic::AtomicI16;
-
-// const KDAM_NCOLS: AtomicI16 = AtomicI16::new(40);
-

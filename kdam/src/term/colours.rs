@@ -35,7 +35,10 @@ static SHOULD_COLORIZE: AtomicBool = AtomicBool::new(false);
 
 /// Enable/Disable colorization property of [colorizer](crate::term::Colorizer) trait.
 /// 
-/// Colorization is disabled by default.
+/// Colorization is **disabled** by default.
+/// 
+/// # Platform-specific notes
+/// 
 /// This functions also enables support for ANSI escape codes on windows.
 /// 
 /// # Example

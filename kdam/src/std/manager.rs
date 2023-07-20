@@ -5,11 +5,11 @@ use std::{collections::HashSet, io::Result};
 ///
 /// `nrows` is the number of progress bars to display at once.
 /// All other bars are hidden and visible once any active progress bar is completed.
-/// Traces of progress are left in terminal if `leave = true` else progress bar is cleared.
+/// Traces of progress are left in terminal if `leave` is `true` else progress bar is cleared.
 ///
 /// # Note
 ///
-/// Cursor position is not restored by RowManager.
+/// Cursor positions are not restored by RowManager.
 ///
 /// # Example
 ///
@@ -24,17 +24,21 @@ use std::{collections::HashSet, io::Result};
 ///     manager.notify(pb_index).unwrap();
 /// }
 ///
-/// manager.bars.remove(pb_index);
+/// manager.remove(pb_index);
 /// ```
 pub struct RowManager {
     acquired_pos: HashSet<u16>,
     avaliable_pos: HashSet<u16>,
-    pub bars: Vec<Bar>,
+    bars: Vec<Bar>,
     bars_true_disable: Vec<bool>,
     nrows: u16,
 }
 
 impl RowManager {
+    // -----------------------------------------------------------------------------------------
+    // Constructors
+    // -----------------------------------------------------------------------------------------
+
     /// Create a new [RowManager](crate::RowManager) with specified number of rows.
     ///
     /// # Example
@@ -77,18 +81,11 @@ impl RowManager {
         }
     }
 
-    /// Returns the number of progress bars.
-    #[allow(clippy::len_without_is_empty)]
-    pub fn len(&self) -> usize {
-        self.bars.len()
-    }
+    // -----------------------------------------------------------------------------------------
+    // Methods
+    // -----------------------------------------------------------------------------------------
 
-    /// Returns a mutable reference to progress bar.
-    pub fn get_mut(&mut self, index: usize) -> Option<&mut Bar> {
-        self.bars.get_mut(index)
-    }
-
-    /// Append a progress bar returning its index.
+    /// Append a progress bar returning back it's index.
     pub fn append(&mut self, mut pb: Bar) -> Result<usize> {
         pb.position = self.acquired_pos.len() as u16;
         self.bars_true_disable.push(pb.disable);
@@ -102,6 +99,11 @@ impl RowManager {
 
         self.bars.push(pb);
         Ok(self.bars.len() - 1)
+    }
+
+    /// Returns a mutable reference to progress bar.
+    pub fn get_mut(&mut self, index: usize) -> Option<&mut Bar> {
+        self.bars.get_mut(index)
     }
 
     /// Update and print the required stuff for progress bar at that index.
@@ -181,5 +183,20 @@ impl RowManager {
         }
 
         Ok(())
+    }
+
+    /// Removes a progress bar.
+    ///
+    /// # Panics
+    ///
+    /// If `index` is out of bounds.
+    pub fn remove(&mut self, index: usize) {
+        let pb = self.bars.remove(index);
+
+        if self.acquired_pos.remove(&pb.position) {
+            self.avaliable_pos.insert(pb.position);
+        }
+
+        let _ = self.bars_true_disable.remove(index);
     }
 }

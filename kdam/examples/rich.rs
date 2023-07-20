@@ -1,8 +1,9 @@
-use kdam::{term::Colorizer, tqdm, BarExt, Column, RichProgress, Spinner};
+use kdam::{term, term::Colorizer, tqdm, BarExt, Column, RichProgress, Spinner};
 use std::io::{stderr, IsTerminal, Result};
 
 fn main() -> Result<()> {
-    kdam::term::init(stderr().is_terminal());
+    term::init(stderr().is_terminal());
+    term::hide_cursor()?;
 
     let mut pb = RichProgress::new(
         tqdm!(

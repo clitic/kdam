@@ -1,17 +1,16 @@
 use super::{Bar, BarExt};
+use std::ops::{Deref, DerefMut};
 
 /// Iterable version of [Bar](crate::Bar).
 #[derive(Debug)]
 pub struct BarIterator<T> {
-    /// Iterator to decorate with a progress bar.
     pub iterable: T,
-    /// Instance of [Bar](crate::Bar) to display progress updates for iterable.
-    pub pb: Bar,
+    pb: Bar,
     started: bool,
 }
 
 impl<T: Iterator> BarIterator<T> {
-    /// Create a new instance of [BarIterator](crate::BarIterator) from iterable.
+    /// Create a new [BarIterator](crate::BarIterator) from an iterator.
     pub fn new(iterable: T) -> BarIterator<T> {
         let mut pb = Bar::default();
         pb.total = iterable.size_hint().0;
@@ -23,7 +22,7 @@ impl<T: Iterator> BarIterator<T> {
         }
     }
 
-    /// Create a new instance of [BarIterator](crate::BarIterator) from iterable and [Bar](crate::Bar).
+    /// Create a new [BarIterator](crate::BarIterator) from an iterator and [Bar](crate::Bar).
     pub fn new_with_bar(iterable: T, pb: Bar) -> BarIterator<T> {
         let total = iterable.size_hint().0;
 
@@ -41,7 +40,7 @@ impl<T: Iterator> BarIterator<T> {
     }
 }
 
-impl<T> std::ops::Deref for BarIterator<T> {
+impl<T> Deref for BarIterator<T> {
     type Target = Bar;
 
     fn deref(&self) -> &Self::Target {
@@ -49,7 +48,7 @@ impl<T> std::ops::Deref for BarIterator<T> {
     }
 }
 
-impl<T> std::ops::DerefMut for BarIterator<T> {
+impl<T> DerefMut for BarIterator<T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.pb
     }
@@ -89,7 +88,7 @@ impl<T: DoubleEndedIterator> DoubleEndedIterator for BarIterator<T> {
     }
 }
 
-/// Rust iterators decoration with [BarIterator](crate::BarIterator).
+/// Iterators decoration with [BarIterator](crate::BarIterator).
 pub trait TqdmIterator
 where
     Self: Sized + Iterator,

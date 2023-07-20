@@ -1,8 +1,9 @@
-use kdam::{tqdm, Animation, BarExt};
+use kdam::{term, tqdm, Animation, BarExt};
 use std::io::Result;
 
 fn main() -> Result<()> {
-    kdam::term::init(false);
+    term::init(false);
+    term::hide_cursor()?;
 
     let render_length = 300;
 

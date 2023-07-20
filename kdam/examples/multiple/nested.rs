@@ -1,8 +1,10 @@
-use kdam::tqdm;
+use kdam::{term, tqdm};
+use std::io::Result;
 
-fn main() {
-    kdam::term::init(false);
-    
+fn main() -> Result<()> {
+    term::init(false);
+    term::hide_cursor()?;
+
     for _ in tqdm!(0..4, desc = "1st loop", position = 0) {
         for _ in tqdm!(0..5, desc = "2nd loop", position = 1) {
             for _ in tqdm!(0..50, desc = "3rd loop", position = 2) {
@@ -13,4 +15,6 @@ fn main() {
 
     eprint!("{}", "\n".repeat(3));
     println!("completed!");
+
+    Ok(())
 }

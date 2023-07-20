@@ -1,4 +1,3 @@
-use crate::lock;
 use std::io::{stderr, stdout, Result, Write};
 
 /// Stderr and Stdout writer.
@@ -12,15 +11,12 @@ impl Writer {
     /// Print text buffer in terminal followed by a flush.
     pub fn print(&self, buf: &[u8]) -> Result<()> {
         let mut writer: Box<dyn Write> = match self {
-            Self::Stderr => Box::new(stderr()),
-            Self::Stdout => Box::new(stdout()),
+            Self::Stderr => Box::new(stderr().lock()),
+            Self::Stdout => Box::new(stdout().lock()),
         };
 
-        lock::acquire();
         writer.write_all(buf)?;
         writer.flush()?;
-        lock::release();
-
         Ok(())
     }
 
@@ -39,11 +35,9 @@ impl Writer {
     /// ```
     pub fn print_at(&self, position: u16, buf: &[u8]) -> Result<()> {
         let mut writer: Box<dyn Write> = match self {
-            Self::Stderr => Box::new(stderr()),
-            Self::Stdout => Box::new(stdout()),
+            Self::Stderr => Box::new(stderr().lock()),
+            Self::Stdout => Box::new(stdout().lock()),
         };
-
-        lock::acquire();
 
         if position > 0 {
             writer.write_all("\n".repeat(position as usize).as_bytes())?;
@@ -55,8 +49,6 @@ impl Writer {
         }
 
         writer.flush()?;
-        lock::release();
-
         Ok(())
     }
 }
