@@ -932,7 +932,7 @@ macro_rules! tqdm {
 /// # Examples
 ///
 /// ```
-/// use kdam::{rayon::prelude::*, tqdm};
+/// use kdam::{rayon::prelude::*, par_tqdm};
 ///
 /// par_tqdm!();
 /// par_tqdm!(total = 100);
