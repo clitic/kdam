@@ -6,6 +6,7 @@ The following are a list of [Cargo features](https://doc.rust-lang.org/stable/ca
 
 - **derive**: Adds a derive macro for deriving [BarExt](crate::BarExt) trait.
 - **gradient**: Enables gradient colours support for progress bars and printing text.
+- **rayon**: Adds supports for [rayon's](https://crates.io/crates/rayon) iterators.
 - **rich**: Enables [rich](https://rich.readthedocs.io/en/latest/progress.html) style progress bar.
 - **spinner**: Enables support for using spinners. 
 - **template**: Enables templating capabilities for [Bar](crate::Bar).
@@ -206,7 +207,7 @@ Break Loop [y/n]: y
 
 ### Terminal Colorization
 
-kdam also provides a text colorization trait for printing colored text in terminal. It can be used as an alternative for existing [colored](https://github.com/mackwic/colored) crate. Note that colorization done always by default, this behaviour can be overridden by using [set_colorize](https://docs.rs/kdam/latest/kdam/term/fn.set_colorize.html) function.
+kdam also provides a text colorization trait for printing coloured text in terminal. It can be used as an alternative to existing [colored](https://github.com/mackwic/colored) crate.
 
 ```
 use kdam::term::Colorizer;
@@ -216,3 +217,4 @@ kdam::term::init(true);
 println!("{}", "hello world!".colorize("bold red"));
 println!("{}", "hello world!".colorize("bright white on blue"));
 ```
+

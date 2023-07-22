@@ -875,7 +875,7 @@ impl BarBuilder {
     ///
     /// # Note
     ///
-    /// This method only returns error when [bar_format](Self::bar_format) is used incorrectly.
+    /// This method only returns error when `bar_format` is used incorrectly.
     #[allow(unused_mut)]
     pub fn build(mut self) -> ::std::result::Result<Bar, String> {
         #[cfg(feature = "template")]
@@ -887,7 +887,7 @@ impl BarBuilder {
     }
 }
 
-/// [tqdm](https://github.com/tqdm/tqdm) like macro for creating [Bar](crate::Bar) and [BarIterator](crate::BarIterator).
+/// [tqdm](https://github.com/tqdm/tqdm) like macro for creating [Bar](crate::Bar) and [BarIter](crate::BarIter).
 ///
 /// It uses [BarBuilder](crate::BarBuilder) for creating [Bar](crate::Bar).
 /// See, all available [methods](crate::BarBuilder).
@@ -899,7 +899,7 @@ impl BarBuilder {
 /// # Examples
 ///
 /// ```
-/// use kdam::{tqdm, BarExt};
+/// use kdam::tqdm;
 ///
 /// tqdm!();
 /// tqdm!(total = 100);
@@ -915,10 +915,45 @@ macro_rules! tqdm {
     };
 
     ($iterable: expr) => {
-        $crate::BarIterator::new_with_bar($iterable, kdam::Bar::default())
+        $crate::TqdmIterator::tqdm($iterable)
     };
 
     ($iterable: expr, $($setter_method: ident = $value: expr),*) => {
-        $crate::BarIterator::new_with_bar($iterable, kdam::BarBuilder::default()$(.$setter_method($value))*.build().unwrap())
+        $crate::TqdmIterator::tqdm_with_bar($iterable, $crate::BarBuilder::default()$(.$setter_method($value))*.build().unwrap())
+    };
+}
+
+/// Parallel version of [tqdm](crate::tqdm) macro.
+///
+/// # Panics
+///
+/// This macro will panic if [BarBuilder::build](crate::BarBuilder::build) returns error.
+///
+/// # Examples
+///
+/// ```
+/// use kdam::{rayon::prelude::*, tqdm};
+///
+/// par_tqdm!();
+/// par_tqdm!(total = 100);
+/// par_tqdm!(total = 100, mininterval = 0.0, colour = "green");
+/// par_tqdm!((0..100).into_par_iter());
+/// par_tqdm!((0..100).into_par_iter(), desc = "0 to 99");
+/// par_tqdm!(["a", "b", "c", "d"].par_iter());
+/// ```
+#[cfg(feature = "rayon")]
+#[cfg_attr(docsrs, doc(cfg(feature = "rayon")))]
+#[macro_export]
+macro_rules! par_tqdm {
+    ($($setter_method: ident = $value: expr),*) => {
+        $crate::BarBuilder::default()$(.$setter_method($value))*.build().unwrap()
+    };
+
+    ($iterable: expr) => {
+        $crate::TqdmParallelIterator::tqdm($iterable)
+    };
+
+    ($iterable: expr, $($setter_method: ident = $value: expr),*) => {
+        $crate::TqdmParallelIterator::tqdm_with_bar($iterable, $crate::BarBuilder::default()$(.$setter_method($value))*.build().unwrap())
     };
 }
