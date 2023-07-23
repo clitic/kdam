@@ -1,4 +1,4 @@
-Ultimate console progress bar. (inspired by [tqdm](https://github.com/tqdm/tqdm) & [rich.progress](https://rich.readthedocs.io/en/latest/progress.html))
+A console progress bar library for Rust. (inspired by [tqdm](https://github.com/tqdm/tqdm) & [rich.progress](https://rich.readthedocs.io/en/latest/progress.html))
 
 ## Optional Features
 
@@ -217,4 +217,3 @@ kdam::term::init(true);
 println!("{}", "hello world!".colorize("bold red"));
 println!("{}", "hello world!".colorize("bright white on blue"));
 ```
-

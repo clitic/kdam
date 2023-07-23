@@ -8,7 +8,7 @@
 */
 
 use super::{Bar, BarExt};
-// use std::ops::{Deref, DerefMut};
+use std::iter::FusedIterator;
 
 #[cfg(feature = "rayon")]
 use rayon::iter::{
@@ -20,6 +20,10 @@ use rayon::iter::{
 use std::sync::{Arc, Mutex};
 
 /// Iterable version of [Bar](crate::Bar).
+///
+/// # Panics
+///
+/// When [update](crate::BarExt::update) method returns error.
 #[derive(Debug)]
 pub struct BarIter<T> {
     inner: T,
@@ -27,7 +31,6 @@ pub struct BarIter<T> {
     pb: Arc<Mutex<Bar>>,
     #[cfg(not(feature = "rayon"))]
     pb: Bar,
-    started: bool,
 }
 
 impl<T> BarIter<T> {
@@ -36,33 +39,13 @@ impl<T> BarIter<T> {
     }
 }
 
-// impl<T> Deref for BarIter<T> {
-//     type Target = Bar;
-
-//     fn deref(&self) -> &Self::Target {
-//         // &self.pb
-//         &self.pb.lock().unwrap()
-//     }
-// }
-
-// impl<T> DerefMut for BarIter<T> {
-//     fn deref_mut(&mut self) -> &mut Self::Target {
-//         // &mut self.pb
-//         &mut self.pb.lock().unwrap()
-//     }
-// }
-
-impl<T: ExactSizeIterator> ExactSizeIterator for BarIter<T> {
-    fn len(&self) -> usize {
-        self.inner.len()
-    }
-}
-
 impl<S, T: Iterator<Item = S>> Iterator for BarIter<T> {
     type Item = S;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.started {
+        let item = self.inner.next();
+
+        if item.is_some() {
             #[cfg(feature = "rayon")]
             self.pb.lock().unwrap().update(1).unwrap();
 
@@ -74,17 +57,17 @@ impl<S, T: Iterator<Item = S>> Iterator for BarIter<T> {
 
             #[cfg(not(feature = "rayon"))]
             self.pb.refresh().unwrap();
-
-            self.started = true;
         }
 
-        self.inner.next()
+        item
     }
 }
 
 impl<T: DoubleEndedIterator> DoubleEndedIterator for BarIter<T> {
     fn next_back(&mut self) -> Option<Self::Item> {
-        if self.started {
+        let item = self.inner.next();
+
+        if item.is_some() {
             #[cfg(feature = "rayon")]
             self.pb.lock().unwrap().update(1).unwrap();
 
@@ -96,11 +79,17 @@ impl<T: DoubleEndedIterator> DoubleEndedIterator for BarIter<T> {
 
             #[cfg(not(feature = "rayon"))]
             self.pb.refresh().unwrap();
-
-            self.started = true;
         }
 
-        self.inner.next_back()
+        item
+    }
+}
+
+impl<T: FusedIterator> FusedIterator for BarIter<T> {}
+
+impl<T: ExactSizeIterator> ExactSizeIterator for BarIter<T> {
+    fn len(&self) -> usize {
+        self.inner.len()
     }
 }
 
@@ -185,6 +174,7 @@ impl<T, C: UnindexedConsumer<T>> UnindexedConsumer<T> for BarConsumer<C> {
 }
 
 #[cfg(feature = "rayon")]
+#[cfg_attr(docsrs, doc(cfg(feature = "rayon")))]
 impl<S: Send, T: ParallelIterator<Item = S>> ParallelIterator for BarIter<T> {
     type Item = S;
 
@@ -214,7 +204,6 @@ impl<T, P: Producer<Item = T>> Producer for BarProducer<P> {
         BarIter {
             inner: self.inner.into_iter(),
             pb: self.pb,
-            started: false,
         }
     }
 
@@ -242,6 +231,7 @@ impl<T, P: Producer<Item = T>> Producer for BarProducer<P> {
 }
 
 #[cfg(feature = "rayon")]
+#[cfg_attr(docsrs, doc(cfg(feature = "rayon")))]
 impl<S: Send, T: IndexedParallelIterator<Item = S>> IndexedParallelIterator for BarIter<T> {
     fn drive<C: Consumer<Self::Item>>(self, consumer: C) -> C::Result {
         let consumer = BarConsumer {
@@ -301,17 +291,15 @@ where
     /// eprint!("\n");
     /// assert_eq!(charset, "abcd");
     /// ```
-    fn tqdm(self) -> BarIter<Self>;
+    fn tqdm(self) -> BarIter<Self> {
+        Self::tqdm_with_bar(self, Bar::default())
+    }
 
     /// Decorate any sized iterator to [BarIter](crate::BarIter) with existing [Bar](crate::Bar).
     fn tqdm_with_bar(self, pb: Bar) -> BarIter<Self>;
 }
 
 impl<S, T: Iterator<Item = S>> TqdmIterator for T {
-    fn tqdm(self) -> BarIter<Self> {
-        Self::tqdm_with_bar(self, Bar::default())
-    }
-
     fn tqdm_with_bar(self, mut pb: Bar) -> BarIter<Self> {
         if pb.indefinite() {
             pb.total = self.size_hint().0;
@@ -323,7 +311,6 @@ impl<S, T: Iterator<Item = S>> TqdmIterator for T {
             pb: Arc::new(Mutex::new(pb)),
             #[cfg(not(feature = "rayon"))]
             pb,
-            started: false,
         }
     }
 }
@@ -337,7 +324,10 @@ where
     /// Decorate any sized parallel iterator to [BarIter](crate::BarIter).
     fn tqdm(self) -> BarIter<Self>
     where
-        Self: IndexedParallelIterator;
+        Self: IndexedParallelIterator,
+    {
+        Self::tqdm_with_bar(self, Bar::default())
+    }
 
     /// Decorate any sized parallel iterator to [BarIter](crate::BarIter) with existing [Bar](crate::Bar).
     fn tqdm_with_bar(self, pb: Bar) -> BarIter<Self>
@@ -347,13 +337,6 @@ where
 
 #[cfg(feature = "rayon")]
 impl<S, T: ParallelIterator<Item = S>> TqdmParallelIterator for T {
-    fn tqdm(self) -> BarIter<Self>
-    where
-        Self: IndexedParallelIterator,
-    {
-        Self::tqdm_with_bar(self, Bar::default())
-    }
-
     fn tqdm_with_bar(self, mut pb: Bar) -> BarIter<Self>
     where
         Self: IndexedParallelIterator,
@@ -368,7 +351,6 @@ impl<S, T: ParallelIterator<Item = S>> TqdmParallelIterator for T {
             pb: Arc::new(Mutex::new(pb)),
             #[cfg(not(feature = "rayon"))]
             pb,
-            started: false,
         }
     }
 }

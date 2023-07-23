@@ -7,15 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2023-07-23
+
+## Added
+
+- `Bar` now implements `Clone` trait.
+- `Colour` struct is added for better management of colours when applying them to `Bar`.
+- `hide_cursor` and `show_cursor` functions are added to `term` module.
+- New cargo features: `derive`, `rayon`, `rich` and `unicode`.
+- Support for enabling virtual terminal processing on windows.
+- Support for rayon's [ParallelIterator](https://docs.rs/rayon/latest/rayon/iter/trait.ParallelIterator.html) trait.
+- `term::colour` function now supports ANSI 256 colour codes too.
+
+## Changed
+
+- `Animation::CustomWithFill` is merged with `Animation::Custom` enum variant.
+- `BarExt` trait methods now return `std::io::Result` type.
+- `BarIterator` is renamed to `BarIter` and it's all fields are now private.
+- Colorization is now disabled by default.
+- `Deref` and `DerefMut` impls are removed from `BarIter`.
+- `format_` function name prefix is removed in `format` module.
+- Gradient functions are removed from `term::Colorizer` trait.
+- Many method names of `Bar` struct are shortened and renamed.
+- Most of the fields in `Bar` are made public.
+- `RichProgress` and `Column` is now under `rich` feature.
+- `RowManager` all fields are private now.
+- `term::get_columns_or` is renamed to `term::width` and return `Option` type.
+- `term::Writer` struct methods now requires `&[u8]` instead of `&str`.
+- Unicode support is disabled by default.
+
 ### Fixed
 
 - Apply padding to counter.
+- `Bar.leave` is used correctly now.
 
 ## [0.3.0] - 2022-12-05
 
 ## Added
 
-- `inverse_unit` field in `kdam::Bar` for displaying progress rate in inverse form.
+- `inverse_unit` field in `Bar` for displaying progress rate in inverse form.
 - `set_colorize` function in `term` module to enable/disable colours.
 
 ## Changed
@@ -51,19 +81,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Number of columns of progress bar can now be adjusted by KDAM_NCOLS envoirnment variable.
-- New `kdam::RowManager` for managing many progress bars. [ISSUE #3](https://github.com/clitic/kdam/issues/3)
-- New `kdam::Bar.bar_format` field.
-- New `kdam::Animation::CustomWithFill` variant.
+- New `RowManager` for managing many progress bars. [ISSUE #3](https://github.com/clitic/kdam/issues/3)
+- New `Bar.bar_format` field.
+- New `Animation::CustomWithFill` variant.
 - Better terminal colorization through `rgb(255,255,255)` and `gradient(#5A56E0,#EE6FF8)` values support.
 - Now supports spinners.
-    - `kdam::Spinner`
+    - `Spinner`
     - `tqdm!(spinner=..)`
 
 ### Changed
 
 -  `eprint_at!` replaced with `Writer::Stderr.print_at`.
-- `kdam::BarMethods` renamed to `kdam::BarExt`.
-- `wrap` field removed from `kdam::Bar`.
+- `BarMethods` renamed to `BarExt`.
+- `wrap` field removed from `Bar`.
 
 ### Fixed
 
@@ -73,22 +103,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- New `kdam::BarBuilder` struct.
-- Implemented `From<&str>` for `kdam::Animation` and `kdam::term::Writer`.
+- New `BarBuilder` struct.
+- Implemented `From<&str>` for `Animation` and `term::Writer`.
 
 ### Changed
 
-- All fields in `kdam::Bar` are private.
-- `tqdm` macro now uses `kdam::BarBuilder` for setting values instead of setting values in `kdam::Bar` directly.
+- All fields in `Bar` are private.
+- `tqdm` macro now uses `BarBuilder` for setting values instead of setting values in `Bar` directly.
 - `&str` consuming methods are switched with generic `Into<String>` trait.
-- `kdam::term::get_columns` is now renamed to `kdam::term::get_columns_or`.
+- `term::get_columns` is now renamed to `term::get_columns_or`.
 
 ## [0.2.1] - 2022-07-21
 
 ### Added
 
 - Added `reset` method `BarMethods` trait.
-- New `initial` field for `kdam::Bar`.
+- New `initial` field for `Bar`.
 
 ## [0.2.0] - 2022-07-21
 
@@ -117,14 +147,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Several optimizations (reduced memory consumption by 30%).
 - [rich.progress](https://rich.readthedocs.io/en/latest/progress.html) style progress bar support with custom builder.
-- Monitor mode is now supported. Use `kdam::monitor`.
-- New `wrap` field for `kdam::Bar`.
+- Monitor mode is now supported. Use `monitor`.
+- New `wrap` field for `Bar`.
 
 ### Changed
 
 - `lock` module has now `AtomicBool` lock.
-- `ascii` and few more fields are removed from `kdam::Bar`.
-- `BarInternal` is now merged into `kdam::Bar`.
+- `ascii` and few more fields are removed from `Bar`.
+- `BarInternal` is now merged into `Bar`.
 - All `u64` data types are changed to `usize`.
 - Spinner removed from unbounded progress bar
 
@@ -138,18 +168,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- [Fira Code](https://github.com/tonsky/FiraCode) animation style i.e. `kdam::Animation::FiraCode`.
+- [Fira Code](https://github.com/tonsky/FiraCode) animation style i.e. `Animation::FiraCode`.
 - Spinner for unknown length progress bar.
-- A method to `set_position` is added to `kdam::Bar` by referring issue [#1](https://github.com/clitic/kdam/issues/1)
+- A method to `set_position` is added to `Bar` by referring issue [#1](https://github.com/clitic/kdam/issues/1)
 - Support to take input into a `String` by method `input`.
 
 ### Fixed
 
-- `set_colour` method of `kdam::Bar` is fixed.
+- `set_colour` method of `Bar` is fixed.
 
 ## [0.1.0] - 2022-03-20
 
-[Unreleased]: https://github.com/clitic/kdam/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/clitic/kdam/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/clitic/kdam/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/clitic/kdam/compare/799b34c...v0.3.0
 [0.2.7]: https://github.com/clitic/kdam/compare/a206ef9...799b34c
 [0.2.6]: https://github.com/clitic/kdam/compare/7b6497d...a206ef9

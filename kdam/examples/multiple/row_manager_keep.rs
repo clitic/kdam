@@ -13,7 +13,7 @@ fn main() -> Result<()> {
     let mut manager = RowManager::new(3);
 
     for (i, total) in [150, 100, 200, 400, 500, 600].iter().enumerate() {
-        manager.append(tqdm!(
+        manager.push(tqdm!(
             total = *total,
             desc = format!("BAR {}", i),
             force_refresh = true

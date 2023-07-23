@@ -7,6 +7,9 @@ use crate::utils;
 #[cfg(feature = "gradient")]
 use colorgrad::{CustomGradient, Gradient};
 
+#[cfg(feature = "gradient")]
+use std::sync::Arc;
+
 #[cfg(feature = "unicode")]
 use unicode_segmentation::UnicodeSegmentation;
 
@@ -159,12 +162,12 @@ impl From<&str> for Animation {
 }
 
 /// Colour applicable to text.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Colour {
     Solid(String),
     #[cfg(feature = "gradient")]
     #[cfg_attr(docsrs, doc(cfg(feature = "gradient")))]
-    Gradient(Gradient),
+    Gradient(Arc<Gradient>),
 }
 
 impl Colour {
@@ -172,19 +175,19 @@ impl Colour {
     #[cfg(feature = "gradient")]
     #[cfg_attr(docsrs, doc(cfg(feature = "gradient")))]
     pub fn gradient(colors: &[&str]) -> Self {
-        Self::Gradient(
+        Self::Gradient(Arc::new(
             CustomGradient::new()
                 .html_colors(colors)
                 .build()
                 .unwrap_or(colorgrad::rainbow()),
-        )
+        ))
     }
 
     /// Create a new [Color::Gradient](Self::Gradient) enum variant with rainbow colors.
     #[cfg(feature = "gradient")]
     #[cfg_attr(docsrs, doc(cfg(feature = "gradient")))]
     pub fn rainbow() -> Self {
-        Self::Gradient(colorgrad::rainbow())
+        Self::Gradient(Arc::new(colorgrad::rainbow()))
     }
 
     /// Create a new [Color::Solid](Self::Solid) enum variant.
@@ -224,7 +227,7 @@ impl Colour {
 
                 gradient_text
             }
-            Colour::Solid(color) => text.colorize(color),
+            Colour::Solid(colour) => text.colorize(colour),
         }
     }
 }

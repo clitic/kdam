@@ -1,10 +1,10 @@
 [package]
 authors = ["clitic <clitic21@gmail.com>"]
 categories = ["command-line-interface"]
-description = "Ultimate console progress bar"
+description = "A console progress bar library for Rust. (inspired by tqdm & rich.progress)"
 documentation = "https://docs.rs/kdam"
 edition = "2021"
-keywords = ["cli", "progress", "progressbar", "pb"]
+keywords = ["colors", "cli", "pb", "progress", "progressbar"]
 license = "MIT OR Apache-2.0"
 name = "kdam"
 readme = "README.md"

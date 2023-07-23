@@ -19,12 +19,9 @@
   <a href="https://github.com/clitic/kdam">
     <img src="https://img.shields.io/github/repo-size/clitic/kdam?style=flat-square">
   </a>
-  <a href="https://github.com/clitic/kdam">
-    <img src="https://img.shields.io/tokei/lines/github/clitic/kdam?logo=github&style=flat-square">
-  </a>
 </p>
 
-kdam is a console progress bar library for rust. It is port of [tqdm](https://github.com/tqdm/tqdm) library which is written in python. kdam supports all features of tqdm except few. Some features of tqdm can't be ported directly so they are implemented in different way like `RowManager` which manages multiple progress bars but in tqdm progress bars are automatically managed using `nrows`. In addition to tqdm existing features kdam also provides extra features such as spinners, charset with fill, gradient colours etc. Since kdam is written in rust its upto 4 times faster than tqdm.
+kdam is a console progress bar library for rust. It is port of [tqdm](https://github.com/tqdm/tqdm) library which is written in python. kdam supports almost all features of tqdm except few. Some features of tqdm can't be ported directly. So they are implemented in different way like, [RowManager](https://docs.rs/kdam/latest/kdam/struct.RowManager.html) which manages multiple progress bars but in tqdm progress bars are automatically managed using `nrows`. In addition to tqdm existing features kdam also provides extra features such as spinners, charset with fill, gradient colours etc. Since, kdam is written in rust its upto 4 times faster than tqdm.
 
 Instantly make your loops show a smart progress meter. Just wrap any iterator with tqdm!(iterator) macro and you're done!
 
@@ -40,7 +37,7 @@ fn main() {
 100%|█████████████████████████████| 100/100 [00:00<00:00, 25854.49it/s]
 ```
 
-kdam also supports different animation styles. All available animation styles are:
+kdam also supports different bar animation styles. All available bar animation styles are:
 
 [kdam/examples/showcase/animations.rs](https://github.com/clitic/kdam/blob/main/kdam/examples/showcase/animations.rs)
 ![showcase_animations](https://raw.githubusercontent.com/clitic/kdam/main/images/animations.gif)
@@ -50,12 +47,14 @@ kdam also supports [rich.progress](https://rich.readthedocs.io/en/latest/progres
 [kdam/examples/rich.rs](https://github.com/clitic/kdam/blob/main/kdam/examples/rich.rs)
 ![showcase_rich_progress_animation](https://raw.githubusercontent.com/clitic/kdam/main/images/rich_progress.gif)
 
-kdam doesn't restrict you to use default progress bar styles. You can create your own progress bar template using bar_format. Here is clone of [alive-progress](https://github.com/rsalmei/alive-progress) using kdam.
+kdam doesn't restrict you to use default progress bar style. You can create your own progress bar using [bar_format](https://docs.rs/kdam/latest/kdam/struct.BarBuilder.html#method.bar_format) template. If you are not satisfied with bar_format limited options then you can also build your own [custom progress bar](https://github.com/clitic/kdam/blob/main/kdam/examples/miscellaneous/custom.rs).
+
+This is clone of [alive-progress](https://github.com/rsalmei/alive-progress) using kdam.
 
 [kdam/examples/template.rs](https://github.com/clitic/kdam/blob/main/kdam/examples/template.rs)
 ![showcase_alive_progress_template](https://raw.githubusercontent.com/clitic/kdam/main/images/template.gif)
 
-A gradient progress bar can also be created.
+If you like colours then you can also create a gradient progress bar.
 
 [kdam/examples/coloured/gradient.rs](https://github.com/clitic/kdam/blob/main/kdam/examples/coloured/gradient.rs)
 ![showcase_gradient](https://raw.githubusercontent.com/clitic/kdam/main/images/gradient.gif)
@@ -66,7 +65,7 @@ Add this to your Cargo.toml file.
 
 ```toml
 [dependencies]
-kdam = "0.3.0"
+kdam = "0.4.0"
 ```
 
 Or add from command line.
