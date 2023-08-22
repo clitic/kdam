@@ -3,12 +3,18 @@ use std::io::{Result, Write};
 /// Comman progress bar functionalities shared between different types of progress bars.
 pub trait BarExt {
     /// Clear current progress bar display.
+    /// 
+    /// Returns `Err`, if writing to handle fails.
     fn clear(&mut self) -> Result<()>;
 
     /// Take input via progress bar (without overlaping with bar(s)).
+    /// 
+    /// Returns `Err`, if reading from stdin handle fails.
     fn input<T: Into<String>>(&mut self, text: T) -> Result<String>;
 
     /// Force refresh current progress bar display.
+    /// 
+    /// Returns `Err`, if writing to handle fails.
     fn refresh(&mut self) -> Result<()>;
 
     /// Render progress bar text.
@@ -22,14 +28,18 @@ pub trait BarExt {
     /// Manually update the progress bar, useful for streams such as reading files.
     /// 
     /// Returns whether an update was triggered or not depending on constraints.
+    /// Returns `Err`, if writing to handle fails.
     fn update(&mut self, n: usize) -> Result<bool>;
 
     /// Set counter value instead of incrementing counter through [update](Self::update) method.
     /// 
     /// Returns wheter a update was triggered or not depending on constraints.
+    /// Returns `Err`, if writing to handle fails.
     fn update_to(&mut self, n: usize) -> Result<bool>;
 
     /// Print a message via progress bar (without overlaping with bar(s)).
+    /// 
+    /// Returns `Err`, if writing to handle fails.
     fn write<T: Into<String>>(&mut self, text: T) -> Result<()>;
 
     /// Write progress bar rendered text to a writer (useful for writing files).
@@ -37,7 +47,8 @@ pub trait BarExt {
     /// If `n` is supplied then this method behaves like [update](Self::update) method.
     /// 
     /// Returns whether a update was triggered or not depending on constraints.
-    ///
+    /// Returns `Err`, if writing to handle fails.
+    /// 
     /// # Example
     ///
     /// Using [write_to](Self::write_to) as [update_to](Self::update_to).

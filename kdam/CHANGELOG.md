@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1] - 2023-08-22
+
+### Fixed
+
+- Panics when using `template` feature with `animation` placeholder.
+
 ## [0.4.0] - 2023-07-23
 
 ## Added
@@ -179,7 +185,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.0] - 2022-03-20
 
-[Unreleased]: https://github.com/clitic/kdam/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/clitic/kdam/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/clitic/kdam/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/clitic/kdam/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/clitic/kdam/compare/799b34c...v0.3.0
 [0.2.7]: https://github.com/clitic/kdam/compare/a206ef9...799b34c

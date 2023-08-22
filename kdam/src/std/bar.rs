@@ -529,11 +529,11 @@ impl BarExt for Bar {
                         }
                     });
                 }
-            } else {
-                bar_format.replace("animation", "");
             }
+            
+            bar_format.replace("animation", "");
 
-            return bar_format.text().unwrap(); // This should not panic.
+            return bar_format.text().unwrap(); // this should not panic
         }
 
         let desc = if self.desc.is_empty() {
