@@ -3,3 +3,5 @@ Cargo.lock
 **/*.rs.bk
 kdam-logs.txt
 kdam/kdam-logs.txt
+kdam/examples/notebook/.ipynb_checkpoints
+kdam/examples/notebook/kdam_notebook*

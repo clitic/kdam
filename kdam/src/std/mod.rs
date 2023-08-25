@@ -12,5 +12,11 @@ pub use iterator::{BarIter, TqdmIterator};
 pub use manager::RowManager;
 pub use styles::{Animation, Colour};
 
+#[cfg(feature = "notebook")]
+mod notebook;
+
+#[cfg(feature = "notebook")]
+pub use notebook::set_notebook;
+
 #[cfg(feature = "rayon")]
 pub use iterator::TqdmParallelIterator;
