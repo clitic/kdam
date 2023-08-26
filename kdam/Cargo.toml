@@ -9,7 +9,7 @@ license = "MIT OR Apache-2.0"
 name = "kdam"
 readme = "README.md"
 repository = "https://github.com/clitic/kdam/tree/main/kdam"
-version = "0.4.2"
+version = "0.5.0"
 
 [dependencies]
 colorgrad = { version = "0.6", optional = true }

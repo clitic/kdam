@@ -8,7 +8,7 @@ name = "kdam_notebook"
 crate-type = ["cdylib"]
 
 [dependencies]
-kdam = { path = "../..", features = ["notebook"] }
+kdam = { path = "../..", features = ["notebook", "template"] }
 pyo3 = { version = "0.19", features = ["extension-module"] }
 
 [build-dependencies]
