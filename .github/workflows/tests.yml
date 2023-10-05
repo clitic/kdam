@@ -14,9 +14,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: Run Tests # https://pyo3.rs/v0.19.2/faq
+    - name: Run Tests # https://pyo3.rs/faq
       run: cargo test -p kdam -p kdam_derive --all-features
-    - name: Build notebook example
-      run: cargo build -p notebook
     - name: Build file_download example
       run: cargo build -p file_download
+    - name: Build notebook example
+      run: cargo build -p notebook
