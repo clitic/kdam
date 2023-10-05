@@ -30,6 +30,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
     }
 
     pb.refresh()?;
-    eprintln!("\nDownloaded {} to {}", URL, PATH);
+    eprintln!("\nDownloaded {}", PATH);
     Ok(())
 }
