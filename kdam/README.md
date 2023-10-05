@@ -21,7 +21,7 @@
   </a>
 </p>
 
-kdam is a console progress bar library for rust. It is port of [tqdm](https://github.com/tqdm/tqdm) library which is written in python. kdam supports almost all features of tqdm except few. Some features of tqdm can't be ported directly. So they are implemented in different way like, [RowManager](https://docs.rs/kdam/latest/kdam/struct.RowManager.html) which manages multiple progress bars but in tqdm progress bars are automatically managed using `nrows`. In addition to tqdm existing features kdam also provides extra features such as spinners, charset with fill, gradient colours etc. Since, kdam is written in rust its upto 4 times faster than tqdm.
+kdam is a console progress bar library for rust. It is port of [tqdm](https://github.com/tqdm/tqdm) library which is written in python. kdam supports almost all features of tqdm except a few. It also supports [jupyter notebook](https://github.com/clitic/kdam/tree/main/kdam/examples/notebook) same as tqdm does. Some features of tqdm can't be ported directly. So they are implemented in different way like, [RowManager](https://docs.rs/kdam/latest/kdam/struct.RowManager.html) which manages multiple progress bars but in tqdm progress bars are automatically managed using `nrows`. In addition to tqdm existing features kdam also provides extra features such as spinners, charset with fill, gradient colours etc. Since, kdam is written in rust its upto 4 times faster than tqdm.
 
 Instantly make your loops show a smart progress meter. Just wrap any iterator with tqdm!(iterator) macro and you're done!
 
@@ -65,7 +65,7 @@ Add this to your Cargo.toml file.
 
 ```toml
 [dependencies]
-kdam = "0.4.1"
+kdam = "0.5.0"
 ```
 
 Or add from command line.

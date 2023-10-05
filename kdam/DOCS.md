@@ -5,9 +5,9 @@ A console progress bar library for Rust. (inspired by [tqdm](https://github.com/
 The following are a list of [Cargo features](https://doc.rust-lang.org/stable/cargo/reference/manifest.html#the-features-section) that can be enabled or disabled:
 
 - **derive**: Adds a derive macro for deriving [BarExt](crate::BarExt) trait.
-- **notebook**: Enables support for jupyter notebooks.
+- **notebook**: Enables support for jupyter notebooks. It can be useful when you are building [pyo3](https://crates.io/crates/pyo3) python extension modules. Also, make sure that you have [ipython](https://pypi.org/project/ipython) and [ipywidgets](https://pypi.org/project/ipywidgets) python libraries installed on your system.
 - **gradient**: Enables gradient colours support for progress bars and printing text.
-- **rayon**: Adds supports for [rayon's](https://crates.io/crates/rayon) iterators.
+- **rayon**: Adds support for [rayon's](https://crates.io/crates/rayon) parallel iterators.
 - **rich**: Enables [rich](https://rich.readthedocs.io/en/latest/progress.html) style progress bar.
 - **spinner**: Enables support for using spinners. 
 - **template**: Enables templating capabilities for [Bar](crate::Bar).

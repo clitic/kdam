@@ -5,3 +5,4 @@ members = [
   "kdam/examples/miscellaneous/file_download",
   "kdam_derive",
 ]
+resolver = "2"

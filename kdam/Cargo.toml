@@ -16,8 +16,8 @@ colorgrad = { version = "0.6", optional = true }
 formatx = { version = "0.2.1", optional = true }
 kdam_derive = { version = "0.1.0", path = "../kdam_derive", optional = true }
 pyo3 = { version = "0.19", optional = true }
-rayon = { version = "1.7", optional = true }
-terminal_size = "0.2"
+rayon = { version = "1.8", optional = true }
+terminal_size = "0.3"
 unicode-segmentation = { version = "1", optional = true }
 unicode-width = { version = "0.1", optional = true }
 
@@ -25,6 +25,7 @@ unicode-width = { version = "0.1", optional = true }
 windows-sys = { version = "0.48.0", features = ["Win32_Foundation", "Win32_System_Console"] }
 
 [features]
+default = ["rayon"]
 derive = ["dep:kdam_derive"]
 gradient = ["dep:colorgrad"]
 notebook = ["dep:pyo3"]
