@@ -1,0 +1,15 @@
+[package]
+name = "notebook"
+edition = "2021"
+version = "0.1.0"
+
+[lib]
+name = "kdam_notebook"
+crate-type = ["cdylib"]
+
+[dependencies]
+kdam = { path = "../..", features = ["notebook", "template"] }
+pyo3 = { version = "0.19", features = ["extension-module"] }
+
+[build-dependencies]
+pyo3-build-config = "0.19"

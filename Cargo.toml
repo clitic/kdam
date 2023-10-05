@@ -1,6 +1,8 @@
 [workspace]
 members = [
   "kdam",
+  "kdam/examples/notebook",
   "kdam/examples/miscellaneous/file_download",
   "kdam_derive",
 ]
+resolver = "2"

@@ -12,6 +12,12 @@ use std::{
     time::Instant,
 };
 
+#[cfg(feature = "notebook")]
+use super::notebook;
+
+#[cfg(feature = "notebook")]
+use pyo3::{prelude::*, types::{PyDict, PyTuple}};
+
 #[cfg(feature = "spinner")]
 use crate::spinner::Spinner;
 
@@ -62,6 +68,8 @@ pub struct Bar {
     pub writer: Writer,
     // Non Builder Fields
     pub bar_length: u16,
+    #[cfg(feature = "notebook")]
+    container: Option<Py<PyAny>>,
     pub counter: usize,
     current_ncols: u16,
     elapsed_time: f32,
@@ -105,6 +113,8 @@ impl Default for Bar {
             counter: 0,
             current_ncols: 0,
             elapsed_time: 0.0,
+            #[cfg(feature = "notebook")]
+            container: None,
             timer: Instant::now(),
         }
     }
@@ -402,6 +412,16 @@ impl BarExt for Bar {
     fn refresh(&mut self) -> Result<()> {
         self.elapsed_time();
 
+        #[cfg(feature = "notebook")]
+        if notebook::running() {
+            if self.completed() {
+                self.total = self.counter;
+            }
+
+            let _ = self.render();
+            return Ok(());
+        }
+
         if self.completed() {
             if !self.leave && self.position > 0 {
                 return self.clear();
@@ -423,6 +443,30 @@ impl BarExt for Bar {
     }
 
     fn render(&mut self) -> String {
+        #[cfg(feature = "notebook")]
+        if let Some(container) = &self.container {
+            Python::with_gil(|py| -> PyResult<()> {
+                let pb = container
+                    .as_ref(py)
+                    .getattr("children")?
+                    .downcast::<PyTuple>()?
+                    .get_item(1)?;
+
+                pb.setattr("value", self.counter)?;
+
+                if self.completed() {
+                    pb.setattr("bar_style", "success")?;
+
+                    if !self.leave {
+                        pb.call_method0("close")?;
+                    }
+                }
+
+                Ok(())
+            })
+            .unwrap();
+        }
+
         #[cfg(feature = "template")]
         if let Some(bar_format) = &self.bar_format {
             let mut bar_format = bar_format.clone();
@@ -511,6 +555,32 @@ impl BarExt for Bar {
                 }
             });
 
+            #[cfg(feature = "notebook")]
+            if let Some(container) = &self.container {
+                let text = bar_format.unchecked_text();
+
+                Python::with_gil(|py| -> PyResult<()> {
+                    let container = container
+                        .as_ref(py)
+                        .getattr("children")?
+                        .downcast::<PyTuple>()?;
+                    let (lbar, rbar) = (container.get_item(0)?, container.get_item(2)?);
+
+                    if let Some(index) = text.find("{animation}") {
+                        lbar.setattr("value", text.get(0..index).unwrap_or("").trim_end())?;
+                        rbar.setattr("value", text.get((index + 11)..).unwrap_or("").trim_end())?;
+                    } else {
+                        lbar.setattr("value", "")?;
+                        rbar.setattr("value", text)?;
+                    }
+
+                    Ok(())
+                })
+                .unwrap();
+
+                return "".to_owned();
+            }
+
             let length = bar_format.unchecked_text().len_ansi() as u16;
 
             if bar_format.contains("animation") && length > 11 {
@@ -530,7 +600,7 @@ impl BarExt for Bar {
                     });
                 }
             }
-            
+
             bar_format.replace("animation", "");
 
             return bar_format.text().unwrap(); // this should not panic
@@ -541,6 +611,52 @@ impl BarExt for Bar {
         } else {
             self.desc.clone() + ": "
         };
+
+        #[cfg(feature = "notebook")]
+        if let Some(container) = &self.container {
+            Python::with_gil(|py| -> PyResult<()> {
+                let container = container
+                    .as_ref(py)
+                    .getattr("children")?
+                    .downcast::<PyTuple>()?;
+                let (lbar, rbar) = (container.get_item(0)?, container.get_item(2)?);
+
+                if self.indefinite() {
+                    lbar.setattr(
+                        "value",
+                        format!("{}{}{}", desc, self.fmt_counter(), self.unit),
+                    )?;
+                    rbar.setattr(
+                        "value",
+                        format!(
+                            "[{}, {}{}]",
+                            self.fmt_elapsed_time(),
+                            self.fmt_rate(),
+                            self.postfix
+                        ),
+                    )?;
+                } else {
+                    lbar.setattr("value", desc + &self.fmt_percentage(0))?;
+                    rbar.setattr(
+                        "value",
+                        format!(
+                            "{}/{} [{}<{}, {}{}]",
+                            self.fmt_counter(),
+                            self.fmt_total(),
+                            self.fmt_elapsed_time(),
+                            self.fmt_remaining_time(),
+                            self.fmt_rate(),
+                            self.postfix,
+                        ),
+                    )?;
+                }
+
+                Ok(())
+            })
+            .unwrap();
+
+            return "".to_owned();
+        }
 
         if self.indefinite() {
             format!(
@@ -881,6 +997,60 @@ impl BarBuilder {
         #[cfg(feature = "template")]
         if let Some(bar_format) = self.bar_format {
             self.pb.set_bar_format(bar_format)?;
+        }
+
+        #[cfg(feature = "notebook")]
+        if notebook::running() {
+            Python::with_gil(|py| -> PyResult<()> {
+                let ipywidgets = PyModule::import(py, "ipywidgets")?;
+                let ipython_display = PyModule::import(py, "IPython.display")?;
+
+                let int_progress = ipywidgets.getattr("IntProgress")?;
+                let hbox = ipywidgets.getattr("HBox")?;
+                let html = ipywidgets.getattr("HTML")?;
+                let display = ipython_display.getattr("display")?;
+
+                let kwargs = PyDict::new(py);
+                kwargs.set_item("min", 0)?;
+
+                if self.pb.total == 0 {
+                    kwargs.set_item("max", 1)?;
+                    kwargs.set_item("value", 1)?;
+                } else {
+                    kwargs.set_item("max", self.pb.total)?;
+                }
+
+                if let Some(Colour::Solid(colour)) = &self.pb.colour {
+                    let style = PyDict::new(py);
+                    style.set_item("bar_color", colour)?;
+                    kwargs.set_item("style", style)?;
+                }
+
+                let pb = int_progress.call((), Some(kwargs))?;
+
+                if self.pb.ncols.is_some() {
+                    let layout = pb.getattr("layout")?;
+                    layout.setattr("flex", "2")?;
+                }
+
+                let kwargs = PyDict::new(py);
+                kwargs.set_item("children", [html.call0()?, pb, html.call0()?])?;
+
+                let container = hbox.call((), Some(kwargs))?;
+
+                if let Some(ncols) = self.pb.ncols {
+                    let layout = container.getattr("layout")?;
+                    layout.setattr("width", format!("{}px", ncols))?;
+                    layout.setattr("display", "inline-flex")?;
+                    layout.setattr("flex_flow", "row wrap")?;
+                }
+
+                display.call1((container,))?;
+
+                self.pb.container = Some(container.into());
+                Ok(())
+            })
+            .unwrap();
         }
 
         Ok(self.pb)

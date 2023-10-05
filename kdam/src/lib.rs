@@ -15,6 +15,10 @@ pub use crate::std::{
 #[cfg_attr(docsrs, doc(cfg(feature = "derive")))]
 pub use kdam_derive::BarExt;
 
+#[cfg(feature = "notebook")]
+#[cfg_attr(docsrs, doc(cfg(feature = "notebook")))]
+pub use crate::std::set_notebook;
+
 #[cfg(feature = "rayon")]
 #[cfg_attr(docsrs, doc(cfg(feature = "rayon")))]
 pub use rayon;
