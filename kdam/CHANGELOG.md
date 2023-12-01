@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.1] - 2023-10-05
+
+## Changed
+
+- Bump up pyo3 0.19 -> 0.20
+- Bump up windows-sys 0.48.0 -> 0.52.0
+
 ## [0.5.0] - 2023-10-05
 
 ## Added
@@ -191,7 +198,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.0] - 2022-03-20
 
-[Unreleased]: https://github.com/clitic/kdam/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/clitic/kdam/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/clitic/kdam/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/clitic/kdam/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/clitic/kdam/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/clitic/kdam/compare/v0.3.0...v0.4.0
