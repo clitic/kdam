@@ -9,14 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.5.1] - 2023-10-05
 
-## Changed
+### Changed
 
 - Bump up pyo3 0.19 -> 0.20
 - Bump up windows-sys 0.48.0 -> 0.52.0
 
 ## [0.5.0] - 2023-10-05
 
-## Added
+### Added
 
 - New `notebook` feature.
 
@@ -28,7 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.4.0] - 2023-07-23
 
-## Added
+### Added
 
 - `Bar` now implements `Clone` trait.
 - `Colour` struct is added for better management of colours when applying them to `Bar`.
@@ -38,7 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for rayon's [ParallelIterator](https://docs.rs/rayon/latest/rayon/iter/trait.ParallelIterator.html) trait.
 - `term::colour` function now supports ANSI 256 colour codes too.
 
-## Changed
+### Changed
 
 - `Animation::CustomWithFill` is merged with `Animation::Custom` enum variant.
 - `BarExt` trait methods now return `std::io::Result` type.
@@ -62,12 +62,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.3.0] - 2022-12-05
 
-## Added
+### Added
 
 - `inverse_unit` field in `Bar` for displaying progress rate in inverse form.
 - `set_colorize` function in `term` module to enable/disable colours.
 
-## Changed
+### Changed
 
 - Removed `prelude` module.
 - Spinner support is now optional and is kept under `spinner` feature.
