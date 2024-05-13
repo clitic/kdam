@@ -9,14 +9,14 @@ license = "MIT OR Apache-2.0"
 name = "kdam"
 readme = "README.md"
 repository = "https://github.com/clitic/kdam/tree/main/kdam"
-version = "0.5.1"
+version = "0.5.2"
 
 [dependencies]
 colorgrad = { version = "0.6", optional = true }
-formatx = { version = "0.2.1", optional = true }
+formatx = { version = "0.2.2", optional = true }
 kdam_derive = { version = "0.1.0", path = "../kdam_derive", optional = true }
 pyo3 = { version = "0.21", optional = true }
-rayon = { version = "1.8", optional = true }
+rayon = { version = "1.10", optional = true }
 terminal_size = "0.3"
 unicode-segmentation = { version = "1", optional = true }
 unicode-width = { version = "0.1", optional = true }
