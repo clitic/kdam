@@ -16,7 +16,10 @@ use std::{
 use super::notebook;
 
 #[cfg(feature = "notebook")]
-use pyo3::{prelude::*, types::{PyDict, PyTuple}};
+use pyo3::{
+    prelude::*,
+    types::{PyDict, PyTuple},
+};
 
 #[cfg(feature = "spinner")]
 use crate::spinner::Spinner;
@@ -447,7 +450,7 @@ impl BarExt for Bar {
         if let Some(container) = &self.container {
             Python::with_gil(|py| -> PyResult<()> {
                 let pb = container
-                    .as_ref(py)
+                    .bind(py)
                     .getattr("children")?
                     .downcast::<PyTuple>()?
                     .get_item(1)?;
@@ -560,10 +563,8 @@ impl BarExt for Bar {
                 let text = bar_format.unchecked_text();
 
                 Python::with_gil(|py| -> PyResult<()> {
-                    let container = container
-                        .as_ref(py)
-                        .getattr("children")?
-                        .downcast::<PyTuple>()?;
+                    let container = container.bind(py).getattr("children")?;
+                    let container = container.downcast::<PyTuple>()?;
                     let (lbar, rbar) = (container.get_item(0)?, container.get_item(2)?);
 
                     if let Some(index) = text.find("{animation}") {
@@ -615,10 +616,8 @@ impl BarExt for Bar {
         #[cfg(feature = "notebook")]
         if let Some(container) = &self.container {
             Python::with_gil(|py| -> PyResult<()> {
-                let container = container
-                    .as_ref(py)
-                    .getattr("children")?
-                    .downcast::<PyTuple>()?;
+                let container = container.bind(py).getattr("children")?;
+                let container = container.downcast::<PyTuple>()?;
                 let (lbar, rbar) = (container.get_item(0)?, container.get_item(2)?);
 
                 if self.indefinite() {
@@ -1002,15 +1001,15 @@ impl BarBuilder {
         #[cfg(feature = "notebook")]
         if notebook::running() {
             Python::with_gil(|py| -> PyResult<()> {
-                let ipywidgets = PyModule::import(py, "ipywidgets")?;
-                let ipython_display = PyModule::import(py, "IPython.display")?;
+                let ipywidgets = PyModule::import_bound(py, "ipywidgets")?;
+                let ipython_display = PyModule::import_bound(py, "IPython.display")?;
 
                 let int_progress = ipywidgets.getattr("IntProgress")?;
                 let hbox = ipywidgets.getattr("HBox")?;
                 let html = ipywidgets.getattr("HTML")?;
                 let display = ipython_display.getattr("display")?;
 
-                let kwargs = PyDict::new(py);
+                let kwargs = PyDict::new_bound(py);
                 kwargs.set_item("min", 0)?;
 
                 if self.pb.total == 0 {
@@ -1021,22 +1020,22 @@ impl BarBuilder {
                 }
 
                 if let Some(Colour::Solid(colour)) = &self.pb.colour {
-                    let style = PyDict::new(py);
+                    let style = PyDict::new_bound(py);
                     style.set_item("bar_color", colour)?;
                     kwargs.set_item("style", style)?;
                 }
 
-                let pb = int_progress.call((), Some(kwargs))?;
+                let pb = int_progress.call((), Some(&kwargs))?;
 
                 if self.pb.ncols.is_some() {
                     let layout = pb.getattr("layout")?;
                     layout.setattr("flex", "2")?;
                 }
 
-                let kwargs = PyDict::new(py);
+                let kwargs = PyDict::new_bound(py);
                 kwargs.set_item("children", [html.call0()?, pb, html.call0()?])?;
 
-                let container = hbox.call((), Some(kwargs))?;
+                let container = hbox.call((), Some(&kwargs))?;
 
                 if let Some(ncols) = self.pb.ncols {
                     let layout = container.getattr("layout")?;
@@ -1045,7 +1044,7 @@ impl BarBuilder {
                     layout.setattr("flex_flow", "row wrap")?;
                 }
 
-                display.call1((container,))?;
+                display.call1((&container,))?;
 
                 self.pb.container = Some(container.into());
                 Ok(())

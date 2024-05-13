@@ -36,7 +36,7 @@ fn progress_bar_with_template() -> PyResult<()> {
 }
 
 #[pymodule]
-fn kdam_notebook(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
+fn kdam_notebook(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(set_notebook, m)?)?;
     m.add_function(wrap_pyfunction!(progress_bar, m)?)?;
     m.add_function(wrap_pyfunction!(progress_bar_with_template, m)?)?;
