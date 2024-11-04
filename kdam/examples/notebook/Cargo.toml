@@ -9,7 +9,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 kdam = { path = "../..", features = ["notebook", "template"] }
-pyo3 = { version = "0.21", features = ["extension-module"] }
+pyo3 = { version = "0.22.5", features = ["extension-module"] }
 
 [build-dependencies]
-pyo3-build-config = "0.21"
+pyo3-build-config = "0.22.5"
