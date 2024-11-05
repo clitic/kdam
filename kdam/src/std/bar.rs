@@ -3,8 +3,8 @@ use super::{
     BarExt,
 };
 use crate::{
-    format, term,
-    term::{Colorizer, Writer},
+    format,
+    term::{self, Colorizer, InitializedOutput, Writer},
 };
 use std::{
     io::{stdin, Result, Write},
@@ -42,7 +42,7 @@ use formatx::Template;
 ///     pb.update(1).unwrap();
 /// }
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Bar {
     // Builder Fields
     pub animation: Animation,
@@ -68,7 +68,7 @@ pub struct Bar {
     pub unit: String,
     pub unit_divisor: usize,
     pub unit_scale: bool,
-    pub writer: Writer,
+    pub writer: InitializedOutput,
     // Non Builder Fields
     pub bar_length: u16,
     #[cfg(feature = "notebook")]
@@ -111,7 +111,7 @@ impl Default for Bar {
             unit: "it".to_owned(),
             unit_divisor: 1000,
             unit_scale: false,
-            writer: Writer::Stderr,
+            writer: InitializedOutput::Stderr,
             bar_length: 0,
             counter: 0,
             current_ncols: 0,
@@ -973,9 +973,9 @@ impl BarBuilder {
     }
 
     /// Select writer between `stdout` and `stderr` to display progress bar output.
-    /// (default: [Writer::Stderr](crate::term::Writer))
+    /// (default: [Output::Stderr](crate::term::Writer))
     pub fn writer(mut self, writer: Writer) -> Self {
-        self.pb.writer = writer;
+        self.pb.writer = writer.init();
         self
     }
 

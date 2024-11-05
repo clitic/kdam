@@ -1,21 +1,21 @@
 //! Terminal related utilities.
 
-use std::io::Result;
+use std::io::{stderr, Result, Write};
 
 mod colours;
 mod writer;
 
 pub use colours::{colour, init, Colorizer};
-pub use writer::Writer;
+pub use writer::{InitializedOutput, Writer};
 
 /// Hide cursor.
 pub fn hide_cursor() -> Result<()> {
-    Writer::Stderr.print("\x1b[?25l".as_bytes())
+    stderr().write_all(b"\x1b[?25l")
 }
 
 /// Show cursor.
 pub fn show_cursor() -> Result<()> {
-    Writer::Stderr.print("\x1b[?25h".as_bytes())
+    stderr().write_all(b"\x1b[?25h")
 }
 
 /// Get terminal width.
