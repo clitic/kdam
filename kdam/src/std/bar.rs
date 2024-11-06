@@ -27,6 +27,7 @@ use crate::spinner::Spinner;
 #[cfg(feature = "template")]
 use formatx::Template;
 
+
 /// Core implemention of console progress bar.
 ///
 /// # Example
@@ -72,7 +73,7 @@ pub struct Bar {
     // Non Builder Fields
     pub bar_length: u16,
     #[cfg(feature = "notebook")]
-    container: Option<Py<PyAny>>,
+    container: Option<notebook::PyContainer>,
     pub counter: usize,
     current_ncols: u16,
     elapsed_time: f32,
