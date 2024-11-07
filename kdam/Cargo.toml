@@ -12,7 +12,7 @@ repository = "https://github.com/clitic/kdam/tree/main/kdam"
 version = "0.6.0"
 
 [dependencies]
-colorgrad = { version = "0.7", optional = true }
+colorgrad = { version = "0.6", optional = true }
 formatx = { version = "0.2.2", optional = true }
 kdam_derive = { version = "0.1.0", path = "../kdam_derive", optional = true }
 pyo3 = { version = "0.22", optional = true }
