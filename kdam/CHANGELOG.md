@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2024-11-07
+
+### Changed
+
+- Bump up pyo3 0.21 -> 0.22
+
 ## [0.5.2] - 2024-05-13
 
 ### Changed
@@ -206,7 +212,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.0] - 2022-03-20
 
-[Unreleased]: https://github.com/clitic/kdam/compare/0.5.2...HEAD
+[Unreleased]: https://github.com/clitic/kdam/compare/0.6.0...HEAD
+[0.6.0]: https://github.com/clitic/kdam/compare/0.5.2...0.6.0
 [0.5.2]: https://github.com/clitic/kdam/compare/v0.5.1...0.5.2
 [0.5.1]: https://github.com/clitic/kdam/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/clitic/kdam/compare/v0.4.1...v0.5.0
