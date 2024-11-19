@@ -29,7 +29,7 @@ fn main() {
 
     loop {
         std::thread::sleep(Duration::from_secs_f32(0.02));
-        Output::Stderr
+        Writer::Stderr
             .init()
             .print_at(
                 0,
