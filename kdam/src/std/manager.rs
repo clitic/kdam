@@ -104,11 +104,19 @@ impl RowManager {
     }
 
     /// Update and print the required stuff for progress bar at that index.
-    /// 
+    ///
     /// # Panics
     ///
     /// If `index` is out of bounds.
     pub fn notify(&mut self, index: usize) -> Result<()> {
+        let remaining_bars = self.bars.len()
+            - self
+                .bars
+                .iter()
+                .map(|(x, _)| x.completed())
+                .filter(|x| *x)
+                .count();
+
         let (pb, disable) = self.bars.get_mut(index).unwrap();
 
         if !*disable && pb.completed() {
@@ -124,16 +132,6 @@ impl RowManager {
                 self.avaliable_pos.insert(pb.position);
             }
         }
-
-        let writer = pb.writer.clone();
-
-        let remaining_bars = self.bars.len()
-            - self
-                .bars
-                .iter()
-                .map(|(x, _)| x.completed())
-                .filter(|x| *x)
-                .count();
 
         if self.nrows as usize > remaining_bars {
             let mut count = 0;
@@ -151,7 +149,7 @@ impl RowManager {
                 }
             }
         } else {
-            writer.print_at(
+            pb.writer.print_at(
                 self.acquired_pos.iter().max().unwrap_or(&0) + 1,
                 if self.nrows as usize == remaining_bars {
                     "                      ".as_bytes()

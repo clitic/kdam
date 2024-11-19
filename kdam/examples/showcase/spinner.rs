@@ -29,7 +29,8 @@ fn main() {
 
     loop {
         std::thread::sleep(Duration::from_secs_f32(0.02));
-        Writer::Stderr
+        Output::Stderr
+            .init()
             .print_at(
                 0,
                 spin.render_frames(
