@@ -1,11 +1,11 @@
-use std::num::NonZeroU16;
 use crate::{term::Colorizer, utils::divmod};
+use std::num::NonZeroU16;
 
 #[cfg(feature = "gradient")]
 use crate::utils;
 
 #[cfg(feature = "gradient")]
-use colorgrad::{CustomGradient, Gradient};
+use colorgrad::{Gradient, GradientBuilder, LinearGradient};
 
 #[cfg(feature = "gradient")]
 use std::sync::Arc;
@@ -167,7 +167,7 @@ pub enum Colour {
     Solid(String),
     #[cfg(feature = "gradient")]
     #[cfg_attr(docsrs, doc(cfg(feature = "gradient")))]
-    Gradient(Arc<Gradient>),
+    Gradient(Arc<LinearGradient>),
 }
 
 impl Colour {
@@ -176,10 +176,10 @@ impl Colour {
     #[cfg_attr(docsrs, doc(cfg(feature = "gradient")))]
     pub fn gradient(colors: &[&str]) -> Self {
         Self::Gradient(Arc::new(
-            CustomGradient::new()
+            GradientBuilder::new()
                 .html_colors(colors)
                 .build()
-                .unwrap_or(colorgrad::rainbow()),
+                .expect("failed to compile custom gradient"),
         ))
     }
 
@@ -187,7 +187,12 @@ impl Colour {
     #[cfg(feature = "gradient")]
     #[cfg_attr(docsrs, doc(cfg(feature = "gradient")))]
     pub fn rainbow() -> Self {
-        Self::Gradient(Arc::new(colorgrad::rainbow()))
+        Self::Gradient(Arc::new(
+            GradientBuilder::new()
+                .html_colors(&["violet", "indigo", "blue", "green", "yellow", "orange", "red"])
+                .build()
+                .expect("failed to compile rainbow gradient"),
+        ))
     }
 
     /// Create a new [Color::Solid](Self::Solid) enum variant.
@@ -208,7 +213,7 @@ impl Colour {
 
                 #[cfg(feature = "unicode")]
                 let characters = text.graphemes(true);
-                
+
                 #[cfg(not(feature = "unicode"))]
                 let characters = text.chars();
 
@@ -217,7 +222,7 @@ impl Colour {
                     let character = character.to_string();
                     #[cfg(not(feature = "unicode"))]
                     let character = character.as_str();
-                    
+
                     if let Some(color) = colors.next() {
                         gradient_text += &character.colorize(&color);
                     } else {
