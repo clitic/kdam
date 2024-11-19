@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Support for writing output to tty by @414owen in #23
+
 ## [0.6.0] - 2024-11-07
 
 ### Changed
