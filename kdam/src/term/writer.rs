@@ -30,6 +30,7 @@ impl Writer {
     }
 }
 
+/// Initialized output for writer.
 pub enum InitializedOutput {
     Null,
     Stderr,
@@ -81,7 +82,7 @@ impl InitializedOutput {
             Self::Stderr => Box::new(stderr().lock()),
             Self::Stdout => Box::new(stdout().lock()),
             Self::Tty(f) => Box::new(f),
-            InitializedOutput::Null => Box::new(NullWriter),
+            Self::Null => Box::new(NullWriter),
         }
     }
 
