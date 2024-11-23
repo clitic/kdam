@@ -43,7 +43,7 @@ use formatx::Template;
 ///     pb.update(1).unwrap();
 /// }
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct Bar {
     // Builder Fields
     pub animation: Animation,
