@@ -3,6 +3,12 @@ use std::{
     io::{stderr, stdout, Result, Write},
 };
 
+#[cfg(target_os = "windows")]
+const TTY_PATH: &str = "CON";
+
+#[cfg(not(target_os = "windows"))]
+const TTY_PATH: &str = "/dev/tty";
+
 /// Stderr and Stdout writer.
 #[derive(Debug, Clone)]
 pub enum Writer {
@@ -17,40 +23,49 @@ impl Writer {
             Writer::Stderr => InitializedOutput::Stderr,
             Writer::Stdout => InitializedOutput::Stdout,
             Writer::Tty => match OpenOptions::new().append(true).open(TTY_PATH) {
-                Ok(a) => InitializedOutput::Tty(a),
+                Ok(f) => InitializedOutput::Tty(f),
                 Err(_) => InitializedOutput::Null,
             },
         }
     }
 }
 
-#[cfg(target_os = "windows")]
-const TTY_PATH: &str = "CON";
-
-#[cfg(not(target_os = "windows"))]
-const TTY_PATH: &str = "/dev/tty";
-
 pub enum InitializedOutput {
+    Null,
     Stderr,
     Stdout,
     Tty(File),
-    Null,
 }
 
 impl std::fmt::Debug for InitializedOutput {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            InitializedOutput::Stderr => write!(f, "Stderr"),
-            InitializedOutput::Stdout => write!(f, "Stdout"),
-            InitializedOutput::Tty(_) => write!(f, "TTY"),
-            InitializedOutput::Null => write!(f, "Null"),
+            Self::Null => write!(f, "Null"),
+            Self::Stderr => write!(f, "Stderr"),
+            Self::Stdout => write!(f, "Stdout"),
+            Self::Tty(_) => write!(f, "TTY"),
+        }
+    }
+}
+
+impl Clone for InitializedOutput {
+    fn clone(&self) -> Self {
+        match self {
+            Self::Null => Self::Null,
+            Self::Stderr => Self::Stderr,
+            Self::Stdout => Self::Stdout,
+            Self::Tty(f) => f
+                .try_clone()
+                .ok()
+                .map(|x| Self::Tty(x))
+                .unwrap_or(Writer::Tty.init()),
         }
     }
 }
 
 struct NullWriter;
 
-impl std::io::Write for NullWriter {
+impl Write for NullWriter {
     fn write(&mut self, buf: &[u8]) -> Result<usize> {
         Ok(buf.len())
     }
