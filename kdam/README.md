@@ -65,7 +65,7 @@ Add this to your Cargo.toml file.
 
 ```toml
 [dependencies]
-kdam = "0.6.1"
+kdam = "0.6.2"
 ```
 
 Or add from command line.
