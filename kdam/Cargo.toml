@@ -15,7 +15,7 @@ version = "0.6.1"
 colorgrad = { version = "0.7", optional = true }
 formatx = { version = "0.2.2", optional = true }
 kdam_derive = { version = "0.1.0", path = "../kdam_derive", optional = true }
-pyo3 = { version = "0.22", optional = true }
+pyo3 = { version = "0.23", optional = true }
 rayon = { version = "1.10", optional = true }
 terminal_size = "0.4"
 unicode-segmentation = { version = "1", optional = true }
