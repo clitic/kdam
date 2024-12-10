@@ -1002,15 +1002,15 @@ impl BarBuilder {
         #[cfg(feature = "notebook")]
         if notebook::running() {
             Python::with_gil(|py| -> PyResult<()> {
-                let ipywidgets = PyModule::import_bound(py, "ipywidgets")?;
-                let ipython_display = PyModule::import_bound(py, "IPython.display")?;
+                let ipywidgets = PyModule::import(py, "ipywidgets")?;
+                let ipython_display = PyModule::import(py, "IPython.display")?;
 
                 let int_progress = ipywidgets.getattr("IntProgress")?;
                 let hbox = ipywidgets.getattr("HBox")?;
                 let html = ipywidgets.getattr("HTML")?;
                 let display = ipython_display.getattr("display")?;
 
-                let kwargs = PyDict::new_bound(py);
+                let kwargs = PyDict::new(py);
                 kwargs.set_item("min", 0)?;
 
                 if self.pb.total == 0 {
@@ -1021,7 +1021,7 @@ impl BarBuilder {
                 }
 
                 if let Some(Colour::Solid(colour)) = &self.pb.colour {
-                    let style = PyDict::new_bound(py);
+                    let style = PyDict::new(py);
                     style.set_item("bar_color", colour)?;
                     kwargs.set_item("style", style)?;
                 }
@@ -1033,7 +1033,7 @@ impl BarBuilder {
                     layout.setattr("flex", "2")?;
                 }
 
-                let kwargs = PyDict::new_bound(py);
+                let kwargs = PyDict::new(py);
                 kwargs.set_item("children", [html.call0()?, pb, html.call0()?])?;
 
                 let container = hbox.call((), Some(&kwargs))?;
