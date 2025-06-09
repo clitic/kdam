@@ -23,7 +23,7 @@ Add this to your Cargo.toml file.
 
 ```toml
 [dependencies]
-kdam_derive = "0.1.0"
+kdam_derive = "0.1.1"
 ```
 
 Or add from command line.
