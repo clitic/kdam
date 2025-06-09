@@ -3,7 +3,7 @@ authors = ["clitic <clitic21@gmail.com>"]
 categories = ["command-line-interface"]
 description = "A console progress bar library for Rust. (inspired by tqdm & rich.progress)"
 documentation = "https://docs.rs/kdam"
-edition = "2021"
+edition = "2024"
 keywords = ["colors", "cli", "pb", "progress", "progressbar"]
 license = "MIT OR Apache-2.0"
 name = "kdam"
@@ -13,8 +13,8 @@ version = "0.6.2"
 
 [dependencies]
 colorgrad = { version = "0.7", optional = true }
-formatx = { version = "0.2.2", optional = true }
-kdam_derive = { version = "0.1.0", path = "../kdam_derive", optional = true }
+formatx = { version = "0.2.4", optional = true }
+kdam_derive = { version = "0.1.1", path = "../kdam_derive", optional = true }
 pyo3 = { version = ">=0.23,<0.26", optional = true }
 rayon = { version = "1.10", optional = true }
 terminal_size = "0.4"

@@ -58,7 +58,7 @@ impl Clone for InitializedOutput {
             Self::Tty(f) => f
                 .try_clone()
                 .ok()
-                .map(|x| Self::Tty(x))
+                .map(Self::Tty)
                 .unwrap_or(Writer::Tty.init()),
         }
     }
@@ -115,7 +115,7 @@ impl InitializedOutput {
             writer.write_all(buf)?;
             writer.write_fmt(format_args!("\x1b[{}A", position))?;
         } else {
-            writer.write_all(&[b'\r'])?;
+            writer.write_all(b"\r")?;
             writer.write_all(buf)?;
         }
 

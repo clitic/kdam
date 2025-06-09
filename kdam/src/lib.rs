@@ -1,4 +1,5 @@
 #![cfg_attr(docsrs, feature(doc_cfg))]
+#![allow(clippy::needless_doctest_main)]
 #![doc=include_str!("../DOCS.md")]
 
 mod std;

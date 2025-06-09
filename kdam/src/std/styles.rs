@@ -208,7 +208,7 @@ impl Colour {
                 let mut colors = gradient
                     .colors(utils::len(text))
                     .into_iter()
-                    .map(|x| x.to_hex_string());
+                    .map(|x| x.to_css_hex());
                 let mut gradient_text = String::new();
 
                 #[cfg(feature = "unicode")]

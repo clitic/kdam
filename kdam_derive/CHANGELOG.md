@@ -15,6 +15,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.0] - 2023-07-23
 
-[Unreleased]: https://github.com/clitic/vsd/compare/v0.4.0...HEAD
-[0.1.1]: https://github.com/clitic/vsd/compare/014072d...HEAD
+[Unreleased]: https://github.com/clitic/vsd/compare/452c21f...HEAD
+[0.1.1]: https://github.com/clitic/vsd/compare/014072d...452c21f
 [0.1.0]: https://github.com/clitic/vsd/compare/516ae2a...v0.4.0
