@@ -1,13 +1,13 @@
 use super::{
-    styles::{Animation, Colour},
     BarExt,
+    styles::{Animation, Colour},
 };
 use crate::{
     format,
     term::{self, Colorizer, InitializedOutput, Writer},
 };
 use std::{
-    io::{stdin, Result, Write},
+    io::{Result, Write, stdin},
     num::NonZeroU16,
     time::Instant,
 };
@@ -26,7 +26,6 @@ use crate::spinner::Spinner;
 
 #[cfg(feature = "template")]
 use formatx::Template;
-
 
 /// Core implemention of console progress bar.
 ///
@@ -367,7 +366,7 @@ impl Bar {
             let miniters_constraint = if self.miniters <= 1 {
                 true
             } else {
-                self.counter % self.miniters == 0
+                self.counter.is_multiple_of(self.miniters)
             };
 
             if (mininterval_constraint && miniters_constraint && delay_constraint)
@@ -449,11 +448,11 @@ impl BarExt for Bar {
     fn render(&mut self) -> String {
         #[cfg(feature = "notebook")]
         if let Some(container) = &self.container {
-            Python::with_gil(|py| -> PyResult<()> {
+            Python::attach(|py| -> PyResult<()> {
                 let pb = container
                     .bind(py)
                     .getattr("children")?
-                    .downcast::<PyTuple>()?
+                    .cast::<PyTuple>()?
                     .get_item(1)?;
 
                 pb.setattr("value", self.counter)?;
@@ -563,9 +562,9 @@ impl BarExt for Bar {
             if let Some(container) = &self.container {
                 let text = bar_format.unchecked_text();
 
-                Python::with_gil(|py| -> PyResult<()> {
+                Python::attach(|py| -> PyResult<()> {
                     let container = container.bind(py).getattr("children")?;
-                    let container = container.downcast::<PyTuple>()?;
+                    let container = container.cast::<PyTuple>()?;
                     let (lbar, rbar) = (container.get_item(0)?, container.get_item(2)?);
 
                     if let Some(index) = text.find("{animation}") {
@@ -616,9 +615,9 @@ impl BarExt for Bar {
 
         #[cfg(feature = "notebook")]
         if let Some(container) = &self.container {
-            Python::with_gil(|py| -> PyResult<()> {
+            Python::attach(|py| -> PyResult<()> {
                 let container = container.bind(py).getattr("children")?;
-                let container = container.downcast::<PyTuple>()?;
+                let container = container.cast::<PyTuple>()?;
                 let (lbar, rbar) = (container.get_item(0)?, container.get_item(2)?);
 
                 if self.indefinite() {
@@ -1001,7 +1000,7 @@ impl BarBuilder {
 
         #[cfg(feature = "notebook")]
         if notebook::running() {
-            Python::with_gil(|py| -> PyResult<()> {
+            Python::attach(|py| -> PyResult<()> {
                 let ipywidgets = PyModule::import(py, "ipywidgets")?;
                 let ipython_display = PyModule::import(py, "IPython.display")?;
 

@@ -189,7 +189,9 @@ impl Colour {
     pub fn rainbow() -> Self {
         Self::Gradient(Arc::new(
             GradientBuilder::new()
-                .html_colors(&["violet", "indigo", "blue", "green", "yellow", "orange", "red"])
+                .html_colors(&[
+                    "violet", "indigo", "blue", "green", "yellow", "orange", "red",
+                ])
                 .build()
                 .expect("failed to compile rainbow gradient"),
         ))

@@ -1,6 +1,6 @@
 use std::{
     fs::{File, OpenOptions},
-    io::{stderr, stdout, Result, Write},
+    io::{Result, Write, stderr, stdout},
 };
 
 #[cfg(target_os = "windows")]

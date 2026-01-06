@@ -1,4 +1,4 @@
-use kdam::{term, tqdm, BarExt};
+use kdam::{BarExt, term, tqdm};
 use std::{io::Result, thread, time::Duration};
 
 fn main() -> Result<()> {

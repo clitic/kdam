@@ -1,4 +1,4 @@
-use kdam::{term, term::Writer, tqdm, BarExt};
+use kdam::{BarExt, term, term::Writer, tqdm};
 use std::io::Result;
 
 fn main() -> Result<()> {

@@ -1,4 +1,4 @@
-use kdam::{rayon::prelude::*, TqdmIterator, TqdmParallelIterator};
+use kdam::{TqdmIterator, TqdmParallelIterator, rayon::prelude::*};
 use std::{
     thread::sleep,
     time::{Duration, Instant},

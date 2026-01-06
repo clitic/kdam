@@ -1,4 +1,4 @@
-use kdam::{term, term::Writer, Spinner};
+use kdam::{Spinner, term, term::Writer};
 use std::{
     num::NonZeroI16,
     time::{Duration, Instant},

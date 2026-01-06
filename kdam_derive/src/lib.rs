@@ -1,6 +1,6 @@
 use proc_macro::TokenStream;
 use quote::{format_ident, quote};
-use syn::{parse_macro_input, Data, DataStruct, DeriveInput, Fields, FieldsNamed, Meta, Path};
+use syn::{Data, DataStruct, DeriveInput, Fields, FieldsNamed, Meta, Path, parse_macro_input};
 
 /// Derive [BarExt](https://docs.rs/kdam/latest/kdam/trait.BarExt.html) trait for a struct.
 ///
@@ -9,21 +9,21 @@ use syn::{parse_macro_input, Data, DataStruct, DeriveInput, Fields, FieldsNamed,
 /// ```no_test
 /// use kdam::{tqdm, Bar, BarExt};
 /// use std::{io::Result, num::NonZeroU16};
-/// 
+///
 /// #[derive(BarExt)]
 /// struct CustomBar {
 ///     #[bar]
 ///     pb: Bar,
 /// }
-/// 
+///
 /// impl CustomBar {
 ///     /// Render progress bar text.
 ///     fn render(&mut self) -> String {
 ///         let fmt_percentage = self.pb.fmt_percentage(0);
 ///         let padding = 1 + fmt_percentage.chars().count() as u16 + self.pb.animation.spaces() as u16;
-/// 
+///
 ///         let ncols = self.pb.ncols_for_animation(padding);
-/// 
+///
 ///         if ncols == 0 {
 ///             self.pb.bar_length = padding - 1;
 ///             fmt_percentage
@@ -111,18 +111,18 @@ pub fn bar_ext(input: TokenStream) -> TokenStream {
                     if !self.#bar_field.leave && self.#bar_field.position > 0 {
                         return self.clear();
                     }
-        
+
                     self.#bar_field.total = self.#bar_field.counter;
                 }
 
                 let text = self.render();
                 let bar_length = #crate_name::term::Colorizer::len_ansi(text.as_str()) as u16;
-        
+
                 if bar_length > self.#bar_field.bar_length {
                     self.clear()?;
                     self.#bar_field.bar_length = bar_length;
                 }
-        
+
                 self.#bar_field.writer.print_at(self.#bar_field.position, text.as_bytes())?;
                 Ok(())
             }

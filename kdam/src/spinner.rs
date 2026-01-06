@@ -32,10 +32,7 @@ impl Spinner {
     /// ```
     pub fn new(frames: &[&str], interval: f32, speed: f32) -> Self {
         Self {
-            frames: frames
-                .iter()
-                .map(|x| String::from(*x))
-                .collect(),
+            frames: frames.iter().map(|x| String::from(*x)).collect(),
             interval,
             speed,
         }

@@ -1,4 +1,4 @@
-use kdam::{tqdm, BarExt, Spinner};
+use kdam::{BarExt, Spinner, tqdm};
 use std::io::Result;
 
 fn main() -> Result<()> {
@@ -8,7 +8,21 @@ fn main() -> Result<()> {
         force_refresh = true,
         bar_format = "{desc suffix=' '}|{animation}| {spinner} {count}/{total} [{percentage:.0}%] in {elapsed human=true} ({rate:.1}/s, eta: {remaining human=true})",
         spinner = Spinner::new(
-            &["▁▂▃", "▂▃▄", "▃▄▅", "▄▅▆", "▅▆▇", "▆▇█", "▇█▇", "█▇▆", "▇▆▅", "▆▅▄", "▅▄▃", "▄▃▂", "▃▂▁"],
+            &[
+                "▁▂▃",
+                "▂▃▄",
+                "▃▄▅",
+                "▄▅▆",
+                "▅▆▇",
+                "▆▇█",
+                "▇█▇",
+                "█▇▆",
+                "▇▆▅",
+                "▆▅▄",
+                "▅▄▃",
+                "▄▃▂",
+                "▃▂▁"
+            ],
             30.0,
             1.0,
         )

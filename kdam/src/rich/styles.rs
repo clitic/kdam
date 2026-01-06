@@ -1,5 +1,5 @@
-use std::num::{NonZeroU16, NonZeroI16};
 use crate::term::Colorizer;
+use std::num::{NonZeroI16, NonZeroU16};
 
 // Characters
 const BAR_CHR: &str = "━";
@@ -21,7 +21,9 @@ pub(super) fn bar(ncols: NonZeroU16, progress: f32) -> String {
     let ncols = ncols.get();
 
     if progress >= 1.0 {
-        BAR_CHR.repeat(ncols as usize).colorize(BAR_COMPLETED_COLOUR)
+        BAR_CHR
+            .repeat(ncols as usize)
+            .colorize(BAR_COMPLETED_COLOUR)
     } else {
         let block = (ncols as f32 * progress) as u16;
         (BAR_CHR.repeat(block as usize) + BAR_END_CHR).colorize(BAR_COLOUR)

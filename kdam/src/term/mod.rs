@@ -1,11 +1,11 @@
 //! Terminal related utilities.
 
-use std::io::{stderr, Result, Write};
+use std::io::{Result, Write, stderr};
 
 mod colours;
 mod writer;
 
-pub use colours::{colour, init, Colorizer};
+pub use colours::{Colorizer, colour, init};
 pub use writer::{InitializedOutput, Writer};
 
 /// Hide cursor.

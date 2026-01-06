@@ -1,5 +1,5 @@
 use super::styles;
-use crate::{std::Bar, term::Colorizer, BarExt};
+use crate::{BarExt, std::Bar, term::Colorizer};
 use std::num::{NonZeroI16, NonZeroU16};
 
 #[cfg(feature = "spinner")]

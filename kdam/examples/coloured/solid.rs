@@ -1,5 +1,5 @@
-use kdam::{tqdm, BarExt};
-use std::io::{stderr, IsTerminal, Result};
+use kdam::{BarExt, tqdm};
+use std::io::{IsTerminal, Result, stderr};
 
 fn main() -> Result<()> {
     kdam::term::init(stderr().is_terminal());

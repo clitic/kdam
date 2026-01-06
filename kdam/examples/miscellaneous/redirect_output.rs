@@ -1,4 +1,4 @@
-use kdam::{tqdm, BarExt};
+use kdam::{BarExt, tqdm};
 use std::{
     fs::File,
     io::{Result, Write},

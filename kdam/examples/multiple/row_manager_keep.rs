@@ -1,4 +1,4 @@
-use kdam::{tqdm, BarExt, RowManager, term};
+use kdam::{BarExt, RowManager, term, tqdm};
 use std::{
     io::Result,
     sync::{Arc, Mutex},

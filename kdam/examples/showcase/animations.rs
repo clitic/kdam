@@ -1,4 +1,4 @@
-use kdam::{term, tqdm, Animation, BarExt};
+use kdam::{Animation, BarExt, term, tqdm};
 use std::io::Result;
 
 fn main() -> Result<()> {

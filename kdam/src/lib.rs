@@ -9,7 +9,7 @@ pub mod format;
 pub mod term;
 
 pub use crate::std::{
-    monitor, Animation, Bar, BarBuilder, BarExt, BarIter, Colour, RowManager, TqdmIterator,
+    Animation, Bar, BarBuilder, BarExt, BarIter, Colour, RowManager, TqdmIterator, monitor,
 };
 
 #[cfg(feature = "derive")]

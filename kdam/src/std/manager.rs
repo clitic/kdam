@@ -159,21 +159,22 @@ impl RowManager {
             )?;
 
             for (bar, disable) in self.bars.iter_mut() {
-                if !*disable && !bar.completed() {
-                    if let Some(pos) = self.avaliable_pos.iter().min() {
-                        if bar.disable && bar.position != *pos {
-                            bar.position = *pos;
+                if !*disable
+                    && !bar.completed()
+                    && let Some(pos) = self.avaliable_pos.iter().min()
+                    && bar.disable
+                    && bar.position != *pos
+                {
+                    bar.position = *pos;
 
-                            if self.nrows > bar.position {
-                                bar.disable = false;
-                            }
+                    if self.nrows > bar.position {
+                        bar.disable = false;
+                    }
 
-                            bar.refresh()?;
+                    bar.refresh()?;
 
-                            if self.avaliable_pos.remove(&bar.position) {
-                                self.acquired_pos.insert(bar.position);
-                            }
-                        }
+                    if self.avaliable_pos.remove(&bar.position) {
+                        self.acquired_pos.insert(bar.position);
                     }
                 }
             }

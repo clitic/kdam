@@ -1,5 +1,5 @@
-use kdam::{term, term::Colorizer, tqdm, BarExt, Column, RichProgress, Spinner};
-use std::io::{stderr, IsTerminal, Result};
+use kdam::{BarExt, Column, RichProgress, Spinner, term, term::Colorizer, tqdm};
+use std::io::{IsTerminal, Result, stderr};
 
 fn main() -> Result<()> {
     term::init(stderr().is_terminal());

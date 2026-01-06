@@ -1,5 +1,5 @@
-use kdam::{term::Colorizer, tqdm, Colour};
-use std::io::{stderr, IsTerminal};
+use kdam::{Colour, term::Colorizer, tqdm};
+use std::io::{IsTerminal, stderr};
 
 fn main() {
     kdam::term::init(stderr().is_terminal());

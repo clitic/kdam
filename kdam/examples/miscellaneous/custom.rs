@@ -1,4 +1,4 @@
-use kdam::{tqdm, Bar, BarExt};
+use kdam::{Bar, BarExt, tqdm};
 use std::{io::Result, num::NonZeroU16};
 
 #[derive(BarExt)]

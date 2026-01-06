@@ -12,8 +12,8 @@ use std::sync::atomic::{AtomicBool, Ordering};
 
 #[cfg(windows)]
 use windows_sys::Win32::System::Console::{
-    GetConsoleMode, GetStdHandle, SetConsoleMode, ENABLE_VIRTUAL_TERMINAL_PROCESSING,
-    STD_OUTPUT_HANDLE,
+    ENABLE_VIRTUAL_TERMINAL_PROCESSING, GetConsoleMode, GetStdHandle, STD_OUTPUT_HANDLE,
+    SetConsoleMode,
 };
 
 const COLOURS: [&str; 8] = [
@@ -34,18 +34,18 @@ const COLOUR_RESET: &str = "\x1b[0m";
 static SHOULD_COLORIZE: AtomicBool = AtomicBool::new(false);
 
 /// Enable/Disable colorization property of [colorizer](crate::term::Colorizer) trait.
-/// 
+///
 /// Colorization is **disabled** by default.
-/// 
+///
 /// # Platform-specific notes
-/// 
+///
 /// This functions also enables support for ANSI escape codes on windows.
-/// 
+///
 /// # Example
-/// 
+///
 /// ```
 /// use std::io::{stderr, IsTerminal};
-/// 
+///
 /// kdam::term::init(stderr().is_terminal());
 /// ```
 pub fn init(always: bool) {

@@ -12,8 +12,8 @@ use std::iter::FusedIterator;
 
 #[cfg(feature = "rayon")]
 use rayon::iter::{
-    plumbing::{Consumer, Folder, Producer, ProducerCallback, UnindexedConsumer},
     IndexedParallelIterator, ParallelIterator,
+    plumbing::{Consumer, Folder, Producer, ProducerCallback, UnindexedConsumer},
 };
 
 #[cfg(feature = "rayon")]

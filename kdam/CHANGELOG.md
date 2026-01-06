@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Bump up pyo3 >=0.27
+
 ## [0.6.3] - 2025-06-10
 
 ### Changed
